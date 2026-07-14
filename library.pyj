@@ -1,0 +1,191 @@
+#!python
+# from java import *
+
+minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
+minescript = JavaClass("net.minescript.common.Minescript")
+
+class MappingsHelper:
+    mappings: JavaObject = minescript.mappingsLoader.get()
+
+    @staticmethod
+    def get_runtime_class_name(pretty_class_name: str) -> str:
+        return MappingsHelper.mappings.getRuntimeClassName(pretty_class_name)
+    @staticmethod
+    def get_pretty_class_name(runtime_class_name: str) -> str:
+        return MappingsHelper.mappings.getPrettyClassName(runtime_class_name)
+    @staticmethod
+    def get_runtime_field_name(clazz: JavaClass, pretty_field_name: str) -> str:
+        return MappingsHelper.mappings.getRuntimeFieldName(clazz, pretty_field_name)
+    @staticmethod
+    def get_pretty_field_names(clazz: JavaClass) -> JavaSet[str]:
+        return MappingsHelper.mappings.getPrettyFieldNames(clazz)
+    @staticmethod
+    def get_runtime_method_names(clazz: JavaClass, pretty_method_name: str) -> JavaSet[str]:
+        return MappingsHelper.mappings.getRuntimeMethodNames(clazz, pretty_method_name)
+    @staticmethod
+    def get_pretty_method_names(clazz: JavaClass) -> JavaSet[str]:
+        return MappingsHelper.mappings.getPrettyMethodNames(clazz)
+
+class CraftingLayout:
+    def __init__(self, container_name, grid_slots, result_slot):
+        self.container_name = container_name
+        self.grid_slots = grid_slots
+        self.grid_size = len(grid_slots)
+        self.result_slot = result_slot
+        
+
+class ContainerHelper:
+    ClickType = JavaClass("net.minecraft.world.inventory.ClickType")
+
+    @staticmethod
+    def _get_container():
+        return minecraft.player.containerMenu
+
+    @staticmethod
+    def _resolve_click_type(click_type):
+        if click_type is None:
+            return ContainerHelper.ClickType.PICKUP
+
+        if type(click_type) is str:
+            for value in ContainerHelper.ClickType.values():
+                if value.name() == click_type:
+                    return value
+
+        return click_type
+
+    @staticmethod
+    def _validate_crafting_slot(crafting_slot):
+        layout = ContainerHelper.crafting_get_layout()
+        if crafting_slot in layout.grid_slots:
+            return True
+        return False
+
+    @staticmethod
+    def crafting_get_layout():
+        container_name = ContainerHelper.get_container_class_name()
+        if container_name == "net.minecraft.world.inventory.CrafterMenu":
+            return CraftingLayout(container_name, [0, 1, 2, 3, 4, 5, 6, 7, 8], 45)
+        if container_name == "net.minecraft.world.inventory.CraftingMenu":
+            return CraftingLayout(container_name, [1, 2, 3, 4, 5, 6, 7, 8, 9], 0)
+        if container_name == "net.minecraft.world.inventory.InventoryMenu":
+            return CraftingLayout(container_name, [1, 2, 3, 4], 0)
+        return CraftingLayout(container_name, [], -1)
+
+    @staticmethod
+    def get_container_id():
+        container = ContainerHelper._get_container()
+        if container is None:
+            return -1
+        return container.containerId
+
+    @staticmethod
+    def get_container_class_name():
+        container = ContainerHelper._get_container()
+        if container is None:
+            return ""
+        return MappingsHelper.get_pretty_class_name(container.getClass().getName())
+    
+    @staticmethod
+    def crafting_get_grid_size():
+        layout = ContainerHelper.crafting_get_layout()
+        return layout.grid_size
+    
+    @staticmethod
+    def raw_click(slot, button_or_slot=0, click_type=None):
+        click_type = ContainerHelper._resolve_click_type(click_type)
+        container_id = ContainerHelper.get_container_id()
+        if container_id < 0:
+            return False
+
+        minecraft.gameMode.handleInventoryMouseClick(
+            container_id,
+            slot,
+            button_or_slot,
+            click_type,
+            minecraft.player
+        )
+        return True
+
+    @staticmethod
+    def click_slot(slot, button=0):
+        return ContainerHelper.raw_click(slot, button, ContainerHelper.ClickType.PICKUP)
+
+    @staticmethod
+    def shift_click_slot(slot):
+        return ContainerHelper.raw_click(slot, 0, ContainerHelper.ClickType.QUICK_MOVE)
+
+    @staticmethod
+    def click_swap_with_hotbar(slot, hotbar_slot):
+        return ContainerHelper.raw_click(slot, hotbar_slot, ContainerHelper.ClickType.SWAP)
+
+    @staticmethod
+    def pickup_swap_container(slot_a, slot_b):
+        # Pick up the stack from the source slot once, then right-click the
+        # destination slot to place the items, and finally return
+        # the remainder to the source slot. (if it has any)
+        if not ContainerHelper.raw_click(slot_a, 0, ContainerHelper.ClickType.PICKUP):
+            return False
+        if not ContainerHelper.raw_click(slot_b, 0, ContainerHelper.ClickType.PICKUP):
+            return False
+        return ContainerHelper.raw_click(slot_a, 0, ContainerHelper.ClickType.PICKUP)
+
+    @staticmethod
+    def get_container_slot(slot):
+        items = container_get_items()
+
+        for item in items:
+            if item.slot == slot:
+                return item
+        return None
+
+    @staticmethod
+    def crafting_place_slot(slot, crafting_slot, count=1):
+        """Place items from the specified container slot into the crafting grid.
+
+        `crafting_slot` must be a menu slot present in
+        ContainerHelper.get_crafting_layout().grid_slots.
+        `count` controls how many single-item placements to perform.
+        """
+        layout = ContainerHelper.crafting_get_layout()
+        grid = layout.grid_size
+        if grid not in (4, 9):
+            return False
+
+        result_slot = layout.result_slot
+
+        if(not ContainerHelper._validate_crafting_slot(crafting_slot)):
+            return False
+
+        if count <= 0:
+            return False
+
+        # Pick up the stack from the source slot once, then right-click the
+        # crafting slot `cnt` times to place single items, and finally return
+        # the remainder to the source slot.
+        if not ContainerHelper.raw_click(slot, 0, ContainerHelper.ClickType.PICKUP):
+            return False
+
+        for _ in range(count):
+            if not ContainerHelper.raw_click(crafting_slot, 1, ContainerHelper.ClickType.PICKUP):
+                ContainerHelper.raw_click(slot, 0, ContainerHelper.ClickType.PICKUP)
+                return False
+
+        ContainerHelper.raw_click(slot, 0, ContainerHelper.ClickType.PICKUP)
+        return ContainerHelper.get_container_slot(result_slot)
+    
+    @staticmethod
+    def crafting_shift_click_result():
+        layout = ContainerHelper.crafting_get_layout()
+        result_slot = layout.result_slot
+        grid = layout.grid_size
+        if grid not in (4, 9):
+            return False
+
+        result = ContainerHelper.get_container_slot(result_slot)
+        if result is None:
+            return None
+
+        if not ContainerHelper.shift_click_slot(result_slot):
+            return False
+        return result
+

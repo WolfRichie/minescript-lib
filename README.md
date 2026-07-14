@@ -8,6 +8,11 @@
     - [get\_time\_until\_lured() -\> int](#get_time_until_lured---int)
     - [get\_time\_until\_hooked() -\> int](#get_time_until_hooked---int)
     - [use\_rod() -\> bool](#use_rod---bool)
+  - [`ItemsHelper`](#itemshelper)
+    - [get\_item\_by\_item\_id(item\_id: str) -\> JavaObject](#get_item_by_item_iditem_id-str---javaobject)
+    - [get\_item\_stack\_by\_item\_id(item\_id: str) -\> JavaObject](#get_item_stack_by_item_iditem_id-str---javaobject)
+    - [get\_display\_name\_by\_item\_id(item\_id: str) -\> str | None:](#get_display_name_by_item_iditem_id-str---str--none)
+    - [get\_display\_name\_by\_item(item: JavaObject, use\_custom\_name=False) -\> str | None:](#get_display_name_by_itemitem-javaobject-use_custom_namefalse---str--none)
   - [`MappingsHelper`](#mappingshelper)
     - [get\_runtime\_class\_name(pretty\_class\_name: str) -\> str](#get_runtime_class_namepretty_class_name-str---str)
     - [get\_pretty\_class\_name(runtime\_class\_name: str) -\> str](#get_pretty_class_nameruntime_class_name-str---str)
@@ -46,6 +51,29 @@ See examples/
 ### get_time_until_lured() -> int
 ### get_time_until_hooked() -> int
 ### use_rod() -> bool
+
+---
+
+## `ItemsHelper`
+
+### get_item_by_item_id(item_id: str) -> JavaObject
+  Example: `ItemsHelper.get_item_by_item_id("fishing_rod")`
+### get_item_stack_by_item_id(item_id: str) -> JavaObject
+  Example: `ItemsHelper.get_item_by_item_id("fishing_rod").getRarity()`
+
+### get_display_name_by_item_id(item_id: str) -> str | None: 
+  Example: `ItemsHelper.get_display_name_by_item_id("fishing_rod")` -> `[Fishing Rod]`
+
+### get_display_name_by_item(item: JavaObject, use_custom_name=False) -> str | None:
+ Args:
+    - `item_id` (str): The item id
+    - `use_custom_name` (bool): If `True`, returns the hover name (custom name) instead of the default display name.
+  Example: 
+  ```python
+  item_instance = ...
+  get_display_name_by_item(item_instance, True) # -> "cool item renamed at an anvil"
+  get_display_name_by_item(item_instance, False) # -> "Iron Sword"
+  ```
 
 ---
 

@@ -18,6 +18,20 @@ class MappingsHelper(PyJinnProxy):
   @staticmethod
   def get_pretty_method_names(clazz: java.JavaObject) -> java.JavaObject: ...
 
+class ReflectionHelper(PyJinnProxy):
+  @staticmethod
+  def get_private_field(instance: java.JavaObject, pretty_field_name: str) -> Any:
+    """Read a private field value via mappings and reflection.
+
+    Args:
+      instance: Java object instance containing the field.
+      pretty_field_name: Mapped field name to read.
+
+    Returns:
+      The reflected field value.
+    """
+    ...
+
 class CraftingLayout(PyJinnProxy):
   container_name: str
   grid_slots: list[int]
@@ -40,7 +54,7 @@ class ContainerHelper(PyJinnProxy):
     ...
   @staticmethod
   def get_container_slot(slot: int) -> Any:
-    """Return the item entry for `slot` from `container_get_items()`.
+    """Return the item entry for `slot` from `get_container_items()`.
 
     Returns:
       The slot item object when found, otherwise `None`.
@@ -122,3 +136,22 @@ class ContainerHelper(PyJinnProxy):
   def click_swap_with_hotbar(slot: int, hotbar_slot: int) -> bool: ...
   @staticmethod
   def pickup_swap_container(slot_a: int, slot_b: int) -> bool: ...
+
+
+class FishingHelper(PyJinnProxy):
+  @staticmethod
+  def is_holding_rod() -> bool: ...
+  @staticmethod
+  def is_casted() -> bool: ...
+  @staticmethod
+  def is_biting() -> bool: ...
+  @staticmethod
+  def is_open_water() -> bool: ...
+  @staticmethod
+  def get_hooked_entity() -> Any: ...
+  @staticmethod
+  def get_time_until_lured() -> int: ...
+  @staticmethod
+  def get_time_until_hooked() -> int: ...
+  @staticmethod
+  def use_rod() -> bool: ...

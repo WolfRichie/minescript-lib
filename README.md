@@ -68,6 +68,24 @@ Methods for container interactions, slot clicks, and crafting operations.
   *Returns:* `4`, `9`, or `0` when crafting is not supported by the open container.
   *Example:* `grid_size = ContainerHelper.crafting_get_grid_size()`
 
+  - **crafting_place_slot(slot, crafting_slot, count = 1)**
+  Places one item at a time from `slot` into `crafting_slot` repeatedly.
+  `crafting_slot` must be in `crafting_get_layout().grid_slots`.
+  *Returns:*
+  - Slot item object from `result_slot` after placement.
+  - `False` when layout is unsupported, slot is invalid, count is not positive, or click fails.
+  *Example:* `ContainerHelper.crafting_place_slot(15, 4, 2)`
+
+- **crafting_shift_click_result()**
+  Shift-clicks the current crafting `result_slot`.
+  *Returns:*
+  - Result slot item object that was present before click.
+  - `None` if result slot is empty.
+  - `False` when layout is unsupported or click fails.
+  *Example:* `crafted_item = ContainerHelper.crafting_shift_click_result()`
+  Gets active player container menu object.
+  *Example:* `menu = ContainerHelper._get_container()`
+
 - **get_container_id() -> int**
   Gets current container id.
   *Returns:* Container id, or `-1` if unavailable.
@@ -107,24 +125,6 @@ Methods for container interactions, slot clicks, and crafting operations.
   Swaps two slots using pickup sequence (A -> B -> A).
   *Returns:* `True` if all clicks succeed, `False` otherwise.
   *Example:* `ContainerHelper.pickup_swap_container(10, 11)`
-
-- **crafting_place_slot(slot, crafting_slot, count = 1)**
-  Places one item at a time from `slot` into `crafting_slot` repeatedly.
-  `crafting_slot` must be in `crafting_get_layout().grid_slots`.
-  *Returns:*
-  - Slot item object from `result_slot` after placement.
-  - `False` when layout is unsupported, slot is invalid, count is not positive, or click fails.
-  *Example:* `ContainerHelper.crafting_place_slot(15, 4, 2)`
-
-- **crafting_shift_click_result()**
-  Shift-clicks the current crafting `result_slot`.
-  *Returns:*
-  - Result slot item object that was present before click.
-  - `None` if result slot is empty.
-  - `False` when layout is unsupported or click fails.
-  *Example:* `crafted_item = ContainerHelper.crafting_shift_click_result()`
-  Gets active player container menu object.
-  *Example:* `menu = ContainerHelper._get_container()`
 
 - **_resolve_click_type(click_type)**
   Resolves string click type names to enum values.

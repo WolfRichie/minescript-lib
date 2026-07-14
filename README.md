@@ -23,10 +23,9 @@
     - [get\_pretty\_field\_names(clazz: JavaClass) -\> JavaSet\[str\]](#get_pretty_field_namesclazz-javaclass---javasetstr)
     - [get\_runtime\_method\_names(clazz: JavaClass, pretty\_method\_name: str) -\> JavaSet\[str\]](#get_runtime_method_namesclazz-javaclass-pretty_method_name-str---javasetstr)
     - [get\_pretty\_method\_names(clazz: JavaClass) -\> JavaSet\[str\]](#get_pretty_method_namesclazz-javaclass---javasetstr)
-  - [`CraftingLayout`](#craftinglayout)
-    - [CraftingLayout(container\_name, grid\_slots, result\_slot)](#craftinglayoutcontainer_name-grid_slots-result_slot)
   - [`ContainerHelper`](#containerhelper)
     - [crafting\_get\_layout() -\> CraftingLayout](#crafting_get_layout---craftinglayout)
+      - [`CraftingLayout`](#craftinglayout)
     - [crafting\_get\_grid\_size() -\> int](#crafting_get_grid_size---int)
     - [crafting\_place\_slot(slot, crafting\_slot, count = 1) -\> ItemStack](#crafting_place_slotslot-crafting_slot-count--1---itemstack)
     - [crafting\_shift\_click\_result() -\> ItemStack](#crafting_shift_click_result---itemstack)
@@ -45,6 +44,17 @@
     - [pickup\_swap\_container(slot\_a, slot\_b) -\> bool](#pickup_swap_containerslot_a-slot_b---bool)
   - [`ReflectionHelper`](#reflectionhelper)
     - [get\_private\_field(clazz: JavaClass, pretty\_field\_name: str) -\> Any](#get_private_fieldclazz-javaclass-pretty_field_name-str---any)
+  - [`ClientHelper`](#clienthelper)
+    - [set\_current\_screen(screen: JavaObject) -\> None:](#set_current_screenscreen-javaobject---none)
+    - [get\_current\_screen() -\> JavaObject | None](#get_current_screen---javaobject--none)
+    - [get\_current\_screen\_class\_name() -\> str](#get_current_screen_class_name---str)
+    - [close\_current\_screen() -\> None](#close_current_screen---none)
+    - [open\_pause\_screen() -\> None](#open_pause_screen---none)
+    - [open\_inventory\_screen() -\> None](#open_inventory_screen---none)
+    - [disconnect(str = "Disconnected by Minescript") -\> None](#disconnectstr--disconnected-by-minescript---none)
+    - [get\_level\_data() -\> ClientLevelData](#get_level_data---clientleveldata)
+      - [`ClientLevelData`](#clientleveldata)
+    - [get\_fps() -\> int](#get_fps---int)
 
 # Usage
 See examples/
@@ -137,17 +147,6 @@ See examples/
 
   Example: `MappingsHelper.get_pretty_method_names(minecraft.player.getClass())`
 
-## `CraftingLayout`
-Object that stores crafting layout metadata for the current container.
-
-### CraftingLayout(container_name, grid_slots, result_slot)
-  Creates a layout object for crafting interactions.
-  Stores:
-  - `container_name`: Mapped runtime container class name.
-  - `grid_slots`: List of valid crafting slot ids for the active menu.
-  - `grid_size`: Precomputed length of `grid_slots`.
-  - `result_slot`: Slot id containing crafting output.
-
   Example: `layout = ContainerHelper.crafting_get_layout()`
 
 ## `ContainerHelper`
@@ -158,12 +157,20 @@ Object that stores crafting layout metadata for the current container.
 
   Example: `layout = ContainerHelper.crafting_get_layout()`
 
+#### `CraftingLayout`
+Object that stores crafting layout metadata for the current container.
+Stores:
+  - `container_name` str: Mapped runtime container class name.
+  - `grid_slots` List[int]: List of valid crafting slot ids for the active menu.
+  - `grid_size` int: Precomputed length of `grid_slots`.
+  - `result_slot` int: Slot id containing crafting output.
+
+
 ### crafting_get_grid_size() -> int
   Gets crafting grid size for the current layout.
   Returns: `4`, `9`, or `0` when crafting is not supported by the open container.
 
   Example: `grid_size = ContainerHelper.crafting_get_grid_size()`
-
 
 ### crafting_place_slot(slot, crafting_slot, count = 1) -> ItemStack
   Places one item at a time from `slot` into `crafting_slot` repeatedly.
@@ -247,3 +254,29 @@ Methods for accessing to internal/private Java fields.
   Returns: Reflected field value.
 
   Example: `ReflectionHelper.get_private_field(hook, "biting")`
+
+---
+
+## `ClientHelper`
+
+### set_current_screen(screen: JavaObject) -> None:
+### get_current_screen() -> JavaObject | None
+### get_current_screen_class_name() -> str
+### close_current_screen() -> None
+### open_pause_screen() -> None
+### open_inventory_screen() -> None
+### disconnect(str = "Disconnected by Minescript") -> None
+
+### get_level_data() -> ClientLevelData
+
+#### `ClientLevelData`
+  Stores:
+  - `hardcore` bool:
+  - `is_flat` bool:
+  - `game_time` int:
+  - `day_time` int:
+  - `raining` bool:
+  - `difficulty` str:
+  - `difficulty_locked` bool:
+
+###  get_fps() -> int

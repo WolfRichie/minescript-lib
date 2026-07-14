@@ -65,10 +65,11 @@ See examples/
   Example: `ItemsHelper.get_display_name_by_item_id("fishing_rod")` -> `[Fishing Rod]`
 
 ### get_display_name_by_item(item: JavaObject, use_custom_name=False) -> str | None:
- Args:
-    - `item_id` (str): The item id
-    - `use_custom_name` (bool): If `True`, returns the hover name (custom name) instead of the default display name.
-  Example: 
+  Args:
+  - `item_id` (str): The item instance (of net.minecraft.world.item.Item)
+  - `use_custom_name` (bool): If `True`, returns the hover name (custom name) instead of the default display name.
+  
+  Example:
   ```python
   item_instance = ...
   get_display_name_by_item(item_instance, True) # -> "cool item renamed at an anvil"
@@ -82,31 +83,37 @@ See examples/
 ### get_runtime_class_name(pretty_class_name: str) -> str
   Resolves a mapped class name to its runtime class name.
   Returns: Runtime class name string.
+
   Example: `MappingsHelper.get_runtime_class_name("net.minecraft.client.Minecraft")`
 
 ### get_pretty_class_name(runtime_class_name: str) -> str
   Resolves a runtime class name to its mapped class name.
   Returns: Pretty class name string.
+
   Example: `MappingsHelper.get_pretty_class_name("net.minecraft.class_310")`
 
 ### get_runtime_field_name(clazz: JavaClass, pretty_field_name: str) -> str
   Resolves a mapped field name to the runtime field name for a class.
   Returns: Runtime field name string.
+
   Example: `MappingsHelper.get_runtime_field_name(minecraft.player.getClass(), "containerMenu")`
 
 ### get_pretty_field_names(clazz: JavaClass) -> JavaSet[str]
   Gets all mapped field names available for a class.
   Returns: Java set of pretty field names.
+
   Example: `MappingsHelper.get_pretty_field_names(minecraft.player.getClass())`
 
 ### get_runtime_method_names(clazz: JavaClass, pretty_method_name: str) -> JavaSet[str]
   Resolves a mapped method name to runtime method names for a class.
   Returns: Java set of runtime method names.
+
   Example: `MappingsHelper.get_runtime_method_names(minecraft.player.getClass(), "getInventory")`
 
 ### get_pretty_method_names(clazz: JavaClass) -> JavaSet[str]
   Gets all mapped method names available for a class.
   Returns: Java set of pretty method names.
+
   Example: `MappingsHelper.get_pretty_method_names(minecraft.player.getClass())`
 
 ## `CraftingLayout`
@@ -119,6 +126,7 @@ Object that stores crafting layout metadata for the current container.
   - `grid_slots`: List of valid crafting slot ids for the active menu.
   - `grid_size`: Precomputed length of `grid_slots`.
   - `result_slot`: Slot id containing crafting output.
+  - 
   Example: `layout = ContainerHelper.crafting_get_layout()`
 
 ## `ContainerHelper`
@@ -126,11 +134,13 @@ Object that stores crafting layout metadata for the current container.
 ### crafting_get_layout() -> CraftingLayout
   Returns the active crafting layout object for the current container.
   Returns: `CraftingLayout` with `container_name`, `grid_slots`, `grid_size`, and `result_slot`.
+
   Example: `layout = ContainerHelper.crafting_get_layout()`
 
 ### crafting_get_grid_size() -> int
   Gets crafting grid size for the current layout.
   Returns: `4`, `9`, or `0` when crafting is not supported by the open container.
+
   Example: `grid_size = ContainerHelper.crafting_get_grid_size()`
 
 
@@ -140,6 +150,7 @@ Object that stores crafting layout metadata for the current container.
   Returns:
   - ItemStack object from `result_slot` after placement.
   - `False` when layout is unsupported, slot is invalid, count is not positive, or click fails.
+  
   Example: `ContainerHelper.crafting_place_slot(15, 4, 2)`
 
 ### crafting_shift_click_result() -> ItemStack
@@ -148,27 +159,32 @@ Object that stores crafting layout metadata for the current container.
   - Result slot item object that was present before click.
   - `None` if result slot is empty.
   - `False` when layout is unsupported or click fails.
+
   Example: `crafted_item = ContainerHelper.crafting_shift_click_result()`
 
 
 ### get_container_id() -> int
   Gets current container id.
   Returns: Container id, or `-1` if unavailable.
+
   Example: `container_id = ContainerHelper.get_container_id()`
 
 ### get_container_class_name() -> str
   Gets mapped class name for the active container menu.
   Returns: Container class name, or empty string when unavailable.
+
   Example: `container_name = ContainerHelper.get_container_class_name()`
 
 ### get_container_slot(slot) -> ItemStack
   Looks up an item entry by slot from `container_get_items()`.
   Returns: StackItem or `None` if not found.
+
   Example: `result_item = ContainerHelper.get_container_slot(0)`
 
 ### raw_click(slot, button_or_slot = 0, click_type = None) -> bool
   Sends a low-level inventory click to Minecraft.
   Returns: `True` when click is sent, `False` when no valid container id is available.
+
   Example: `ContainerHelper.raw_click(0, 0, "PICKUP")`
 
 ### click_slot(slot, button = 0) -> bool
@@ -179,16 +195,19 @@ Object that stores crafting layout metadata for the current container.
 ### shift_click_slot(slot) -> bool
   Performs a QUICK_MOVE (shift-click) on a slot.
   Returns: `True`/`False` from `raw_click`.
+
   Example: `ContainerHelper.shift_click_slot(13)`
 
 ### click_swap_with_hotbar(slot, hotbar_slot) -> bool
   Swaps a slot with a hotbar slot via SWAP click.
   Returns: `True`/`False` from `raw_click`.
+
   Example: `ContainerHelper.click_swap_with_hotbar(13, 0)`
 
 ### pickup_swap_container(slot_a, slot_b) -> bool
   Swaps two slots using pickup sequence (A -> B -> A).
   Returns: `True` if all clicks succeed, `False` otherwise.
+
   Example: `ContainerHelper.pickup_swap_container(10, 11)`
 
 ---
@@ -199,4 +218,5 @@ Methods for accessing to internal/private Java fields.
 ### get_private_field(clazz: JavaClass, pretty_field_name: str) -> Any
   Reads a private field value from the given Java Class instance using mappings.
   Returns: Reflected field value.
+
   Example: `ReflectionHelper.get_private_field(hook, "biting")`

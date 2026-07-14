@@ -173,7 +173,6 @@ class ItemsHelper(PyJinnProxy):
     """
     ...
 
-
 class FishingHelper(PyJinnProxy):
   @staticmethod
   def is_holding_rod() -> bool: ...
@@ -211,3 +210,21 @@ class ClientHelper(PyJinnProxy):
   def get_level_data() -> ClientLevelData: ...
   @staticmethod
   def get_fps() -> int: ...
+  @staticmethod
+  def get_camera_position() -> Vector3f: ...
+  @staticmethod
+  def get_camera_type() -> str: 
+      """
+      FIRST_PERSON, THIRD_PERSON_BACK, THIRD_PERSON_FRONT
+      """
+    ...
+
+class UtilHelper(PyJinnProxy):
+  @staticmethod
+  def get_class_name(obj: JavaObject) -> str:
+    """Return the mapped class name for a Java object instance."""
+    ...
+  @staticmethod
+  def get_clipboard() -> str:
+  @staticmethod
+  def set_clipboard(text: str) -> None: ...

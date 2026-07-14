@@ -1,4 +1,3 @@
-
 - [Usage](#usage)
   - [`FishingHelper`](#fishinghelper)
     - [is\_holding\_rod() -\> bool](#is_holding_rod---bool)
@@ -21,16 +20,16 @@
   - [`ContainerHelper`](#containerhelper)
     - [crafting\_get\_layout() -\> CraftingLayout](#crafting_get_layout---craftinglayout)
     - [crafting\_get\_grid\_size() -\> int](#crafting_get_grid_size---int)
+    - [crafting\_place\_slot(slot, crafting\_slot, count = 1) -\> ItemStack](#crafting_place_slotslot-crafting_slot-count--1---itemstack)
+    - [crafting\_shift\_click\_result() -\> ItemStack](#crafting_shift_click_result---itemstack)
     - [get\_container\_id() -\> int](#get_container_id---int)
     - [get\_container\_class\_name() -\> str](#get_container_class_name---str)
-    - [container\_get\_slot(slot) -\> ItemStack](#container_get_slotslot---itemstack)
+    - [get\_container\_slot(slot) -\> ItemStack](#get_container_slotslot---itemstack)
     - [raw\_click(slot, button\_or\_slot = 0, click\_type = None) -\> bool](#raw_clickslot-button_or_slot--0-click_type--none---bool)
     - [click\_slot(slot, button = 0) -\> bool](#click_slotslot-button--0---bool)
     - [shift\_click\_slot(slot) -\> bool](#shift_click_slotslot---bool)
     - [click\_swap\_with\_hotbar(slot, hotbar\_slot) -\> bool](#click_swap_with_hotbarslot-hotbar_slot---bool)
     - [pickup\_swap\_container(slot\_a, slot\_b) -\> bool](#pickup_swap_containerslot_a-slot_b---bool)
-    - [crafting\_place\_slot(slot, crafting\_slot, count = 1) -\> ItemStack](#crafting_place_slotslot-crafting_slot-count--1---itemstack)
-    - [crafting\_shift\_click\_result() -\> ItemStack](#crafting_shift_click_result---itemstack)
   - [`ReflectionHelper`](#reflectionhelper)
     - [get\_private\_field(clazz: JavaClass, pretty\_field\_name: str) -\> Any](#get_private_fieldclazz-javaclass-pretty_field_name-str---any)
 
@@ -106,6 +105,24 @@ Object that stores crafting layout metadata for the current container.
   Returns: `4`, `9`, or `0` when crafting is not supported by the open container.
   Example: `grid_size = ContainerHelper.crafting_get_grid_size()`
 
+
+### crafting_place_slot(slot, crafting_slot, count = 1) -> ItemStack
+  Places one item at a time from `slot` into `crafting_slot` repeatedly.
+  `crafting_slot` must be in `crafting_get_layout().grid_slots`.
+  Returns:
+  - ItemStack object from `result_slot` after placement.
+  - `False` when layout is unsupported, slot is invalid, count is not positive, or click fails.
+  Example: `ContainerHelper.crafting_place_slot(15, 4, 2)`
+
+### crafting_shift_click_result() -> ItemStack
+  Shift-clicks the current crafting `result_slot`.
+  Returns:
+  - Result slot item object that was present before click.
+  - `None` if result slot is empty.
+  - `False` when layout is unsupported or click fails.
+  Example: `crafted_item = ContainerHelper.crafting_shift_click_result()`
+
+
 ### get_container_id() -> int
   Gets current container id.
   Returns: Container id, or `-1` if unavailable.
@@ -116,10 +133,10 @@ Object that stores crafting layout metadata for the current container.
   Returns: Container class name, or empty string when unavailable.
   Example: `container_name = ContainerHelper.get_container_class_name()`
 
-### container_get_slot(slot) -> ItemStack
+### get_container_slot(slot) -> ItemStack
   Looks up an item entry by slot from `container_get_items()`.
   Returns: StackItem or `None` if not found.
-  Example: `result_item = ContainerHelper.container_get_slot(0)`
+  Example: `result_item = ContainerHelper.get_container_slot(0)`
 
 ### raw_click(slot, button_or_slot = 0, click_type = None) -> bool
   Sends a low-level inventory click to Minecraft.
@@ -145,22 +162,6 @@ Object that stores crafting layout metadata for the current container.
   Swaps two slots using pickup sequence (A -> B -> A).
   Returns: `True` if all clicks succeed, `False` otherwise.
   Example: `ContainerHelper.pickup_swap_container(10, 11)`
-
-### crafting_place_slot(slot, crafting_slot, count = 1) -> ItemStack
-  Places one item at a time from `slot` into `crafting_slot` repeatedly.
-  `crafting_slot` must be in `crafting_get_layout().grid_slots`.
-  Returns:
-  - ItemStack object from `result_slot` after placement.
-  - `False` when layout is unsupported, slot is invalid, count is not positive, or click fails.
-  Example: `ContainerHelper.crafting_place_slot(15, 4, 2)`
-
-### crafting_shift_click_result() -> ItemStack
-  Shift-clicks the current crafting `result_slot`.
-  Returns:
-  - Result slot item object that was present before click.
-  - `None` if result slot is empty.
-  - `False` when layout is unsupported or click fails.
-  Example: `crafted_item = ContainerHelper.crafting_shift_click_result()`
 
 ---
 

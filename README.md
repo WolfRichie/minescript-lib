@@ -78,10 +78,10 @@ Methods for container interactions, slot clicks, and crafting operations.
   *Returns:* Container class name, or empty string when unavailable.
   *Example:* `container_name = ContainerHelper.get_container_class_name()`
 
-- **container_get_slot(slot)**
+- **get_container_slot(slot)**
   Looks up an item entry by slot from `container_get_items()`.
   *Returns:* Slot item object, or `None` if not found.
-  *Example:* `result_item = ContainerHelper.container_get_slot(0)`
+  *Example:* `result_item = ContainerHelper.get_container_slot(0)`
 
 - **raw_click(slot, button_or_slot = 0, click_type = None) -> bool**
   Sends a low-level inventory click to Minecraft.

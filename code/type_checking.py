@@ -137,6 +137,22 @@ class ContainerHelper(PyJinnProxy):
   @staticmethod
   def pickup_swap_container(slot_a: int, slot_b: int) -> bool: ...
 
+class ItemsHelper(PyJinnProxy):
+  @staticmethod
+  def get_item_by_item_id(item_id: str) -> JavaObject: ...
+  @staticmethod
+  def get_item_stack_by_item_id(item_id: str) -> JavaObject: ...
+  @staticmethod
+  def get_display_name_by_item_id(item_id: str) -> str | None: ...
+  @staticmethod
+  def get_display_name_by_item(item: JavaObject, use_custom_name=False) -> str | None: 
+    """
+    Args:
+      item_id (str): An "net.minecraft.world.item.Item" instance
+      use_custom_name (bool): If `True`, returns the hover name (custom name) instead of the default display name.
+    """
+    ...
+
 
 class FishingHelper(PyJinnProxy):
   @staticmethod

@@ -1,8 +1,6 @@
 # #!python
-# from java import *
-# from minescript import *
-
-
+# import * from java
+# import * from minescript
 
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
 minescript = JavaClass("net.minescript.common.Minescript")
@@ -183,12 +181,6 @@ class ContainerHelper:
 
     @staticmethod
     def crafting_place_slot(slot, crafting_slot, count=1) -> ItemStack | bool | None:
-        """Place items from the specified container slot into the crafting grid.
-
-        `crafting_slot` must be a menu slot present in
-        ContainerHelper.crafting_get_layout().grid_slots.
-        `count` controls how many single-item placements to perform.
-        """
         layout = ContainerHelper.crafting_get_layout()
         grid = layout.grid_size
         if grid not in (4, 9):

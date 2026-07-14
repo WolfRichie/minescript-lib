@@ -2,6 +2,7 @@
 # import * from java
 # import * from minescript
 
+
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
 minescript = JavaClass("net.minescript.common.Minescript")
 
@@ -356,3 +357,67 @@ class FishingHelper:
 
         player_press_use(True)
         return True
+    
+class ClientHelper:
+    PauseScreen = JavaClass("net.minecraft.client.gui.screens.PauseScreen")
+    InventoryScreen = JavaClass("net.minecraft.client.gui.screens.inventory.InventoryScreen")
+    Component = JavaClass("net.minecraft.network.chat.Component")
+
+    @staticmethod
+    def set_current_screen(screen: JavaObject) -> None:
+        minecraft.setScreen(screen)
+    
+    @staticmethod
+    def get_current_screen() -> JavaObject | None:
+        return minecraft.screen
+    
+    @staticmethod
+    def get_current_screen_class_name() -> str:
+        if minecraft.screen is None:
+            return None
+        return MappingsHelper.get_pretty_class_name(minecraft.screen.getClass().getName())
+    
+    @staticmethod
+    def close_current_screen() -> None:
+        minecraft.setScreen(None)
+
+    @staticmethod
+    def open_pause_screen() -> None:
+        ClientHelper.set_current_screen(ClientHelper.PauseScreen())
+
+    @staticmethod
+    def open_inventory_screen() -> None:
+        ClientHelper.set_current_screen(ClientHelper.InventoryScreen())
+
+    @staticmethod
+    def disconnect(str = "Disconnected by Minescript") -> None:
+        minecraft.level.disconnect(ClientHelper.Component.literal(str))
+
+    @staticmethod
+    def get_level_data() -> ClientLevelData:
+        level = minecraft.level
+
+        hardcore: bool = level.isHardcore()
+        is_flat: bool = level.isFlat()
+        game_time: int = level.getGameTime()
+        day_time: int = level.getDayTime()
+        raining: bool = level.isRaining()
+        difficulty: str = ReflectionHelper.get_private_field(level, "difficulty").key
+        difficulty_locked: bool = ReflectionHelper.get_private_field(level, "difficultyLocked")
+
+        return ClientLevelData(hardcore, is_flat, game_time, day_time, raining, difficulty, difficulty_locked)
+
+    @staticmethod
+    def get_fps():
+        return minecraft.getFps()
+
+class ClientLevelData:
+    def __init__(self, hardcore: bool, is_flat: bool, game_time: int, day_time: int, raining: bool, difficulty: str, difficulty_locked: bool):
+        self.hardcore = hardcore
+        self.is_flat = is_flat
+        self.game_time = game_time
+        self.day_time = day_time
+        self.raining = raining
+        self.difficulty = difficulty # .key
+        self.difficulty_locked = difficulty_locked
+

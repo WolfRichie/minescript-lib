@@ -17,3 +17,6 @@ else:
 
   class ItemsHelper(PyJinnProxy):
     pass
+
+  class ClientHelper(PyJinnProxy):
+    pass

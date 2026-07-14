@@ -53,7 +53,7 @@ class ContainerHelper(PyJinnProxy):
     """
     ...
   @staticmethod
-  def container_get_slot(slot: int) -> Any:
+  def get_container_slot(slot: int) -> Any:
     """Return the item entry for `slot` from `container_get_items()`.
 
     Returns:

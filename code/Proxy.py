@@ -1,5 +1,4 @@
-from typing import Any
-from java import import_pyjinn_script
+from java import import_pyjinn_script, ScriptObject
 
 class PyJinnProxyMeta(type):
     script = None
@@ -10,7 +9,7 @@ class PyJinnProxyMeta(type):
         return cls.script
 
     @classmethod
-    def bind_script_object(cls, script: Any):
+    def bind_script_object(cls, script: ScriptObject):
         cls.script = script
         return cls.script
 
@@ -49,7 +48,3 @@ class PyJinnProxyMeta(type):
 
 class PyJinnProxy(metaclass=PyJinnProxyMeta):
   pass
-
-
-def bind_script(name: str):
-    return PyJinnProxyMeta.bind_script(name)

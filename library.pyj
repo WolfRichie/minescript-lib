@@ -1,6 +1,8 @@
-#!python
- from java import *
-from minescript import *
+# #!python
+#  from java import *
+# from minescript import *  
+
+
 
 
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
@@ -200,11 +202,64 @@ class ContainerHelper:
         if not ContainerHelper.shift_click_slot(result_slot):
             return False
         return result
-
-
-class FishingHelper:
+    
+class ItemsHelper:
     Items = JavaClass("net.minecraft.world.item.Items")
-    ROD = Items.FISHING_ROD
+    BuiltInRegistries = JavaClass("net.minecraft.core.registries.BuiltInRegistries")
+    Identifier = JavaClass("net.minecraft.resources.Identifier")
+
+    
+    @staticmethod
+    def _get_item_by_identifier(identifier):
+        optional = ItemsHelper.BuiltInRegistries.ITEM.get(identifier)
+
+        if optional.isEmpty():
+            return None
+
+        return optional.get().value()   
+
+    @staticmethod
+    def _get_identifier_by_item_id(item_id: str):
+        return ItemsHelper.Identifier.parse(item_id)
+
+    @staticmethod
+    def get_item_by_item_id(item_id: str):
+        identifier = ItemsHelper._get_identifier_by_item_id(item_id)
+        return ItemsHelper._get_item_by_identifier(identifier)
+
+    @staticmethod
+    def get_item_stack_by_item_id(item_id: str):
+        item = ItemsHelper.get_item_by_item_id(item_id)
+
+        if item is None:
+            return None
+
+        return item.getDefaultInstance()
+    
+    @staticmethod
+    def get_display_name_by_item_id(item_id: str):
+        item_stack = ItemsHelper.get_item_stack_by_item_id(item_id)
+
+        if item_stack is None:
+            return None
+
+        return tem_stack.getDisplayName().getString()
+    
+    @staticmethod
+    def get_display_name_by_item(item: JavaObject, use_custom_name=False):
+        item_stack = item.getDefaultInstance()
+
+        if item_stack is None:
+            return None
+
+        if use_custom_name:
+            return item_stack.getHoverName().getString()
+
+        return item_stack.getDisplayName().getString()
+        
+        
+class FishingHelper:
+    ROD = ItemsHelper.Items.FISHING_ROD
 
     @staticmethod
     def _get_fishing_hook():
@@ -262,4 +317,3 @@ class FishingHelper:
 
         player_press_use(True)
         return True
-

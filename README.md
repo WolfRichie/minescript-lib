@@ -38,7 +38,7 @@ from main import ContainerHelper, MappingsHelper, ReflectionHelper
 ## `ReflectionHelper`
 Methods for reflective access to internal/private Java fields.
 
-- **get_private_field(instance, pretty_field_name: str, super_class: bool = False)**
+- **get_private_field(clazz, pretty_field_name: str)**
   Reads a private field value from the given Java object instance using mappings.
   *Returns:* Reflected field value.
   *Example:* `N/A`

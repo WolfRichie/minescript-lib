@@ -13,7 +13,7 @@ while True:
 
 		if not casted:
 			print("action: casting rod")
-			result = FishingHelper.cast()
+			result = FishingHelper.use_rod()
 			continue
 
 		if biting:

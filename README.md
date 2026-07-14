@@ -55,6 +55,12 @@
     - [get\_level\_data() -\> ClientLevelData](#get_level_data---clientleveldata)
       - [`ClientLevelData`](#clientleveldata)
     - [get\_fps() -\> int](#get_fps---int)
+    - [get\_camera\_position() -\> Vector3f](#get_camera_position---vector3f)
+    - [get\_camera\_type() -\> str:](#get_camera_type---str)
+  - [`UtilHelper`](#utilhelper)
+    - [get\_class\_name(obj: JavaObject) -\> str:](#get_class_nameobj-javaobject---str)
+    - [get\_clipboard() -\> str:](#get_clipboard---str)
+    - [set\_clipboard(text: str) -\> None:](#set_clipboardtext-str---none)
 
 # Usage
 See examples/
@@ -280,3 +286,16 @@ Methods for accessing to internal/private Java fields.
   - `difficulty_locked` bool:
 
 ###  get_fps() -> int
+###  get_camera_position() -> [Vector3f](https://minescript.net/docs#vector3f)
+
+###  get_camera_type() -> str:
+
+FIRST_PERSON, THIRD_PERSON_BACK, THIRD_PERSON_FRONT
+
+---
+
+## `UtilHelper`
+
+### get_class_name(obj: JavaObject) -> str:
+### get_clipboard() -> str:
+### set_clipboard(text: str) -> None:

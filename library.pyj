@@ -1,5 +1,7 @@
 #!python
-# from java import *
+ from java import *
+from minescript import *
+
 
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
 minescript = JavaClass("net.minescript.common.Minescript")
@@ -25,6 +27,16 @@ class MappingsHelper:
     @staticmethod
     def get_pretty_method_names(clazz: JavaClass) -> JavaSet[str]:
         return MappingsHelper.mappings.getPrettyMethodNames(clazz)
+
+class ReflectionHelper:
+    @staticmethod
+    def get_private_field(clazz: JavaClass, pretty_field_name: str):
+        target_class = clazz.getClass()
+        runtime_field_name = MappingsHelper.get_runtime_field_name(target_class, pretty_field_name)
+        field = target_class.getDeclaredField(runtime_field_name)
+        field.setAccessible(True)
+        return field.get(clazz)
+
 
 class CraftingLayout:
     def __init__(self, container_name, grid_slots, result_slot):
@@ -143,7 +155,7 @@ class ContainerHelper:
         """Place items from the specified container slot into the crafting grid.
 
         `crafting_slot` must be a menu slot present in
-        ContainerHelper.get_crafting_layout().grid_slots.
+        ContainerHelper.crafting_get_layout().grid_slots.
         `count` controls how many single-item placements to perform.
         """
         layout = ContainerHelper.crafting_get_layout()
@@ -188,4 +200,66 @@ class ContainerHelper:
         if not ContainerHelper.shift_click_slot(result_slot):
             return False
         return result
+
+
+class FishingHelper:
+    Items = JavaClass("net.minecraft.world.item.Items")
+    ROD = Items.FISHING_ROD
+
+    @staticmethod
+    def _get_fishing_hook():
+        return minecraft.player.fishing
+
+    @staticmethod
+    def is_holding_rod():
+        hand_items: HandItems = player_hand_items()
+
+        return hand_items.main_hand == FishingHelper.ROD or hand_items.off_hand == FishingHelper.ROD
+
+    @staticmethod
+    def is_casted():
+        return FishingHelper._get_fishing_hook() is not None
+
+    @staticmethod
+    def is_biting():
+        hook = FishingHelper._get_fishing_hook()
+        if hook is None:
+            return False
+        return ReflectionHelper.get_private_field(hook, "biting")
+
+    @staticmethod
+    def is_open_water():
+        hook = FishingHelper._get_fishing_hook()
+        if hook is None:
+            return False
+        return hook.isOpenWaterFishing()
+
+    @staticmethod
+    def get_hooked_entity():
+        hook = FishingHelper._get_fishing_hook()
+        if hook is None:
+            return None
+        return hook.getHookedIn()
+
+    @staticmethod
+    def get_time_until_lured():
+        hook = FishingHelper._get_fishing_hook()
+        if hook is None:
+            return False
+        return ReflectionHelper.get_private_field(hook, "timeUntilLured")
+    
+    @staticmethod
+    def get_time_until_hooked():
+        hook = FishingHelper._get_fishing_hook()
+        if hook is None:
+            return False
+        return ReflectionHelper.get_private_field(hook, "timeUntilHooked")
+    
+    @staticmethod
+    def use_rod():
+        if not FishingHelper.is_holding_rod():
+            return False
+
+        player_press_use(True)
+        return True
 

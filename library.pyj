@@ -1,7 +1,6 @@
 # #!python
-#  from java import *
-# from minescript import *  
-
+# from java import *
+# from minescript import *
 
 
 
@@ -39,9 +38,8 @@ class ReflectionHelper:
         field.setAccessible(True)
         return field.get(clazz)
 
-
 class CraftingLayout:
-    def __init__(self, container_name, grid_slots, result_slot):
+    def __init__(self, container_name: str, grid_slots: list[int], result_slot: int):
         self.container_name = container_name
         self.grid_slots = grid_slots
         self.grid_size = len(grid_slots)
@@ -52,11 +50,11 @@ class ContainerHelper:
     ClickType = JavaClass("net.minecraft.world.inventory.ClickType")
 
     @staticmethod
-    def _get_container():
+    def _get_container() -> JavaObject | None:
         return minecraft.player.containerMenu
 
     @staticmethod
-    def _resolve_click_type(click_type):
+    def _resolve_click_type(click_type) -> JavaObject:
         if click_type is None:
             return ContainerHelper.ClickType.PICKUP
 
@@ -68,14 +66,14 @@ class ContainerHelper:
         return click_type
 
     @staticmethod
-    def _validate_crafting_slot(crafting_slot):
+    def _validate_crafting_slot(crafting_slot) -> bool:
         layout = ContainerHelper.crafting_get_layout()
         if crafting_slot in layout.grid_slots:
             return True
         return False
 
     @staticmethod
-    def crafting_get_layout():
+    def crafting_get_layout() -> CraftingLayout:
         container_name = ContainerHelper.get_container_class_name()
         if container_name == "net.minecraft.world.inventory.CrafterMenu":
             return CraftingLayout(container_name, [0, 1, 2, 3, 4, 5, 6, 7, 8], 45)
@@ -86,26 +84,26 @@ class ContainerHelper:
         return CraftingLayout(container_name, [], -1)
 
     @staticmethod
-    def get_container_id():
+    def get_container_id() -> int:
         container = ContainerHelper._get_container()
         if container is None:
             return -1
         return container.containerId
 
     @staticmethod
-    def get_container_class_name():
+    def get_container_class_name() -> str:
         container = ContainerHelper._get_container()
         if container is None:
             return ""
         return MappingsHelper.get_pretty_class_name(container.getClass().getName())
     
     @staticmethod
-    def crafting_get_grid_size():
+    def crafting_get_grid_size() -> int:
         layout = ContainerHelper.crafting_get_layout()
         return layout.grid_size
     
     @staticmethod
-    def raw_click(slot, button_or_slot=0, click_type=None):
+    def raw_click(slot, button_or_slot=0, click_type=None) -> bool:
         click_type = ContainerHelper._resolve_click_type(click_type)
         container_id = ContainerHelper.get_container_id()
         if container_id < 0:
@@ -121,19 +119,19 @@ class ContainerHelper:
         return True
 
     @staticmethod
-    def click_slot(slot, button=0):
+    def click_slot(slot, button=0) -> bool:
         return ContainerHelper.raw_click(slot, button, ContainerHelper.ClickType.PICKUP)
 
     @staticmethod
-    def shift_click_slot(slot):
+    def shift_click_slot(slot) -> bool:
         return ContainerHelper.raw_click(slot, 0, ContainerHelper.ClickType.QUICK_MOVE)
 
     @staticmethod
-    def click_swap_with_hotbar(slot, hotbar_slot):
+    def click_swap_with_hotbar(slot, hotbar_slot) -> bool:
         return ContainerHelper.raw_click(slot, hotbar_slot, ContainerHelper.ClickType.SWAP)
 
     @staticmethod
-    def pickup_swap_container(slot_a, slot_b):
+    def pickup_swap_container(slot_a, slot_b) -> bool:
         # Pick up the stack from the source slot once, then right-click the
         # destination slot to place the items, and finally return
         # the remainder to the source slot. (if it has any)
@@ -144,16 +142,47 @@ class ContainerHelper:
         return ContainerHelper.raw_click(slot_a, 0, ContainerHelper.ClickType.PICKUP)
 
     @staticmethod
-    def get_container_slot(slot):
-        items = container_get_items()
-
+    def _get_item_by_slot(items: List[ItemStack], slot: int) -> ItemStack | None:
         for item in items:
             if item.slot == slot:
                 return item
         return None
 
     @staticmethod
-    def crafting_place_slot(slot, crafting_slot, count=1):
+    def get_container_slot(slot: int) -> ItemStack | None:
+        return ContainerHelper._get_item_by_slot(container_get_items(), slot)
+
+    @staticmethod
+    def get_inventory_slot(slot: int) -> ItemStack | None:
+        return ContainerHelper._get_item_by_slot(player_inventory(), slot)
+    
+
+    @staticmethod
+    def get_item_stack_by_inventory_slot(slot: int) -> JavaObject:
+        return minecraft.player.getInventory().getItem(slot )
+
+    @staticmethod
+    def get_item_stack_by_container_slot(slot: int) -> JavaObject:
+        return ContainerHelper._get_container().getSlot(slot).getItem()
+
+    @staticmethod
+    def _has_item_id(items: List[ItemStack], item_id: str) -> List[ItemStack]:
+        found_item_stacks = []
+        for item in items:
+            if item.item == item_id:
+                found_item_stacks.append(item)
+        return found_item_stacks
+    
+    @staticmethod
+    def container_find_item_id(item_id: str) -> List[ItemStack]:
+        return ContainerHelper._has_item_id(container_get_items(), item_id)
+    
+    @staticmethod
+    def inventory_find_item_id(item_id: str) -> List[ItemStack]:
+        return ContainerHelper._has_item_id(player_inventory(), item_id)
+
+    @staticmethod
+    def crafting_place_slot(slot, crafting_slot, count=1) -> ItemStack | bool | None:
         """Place items from the specified container slot into the crafting grid.
 
         `crafting_slot` must be a menu slot present in
@@ -188,7 +217,7 @@ class ContainerHelper:
         return ContainerHelper.get_container_slot(result_slot)
     
     @staticmethod
-    def crafting_shift_click_result():
+    def crafting_shift_click_result() -> ItemStack | bool | None:
         layout = ContainerHelper.crafting_get_layout()
         result_slot = layout.result_slot
         grid = layout.grid_size
@@ -203,14 +232,19 @@ class ContainerHelper:
             return False
         return result
     
+    @staticmethod
+    def get_inventory_selected_hotbar_slot() -> int:
+        return minecraft.player.getInventory().selected
+    
 class ItemsHelper:
-    Items = JavaClass("net.minecraft.world.item.Items")
-    BuiltInRegistries = JavaClass("net.minecraft.core.registries.BuiltInRegistries")
-    Identifier = JavaClass("net.minecraft.resources.Identifier")
+    Item: JavaHandle = JavaClass("net.minecraft.world.item.Item")
+    Items: JavaHandle = JavaClass("net.minecraft.world.item.Items")
+    BuiltInRegistries: JavaHandle = JavaClass("net.minecraft.core.registries.BuiltInRegistries")
+    Identifier: JavaHandle = JavaClass("net.minecraft.resources.Identifier")
 
     
     @staticmethod
-    def _get_item_by_identifier(identifier):
+    def _get_item_by_identifier(identifier) -> JavaObject | None:
         optional = ItemsHelper.BuiltInRegistries.ITEM.get(identifier)
 
         if optional.isEmpty():
@@ -219,16 +253,24 @@ class ItemsHelper:
         return optional.get().value()   
 
     @staticmethod
-    def _get_identifier_by_item_id(item_id: str):
+    def _get_identifier_by_item_id(item_id: str) -> JavaObject:
         return ItemsHelper.Identifier.parse(item_id)
 
     @staticmethod
-    def get_item_by_item_id(item_id: str):
+    def get_item_by_item_id(item_id: str) -> JavaObject | None:
         identifier = ItemsHelper._get_identifier_by_item_id(item_id)
         return ItemsHelper._get_item_by_identifier(identifier)
 
     @staticmethod
-    def get_item_stack_by_item_id(item_id: str):
+    def get_item_numeric_id(item: JavaObject) -> int:
+        return ItemsHelper.Item.getId(item)
+
+    @staticmethod
+    def get_item_by_numeric_id(id: int) -> JavaObject:
+        return ItemsHelper.Item.byId(id)
+
+    @staticmethod
+    def get_item_stack_by_item_id(item_id: str) -> JavaObject | None:
         item = ItemsHelper.get_item_by_item_id(item_id)
 
         if item is None:
@@ -237,81 +279,86 @@ class ItemsHelper:
         return item.getDefaultInstance()
     
     @staticmethod
-    def get_display_name_by_item_id(item_id: str):
+    def get_display_name_by_item_id(item_id: str) -> str | None:
         item_stack = ItemsHelper.get_item_stack_by_item_id(item_id)
 
         if item_stack is None:
             return None
 
-        return tem_stack.getDisplayName().getString()
+        return item_stack.getDisplayName().getString()
+    
+
+    @staticmethod
+    def get_display_name_by_item_stack(item_stack, use_custom_name=False) -> str | None:
+        if use_custom_name:
+                return item_stack.getHoverName().getString()
+        print(item_stack.getHoverName())
+        return item_stack.getDisplayName().getString()
     
     @staticmethod
-    def get_display_name_by_item(item: JavaObject, use_custom_name=False):
+    def get_display_name_by_item(item, use_custom_name=False) -> str | None:
         item_stack = item.getDefaultInstance()
 
         if item_stack is None:
             return None
 
-        if use_custom_name:
-            return item_stack.getHoverName().getString()
-
-        return item_stack.getDisplayName().getString()
+        return ItemsHelper.get_display_name_by_item_stack(item_stack, use_custom_name)
         
         
 class FishingHelper:
-    ROD = ItemsHelper.Items.FISHING_ROD
+    ROD: JavaObject = ItemsHelper.Items.FISHING_ROD
 
     @staticmethod
-    def _get_fishing_hook():
+    def _get_fishing_hook() -> JavaObject | None:
         return minecraft.player.fishing
 
     @staticmethod
-    def is_holding_rod():
+    def is_holding_rod() -> bool:
         hand_items: HandItems = player_hand_items()
 
         return hand_items.main_hand == FishingHelper.ROD or hand_items.off_hand == FishingHelper.ROD
 
     @staticmethod
-    def is_casted():
+    def is_casted() -> bool:
         return FishingHelper._get_fishing_hook() is not None
 
     @staticmethod
-    def is_biting():
+    def is_biting() -> bool | None:
         hook = FishingHelper._get_fishing_hook()
         if hook is None:
-            return False
+            return None
         return ReflectionHelper.get_private_field(hook, "biting")
 
     @staticmethod
-    def is_open_water():
+    def is_open_water() -> bool | None:
         hook = FishingHelper._get_fishing_hook()
         if hook is None:
-            return False
+            return None
         return hook.isOpenWaterFishing()
 
     @staticmethod
-    def get_hooked_entity():
+    def get_hooked_entity() -> JavaObject | None:
         hook = FishingHelper._get_fishing_hook()
         if hook is None:
             return None
         return hook.getHookedIn()
 
     @staticmethod
-    def get_time_until_lured():
+    def get_time_until_lured() -> int | None:
         hook = FishingHelper._get_fishing_hook()
         if hook is None:
-            return False
+            return None
         return ReflectionHelper.get_private_field(hook, "timeUntilLured")
     
     @staticmethod
-    def get_time_until_hooked():
+    def get_time_until_hooked() -> int | None:
         hook = FishingHelper._get_fishing_hook()
         if hook is None:
-            return False
+            return None
         return ReflectionHelper.get_private_field(hook, "timeUntilHooked")
     
     @staticmethod
-    def use_rod():
+    def use_rod() -> bool:
         if not FishingHelper.is_holding_rod():
             return False
 

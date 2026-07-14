@@ -94,7 +94,7 @@ class ContainerHelper:
         container = ContainerHelper._get_container()
         if container is None:
             return ""
-        return MappingsHelper.get_pretty_class_name(container.getClass().getName())
+        return UtilHelper.get_class_name(container)
     
     @staticmethod
     def crafting_get_grid_size() -> int:
@@ -283,6 +283,8 @@ class ItemsHelper:
 
     @staticmethod
     def get_display_name_by_item_stack(item_stack, use_custom_name=False) -> str | None:
+        if isinstance(item_stack, ItemStack):
+            raise TypeError("Expected a JavaObject representing an ItemStack, got an ItemStack instance instead.")
         if use_custom_name:
                 return item_stack.getHoverName().getString()
         print(item_stack.getHoverName())
@@ -375,7 +377,7 @@ class ClientHelper:
     def get_current_screen_class_name() -> str:
         if minecraft.screen is None:
             return None
-        return MappingsHelper.get_pretty_class_name(minecraft.screen.getClass().getName())
+        return UtilHelper.get_class_name(minecraft.screen)
     
     @staticmethod
     def close_current_screen() -> None:
@@ -410,6 +412,17 @@ class ClientHelper:
     @staticmethod
     def get_fps():
         return minecraft.getFps()
+    
+    @staticmethod
+    def get_camera_position() -> Vector3f:
+        """Get current camera position"""
+        camera = minecraft.gameRenderer.getMainCamera()
+        pos = camera.getPosition()
+        return (pos.x, pos.y, pos.z)
+    
+    @staticmethod
+    def get_camera_type() -> str:
+        return minecraft.options.cameraType().get().name()
 
 class ClientLevelData:
     def __init__(self, hardcore: bool, is_flat: bool, game_time: int, day_time: int, raining: bool, difficulty: str, difficulty_locked: bool):
@@ -421,3 +434,15 @@ class ClientLevelData:
         self.difficulty = difficulty # .key
         self.difficulty_locked = difficulty_locked
 
+class UtilHelper:
+    @staticmethod
+    def get_class_name(obj: JavaObject) -> str:
+        return MappingsHelper.get_pretty_class_name(obj.getClass().getName())
+
+    @staticmethod
+    def get_clipboard() -> str:
+        return minecraft.keyboardHandler.getClipboard()
+
+    @staticmethod
+    def set_clipboard(text: str) -> None:
+        minecraft.keyboardHandler.setClipboard(text)

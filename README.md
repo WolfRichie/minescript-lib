@@ -35,14 +35,6 @@ from main import ContainerHelper, MappingsHelper, ReflectionHelper
   *Returns:* Java set of pretty method names.
   *Example:* `MappingsHelper.get_pretty_method_names(minecraft.player.getClass())`
 
-## `ReflectionHelper`
-Methods for reflective access to internal/private Java fields.
-
-- **get_private_field(clazz, pretty_field_name: str)**
-  Reads a private field value from the given Java object instance using mappings.
-  *Returns:* Reflected field value.
-  *Example:* `N/A`
-
 ## `CraftingLayout`
 Object that stores crafting layout metadata for the current container.
 

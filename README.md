@@ -3,16 +3,19 @@
     - [is\_holding\_rod() -\> bool](#is_holding_rod---bool)
     - [is\_casted() -\> bool](#is_casted---bool)
     - [is\_biting() -\> bool](#is_biting---bool)
-    - [is\_open\_water() -\> bool](#is_open_water---bool)
+    - [is\_open\_water() -\> bool | None](#is_open_water---bool--none)
     - [get\_hooked\_entity() -\> Any](#get_hooked_entity---any)
-    - [get\_time\_until\_lured() -\> int](#get_time_until_lured---int)
-    - [get\_time\_until\_hooked() -\> int](#get_time_until_hooked---int)
+    - [get\_time\_until\_lured() -\> int | None](#get_time_until_lured---int--none)
+    - [get\_time\_until\_hooked() -\> int | None](#get_time_until_hooked---int--none)
     - [use\_rod() -\> bool](#use_rod---bool)
   - [`ItemsHelper`](#itemshelper)
     - [get\_item\_by\_item\_id(item\_id: str) -\> JavaObject](#get_item_by_item_iditem_id-str---javaobject)
     - [get\_item\_stack\_by\_item\_id(item\_id: str) -\> JavaObject](#get_item_stack_by_item_iditem_id-str---javaobject)
+    - [get\_item\_numeric\_id(item: JavaObject) -\> int:](#get_item_numeric_iditem-javaobject---int)
+    - [get\_item\_by\_numeric\_id(id: int) -\> JavaObject:](#get_item_by_numeric_idid-int---javaobject)
     - [get\_display\_name\_by\_item\_id(item\_id: str) -\> str | None:](#get_display_name_by_item_iditem_id-str---str--none)
     - [get\_display\_name\_by\_item(item: JavaObject, use\_custom\_name=False) -\> str | None:](#get_display_name_by_itemitem-javaobject-use_custom_namefalse---str--none)
+    - [get\_display\_name\_by\_item\_stack(item: JavaObject, use\_custom\_name=False) -\> str | None:](#get_display_name_by_item_stackitem-javaobject-use_custom_namefalse---str--none)
   - [`MappingsHelper`](#mappingshelper)
     - [get\_runtime\_class\_name(pretty\_class\_name: str) -\> str](#get_runtime_class_namepretty_class_name-str---str)
     - [get\_pretty\_class\_name(runtime\_class\_name: str) -\> str](#get_pretty_class_nameruntime_class_name-str---str)
@@ -30,6 +33,11 @@
     - [get\_container\_id() -\> int](#get_container_id---int)
     - [get\_container\_class\_name() -\> str](#get_container_class_name---str)
     - [get\_container\_slot(slot) -\> ItemStack](#get_container_slotslot---itemstack)
+    - [get\_inventory\_slot(slot) -\> ItemStack](#get_inventory_slotslot---itemstack)
+    - [container\_find\_item\_id(item\_id: str) -\> List\[ItemStack\]](#container_find_item_iditem_id-str---listitemstack)
+    - [inventory\_find\_item\_id(item\_id: str) -\> List\[ItemStack\]](#inventory_find_item_iditem_id-str---listitemstack)
+    - [get\_item\_stack\_by\_inventory\_slot(slot: int) -\> JavaObject](#get_item_stack_by_inventory_slotslot-int---javaobject)
+    - [get\_item\_stack\_by\_container\_slot(slot: int) -\> JavaObject:](#get_item_stack_by_container_slotslot-int---javaobject)
     - [raw\_click(slot, button\_or\_slot = 0, click\_type = None) -\> bool](#raw_clickslot-button_or_slot--0-click_type--none---bool)
     - [click\_slot(slot, button = 0) -\> bool](#click_slotslot-button--0---bool)
     - [shift\_click\_slot(slot) -\> bool](#shift_click_slotslot---bool)
@@ -46,10 +54,10 @@ See examples/
 ### is_holding_rod() -> bool
 ### is_casted() -> bool
 ### is_biting() -> bool
-### is_open_water() -> bool
+### is_open_water() -> bool | None
 ### get_hooked_entity() -> Any
-### get_time_until_lured() -> int
-### get_time_until_hooked() -> int
+### get_time_until_lured() -> int | None
+### get_time_until_hooked() -> int | None
 ### use_rod() -> bool
 
 ---
@@ -60,6 +68,9 @@ See examples/
   Example: `ItemsHelper.get_item_by_item_id("fishing_rod")`
 ### get_item_stack_by_item_id(item_id: str) -> JavaObject
   Example: `ItemsHelper.get_item_by_item_id("fishing_rod").getRarity()`
+
+### get_item_numeric_id(item: JavaObject) -> int:
+### get_item_by_numeric_id(id: int) -> JavaObject:
 
 ### get_display_name_by_item_id(item_id: str) -> str | None: 
   Example: `ItemsHelper.get_display_name_by_item_id("fishing_rod")` -> `[Fishing Rod]`
@@ -72,10 +83,20 @@ See examples/
   Example:
   ```python
   item_instance = ...
-  get_display_name_by_item(item_instance, True) # -> "cool item renamed at an anvil"
-  get_display_name_by_item(item_instance, False) # -> "Iron Sword"
+  ItemsHelper.get_display_name_by_item(item_instance, True) # -> "cool item renamed at an anvil"
+  ItemsHelper.get_display_name_by_item(item_instance, False) # -> "Iron Sword"
   ```
 
+### get_display_name_by_item_stack(item: JavaObject, use_custom_name=False) -> str | None:
+  Args:
+  - `item_id` (str): The item instance (of net.minecraft.world.item.ItemStack)
+  - `use_custom_name` (bool): If `True`, returns the hover name (custom name) instead of the default display name.
+  
+  Example:
+  ```python
+  item_stack_instance = ContainerHelper.get_item_stack_by_container_slot(27)
+  ItemsHelper.get_display_name_by_item_stack(item_stack_instance, True) # -> "cool item renamed at an anvil"
+  ```
 ---
 
 ## `MappingsHelper`
@@ -126,7 +147,7 @@ Object that stores crafting layout metadata for the current container.
   - `grid_slots`: List of valid crafting slot ids for the active menu.
   - `grid_size`: Precomputed length of `grid_slots`.
   - `result_slot`: Slot id containing crafting output.
-  - 
+
   Example: `layout = ContainerHelper.crafting_get_layout()`
 
 ## `ContainerHelper`
@@ -177,9 +198,15 @@ Object that stores crafting layout metadata for the current container.
 
 ### get_container_slot(slot) -> ItemStack
   Looks up an item entry by slot from `container_get_items()`.
-  Returns: StackItem or `None` if not found.
+  Returns: ItemStack or `None` if not found.
 
   Example: `result_item = ContainerHelper.get_container_slot(0)`
+
+### get_inventory_slot(slot) -> ItemStack
+### container_find_item_id(item_id: str) -> List[ItemStack]
+### inventory_find_item_id(item_id: str) -> List[ItemStack]
+### get_item_stack_by_inventory_slot(slot: int) -> JavaObject
+### get_item_stack_by_container_slot(slot: int) -> JavaObject:
 
 ### raw_click(slot, button_or_slot = 0, click_type = None) -> bool
   Sends a low-level inventory click to Minecraft.

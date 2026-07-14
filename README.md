@@ -1,7 +1,7 @@
 # Library API
 # Usage
 ```python
-from main import ContainerHelper, MappingsHelper, ReflectionHelper
+from main import ContainerHelper, MappingsHelper
 ```
 
 ## `MappingsHelper`

@@ -164,7 +164,7 @@ class ItemsHelper(PyJinnProxy):
     """
     ...
   @staticmethod
-  def get_display_name_by_item_stack(item_stack: JavaObject use_custom_name=False) -> Str | None:
+  def get_display_name_by_item_stack(item_stack: JavaObject, use_custom_name=False) -> Str | None:
     """
     Args:
       item_id (str): An "net.minecraft.world.item.ItemStack" instance

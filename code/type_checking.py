@@ -53,13 +53,24 @@ class ContainerHelper(PyJinnProxy):
     """
     ...
   @staticmethod
-  def get_container_slot(slot: int) -> Any:
+  def get_container_slot(slot: int) -> ItemStack | None:
     """Return the item entry for `slot` from `get_container_items()`.
 
     Returns:
-      The slot item object when found, otherwise `None`.
+      The ItemStack object when found, otherwise `None`.
     """
-    ...
+  @staticmethod
+  def get_inventory_slot(slot: int) -> ItemStack | None: ...
+  @staticmethod
+  def get_item_stack_by_inventory_slot(slot: int) -> JavaObject: ...
+  @staticmethod
+  def get_item_stack_by_container_slot(slot: int) -> JavaObject: ...
+  @staticmethod
+  def container_find_item_id(item_id: str) -> List[ItemStack]: ...
+  @staticmethod
+  def inventory_find_item_id(item_id: str) -> List[ItemStack]: ...
+
+  
   @staticmethod
   def crafting_get_grid_size() -> int:
     """Return the crafting grid size for the currently-open container.
@@ -149,6 +160,14 @@ class ItemsHelper(PyJinnProxy):
     """
     Args:
       item_id (str): An "net.minecraft.world.item.Item" instance
+      use_custom_name (bool): If `True`, returns the hover name (custom name) instead of the default display name.
+    """
+    ...
+  @staticmethod
+  def get_display_name_by_item_stack(item_stack: JavaObject use_custom_name=False) -> Str | None:
+    """
+    Args:
+      item_id (str): An "net.minecraft.world.item.ItemStack" instance
       use_custom_name (bool): If `True`, returns the hover name (custom name) instead of the default display name.
     """
     ...

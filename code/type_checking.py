@@ -18,20 +18,6 @@ class MappingsHelper(PyJinnProxy):
   @staticmethod
   def get_pretty_method_names(clazz: java.JavaObject) -> java.JavaObject: ...
 
-class ReflectionHelper(PyJinnProxy):
-  @staticmethod
-  def get_private_field(instance: java.JavaObject, pretty_field_name: str) -> Any:
-    """Read a private field value via mappings and reflection.
-
-    Args:
-      instance: Java object instance containing the field.
-      pretty_field_name: Mapped field name to read.
-
-    Returns:
-      The reflected field value.
-    """
-    ...
-
 class CraftingLayout(PyJinnProxy):
   container_name: str
   grid_slots: list[int]

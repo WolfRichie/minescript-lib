@@ -45,6 +45,10 @@ class PyJinnProxyMeta(type):
         type.__setattr__(cls, name, value)
         return value
 
+    def __call__(cls, *args, **kwargs):
+        target_class = cls._pyj_class()
+        return target_class(*args, **kwargs)
+
 
 class PyJinnProxy(metaclass=PyJinnProxyMeta):
   pass

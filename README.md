@@ -2,20 +2,30 @@
   - [`FishingHelper`](#fishinghelper)
     - [is\_holding\_rod() -\> bool](#is_holding_rod---bool)
     - [is\_casted() -\> bool](#is_casted---bool)
-    - [is\_biting() -\> bool](#is_biting---bool)
+    - [is\_biting() -\> bool | None](#is_biting---bool--none)
     - [is\_open\_water() -\> bool | None](#is_open_water---bool--none)
     - [get\_hooked\_entity() -\> Any](#get_hooked_entity---any)
     - [get\_time\_until\_lured() -\> int | None](#get_time_until_lured---int--none)
     - [get\_time\_until\_hooked() -\> int | None](#get_time_until_hooked---int--none)
     - [use\_rod() -\> bool](#use_rod---bool)
-  - [`ItemsHelper`](#itemshelper)
-    - [get\_item\_by\_item\_id(item\_id: str) -\> JavaObject](#get_item_by_item_iditem_id-str---javaobject)
-    - [get\_item\_stack\_by\_item\_id(item\_id: str) -\> JavaObject](#get_item_stack_by_item_iditem_id-str---javaobject)
-    - [get\_item\_numeric\_id(item: JavaObject) -\> int:](#get_item_numeric_iditem-javaobject---int)
-    - [get\_item\_by\_numeric\_id(id: int) -\> JavaObject:](#get_item_by_numeric_idid-int---javaobject)
-    - [get\_display\_name\_by\_item\_id(item\_id: str) -\> str | None:](#get_display_name_by_item_iditem_id-str---str--none)
-    - [get\_display\_name\_by\_item(item: JavaObject, use\_custom\_name=False) -\> str | None:](#get_display_name_by_itemitem-javaobject-use_custom_namefalse---str--none)
-    - [get\_display\_name\_by\_item\_stack(item: JavaObject, use\_custom\_name=False) -\> str | None:](#get_display_name_by_item_stackitem-javaobject-use_custom_namefalse---str--none)
+  - [`ItemStackInstance`](#itemstackinstance)
+    - [get\_display\_name(use\_custom\_name=False) -\> str | None](#get_display_nameuse_custom_namefalse---str--none)
+    - [get\_item\_id() -\> str | None](#get_item_id---str--none)
+    - [get\_item() -\> ItemInstance](#get_item---iteminstance)
+    - [get\_count() -\> int](#get_count---int)
+    - [get\_max\_stack\_size() -\> int](#get_max_stack_size---int)
+    - [get\_item\_java\_object() -\> JavaObject](#get_item_java_object---javaobject)
+    - [get\_java\_object() -\> JavaObject](#get_java_object---javaobject)
+  - [`ItemInstance`](#iteminstance)
+    - [get\_item\_id() -\> str | None](#get_item_id---str--none-1)
+    - [get\_numeric\_id() -\> int](#get_numeric_id---int)
+    - [by\_numeric\_id(id: int) -\> ItemInstance](#by_numeric_idid-int---iteminstance)
+    - [get\_display\_name(use\_custom\_name=False) -\> str | None](#get_display_nameuse_custom_namefalse---str--none-1)
+    - [get\_count() -\> int](#get_count---int-1)
+    - [get\_max\_stack\_size() -\> int](#get_max_stack_size---int-1)
+    - [get\_item\_stack() -\> ItemStackInstance](#get_item_stack---itemstackinstance)
+    - [get\_item\_stack\_java\_object() -\> JavaObject:](#get_item_stack_java_object---javaobject)
+    - [get\_java\_object() -\> JavaObject](#get_java_object---javaobject-1)
   - [`MappingsHelper`](#mappingshelper)
     - [get\_runtime\_class\_name(pretty\_class\_name: str) -\> str](#get_runtime_class_namepretty_class_name-str---str)
     - [get\_pretty\_class\_name(runtime\_class\_name: str) -\> str](#get_pretty_class_nameruntime_class_name-str---str)
@@ -27,16 +37,16 @@
     - [crafting\_get\_layout() -\> CraftingLayout](#crafting_get_layout---craftinglayout)
       - [`CraftingLayout`](#craftinglayout)
     - [crafting\_get\_grid\_size() -\> int](#crafting_get_grid_size---int)
-    - [crafting\_place\_slot(slot, crafting\_slot, count = 1) -\> ItemStack](#crafting_place_slotslot-crafting_slot-count--1---itemstack)
-    - [crafting\_shift\_click\_result() -\> ItemStack](#crafting_shift_click_result---itemstack)
+    - [crafting\_place\_slot(slot, crafting\_slot, count = 1) -\> ItemStackInstance | bool | None](#crafting_place_slotslot-crafting_slot-count--1---itemstackinstance--bool--none)
+    - [crafting\_shift\_click\_result() -\> ItemStackInstance | bool | None](#crafting_shift_click_result---itemstackinstance--bool--none)
     - [get\_container\_id() -\> int](#get_container_id---int)
     - [get\_container\_class\_name() -\> str](#get_container_class_name---str)
-    - [get\_container\_slot(slot) -\> ItemStack](#get_container_slotslot---itemstack)
-    - [get\_inventory\_slot(slot) -\> ItemStack](#get_inventory_slotslot---itemstack)
-    - [container\_find\_item\_id(item\_id: str) -\> List\[ItemStack\]](#container_find_item_iditem_id-str---listitemstack)
-    - [inventory\_find\_item\_id(item\_id: str) -\> List\[ItemStack\]](#inventory_find_item_iditem_id-str---listitemstack)
-    - [get\_item\_stack\_by\_inventory\_slot(slot: int) -\> JavaObject](#get_item_stack_by_inventory_slotslot-int---javaobject)
-    - [get\_item\_stack\_by\_container\_slot(slot: int) -\> JavaObject:](#get_item_stack_by_container_slotslot-int---javaobject)
+    - [get\_container\_slot(slot) -\> ItemStackInstance | None](#get_container_slotslot---itemstackinstance--none)
+    - [get\_inventory\_slot(slot) -\> ItemStackInstance | None](#get_inventory_slotslot---itemstackinstance--none)
+    - [container\_find\_item\_id(item\_id: str) -\> list\[ItemStackInstance\]](#container_find_item_iditem_id-str---listitemstackinstance)
+    - [inventory\_find\_item\_id(item\_id: str) -\> list\[ItemStackInstance\]](#inventory_find_item_iditem_id-str---listitemstackinstance)
+    - [get\_item\_stack\_by\_inventory\_slot(slot: int) -\> ItemStackInstance | None](#get_item_stack_by_inventory_slotslot-int---itemstackinstance--none)
+    - [get\_item\_stack\_by\_container\_slot(slot: int) -\> ItemStackInstance | None:](#get_item_stack_by_container_slotslot-int---itemstackinstance--none)
     - [raw\_click(slot, button\_or\_slot = 0, click\_type = None) -\> bool](#raw_clickslot-button_or_slot--0-click_type--none---bool)
     - [click\_slot(slot, button = 0) -\> bool](#click_slotslot-button--0---bool)
     - [shift\_click\_slot(slot) -\> bool](#shift_click_slotslot---bool)
@@ -57,6 +67,7 @@
     - [get\_fps() -\> int](#get_fps---int)
     - [get\_camera\_position() -\> Vector3f](#get_camera_position---vector3f)
     - [get\_camera\_type() -\> str:](#get_camera_type---str)
+  - [FIRST\_PERSON or THIRD\_PERSON\_BACK or THIRD\_PERSON\_FRONT](#first_person-or-third_person_back-or-third_person_front)
   - [`UtilHelper`](#utilhelper)
     - [get\_class\_name(obj: JavaObject) -\> str:](#get_class_nameobj-javaobject---str)
     - [get\_clipboard() -\> str:](#get_clipboard---str)
@@ -69,7 +80,7 @@ See examples/
 
 ### is_holding_rod() -> bool
 ### is_casted() -> bool
-### is_biting() -> bool
+### is_biting() -> bool | None
 ### is_open_water() -> bool | None
 ### get_hooked_entity() -> Any
 ### get_time_until_lured() -> int | None
@@ -78,41 +89,111 @@ See examples/
 
 ---
 
-## `ItemsHelper`
+## `ItemStackInstance`
 
-### get_item_by_item_id(item_id: str) -> JavaObject
-  Example: `ItemsHelper.get_item_by_item_id("fishing_rod")`
-### get_item_stack_by_item_id(item_id: str) -> JavaObject
-  Example: `ItemsHelper.get_item_by_item_id("fishing_rod").getRarity()`
+Wrapper class for JavaObject item stack objects. Returned by all `ContainerHelper` and `ItemInstance` methods that retrieve ItemstackInstance's NOT Itemstack dataclass's
 
-### get_item_numeric_id(item: JavaObject) -> int:
-### get_item_by_numeric_id(id: int) -> JavaObject:
+You can construct it directly from either a  ``net.minecraft.world.item.ItemStack` JavaObject instance or an item id string:
 
-### get_display_name_by_item_id(item_id: str) -> str | None: 
-  Example: `ItemsHelper.get_display_name_by_item_id("fishing_rod")` -> `[Fishing Rod]`
+```python
+item = ItemStackInstance("fishing_rod")
+```
 
-### get_display_name_by_item(item: JavaObject, use_custom_name=False) -> str | None:
+### get_display_name(use_custom_name=False) -> str | None
+  Gets the display name of the item stack.
   Args:
-  - `item_id` (str): The item instance (of net.minecraft.world.item.Item)
   - `use_custom_name` (bool): If `True`, returns the hover name (custom name) instead of the default display name.
+  
+  Returns:
+  - Display name as string, or `None` if unavailable.
   
   Example:
   ```python
-  item_instance = ...
-  ItemsHelper.get_display_name_by_item(item_instance, True) # -> "cool item renamed at an anvil"
-  ItemsHelper.get_display_name_by_item(item_instance, False) # -> "Iron Sword"
+  item = ContainerHelper.get_item_stack_by_container_slot(27)
+  if item:
+      print(item.get_display_name())  # -> "Iron Sword"
+      print(item.get_display_name(use_custom_name=True))  # -> "cool sword renamed at an anvil"
   ```
 
-### get_display_name_by_item_stack(item: JavaObject, use_custom_name=False) -> str | None:
-  Args:
-  - `item_id` (str): The item instance (of net.minecraft.world.item.ItemStack)
-  - `use_custom_name` (bool): If `True`, returns the hover name (custom name) instead of the default display name.
-  
+### get_item_id() -> str | None
+  Returns the wrapped item id path, such as `fishing_rod`.
+
   Example:
   ```python
-  item_stack_instance = ContainerHelper.get_item_stack_by_container_slot(27)
-  ItemsHelper.get_display_name_by_item_stack(item_stack_instance, True) # -> "cool item renamed at an anvil"
+  print(ItemStackInstance("fishing_rod").get_item_id())  # -> "fishing_rod"
   ```
+
+### get_item() -> ItemInstance
+  Returns the wrapped `net.minecraft.world.item.Item` for the stack as an `ItemInstance`.
+
+  Example:
+  ```python
+  item = ContainerHelper.get_item_stack_by_container_slot(27)
+  if item:
+      print(item.get_item().get_numeric_id())  # -> 69
+  ```
+
+### get_count() -> int
+  Returns the current item count in the stack.
+
+### get_max_stack_size() -> int
+  Returns the maximum stack size for the wrapped item.
+
+### get_item_java_object() -> JavaObject
+  Returns the underlying `net.minecraft.world.item.Item` JavaObject for the stack.
+
+### get_java_object() -> JavaObject
+  Returns the underlying wrapped `net.minecraft.world.item.ItemStack` JavaObject.
+
+---
+
+## `ItemInstance`
+
+Wrapper class for JavaObject `net.minecraft.world.item.Item` instances (as opposed to `ItemStackInstance`, which wraps `ItemStack`).
+
+You can construct it directly from either a `net.minecraft.world.item.Item` JavaObject instance or an item id string:
+
+```python
+item = ItemInstance("fishing_rod")
+```
+
+### get_item_id() -> str | None
+  Returns the wrapped item id path, such as `fishing_rod`.
+
+  Example: `ItemInstance("fishing_rod").get_item_id()` -> `"fishing_rod"`
+
+### get_numeric_id() -> int
+  Returns the numeric registry id of the wrapped item.
+
+### by_numeric_id(id: int) -> ItemInstance
+  Static method. Constructs an `ItemInstance` from a numeric registry id.
+  e.g `ItemInstance.by(69)`
+
+### get_display_name(use_custom_name=False) -> str | None
+  Args:
+  - `use_custom_name` (bool): If `True`, returns the hover name (custom name) instead of the default display name.
+
+  Example:
+  ```python
+  item = ItemInstance("fishing_rod")
+  item.get_display_name() # -> "Fishing Rod"
+  ```
+
+### get_count() -> int
+  Returns the count of the default item stack (normally `1`).
+
+### get_max_stack_size() -> int
+  Returns the maximum stack size for the wrapped item.
+
+### get_item_stack() -> ItemStackInstance
+  Returns a default `ItemStackInstance` (count 1, no NBT) for the wrapped item.
+
+### get_item_stack_java_object() -> JavaObject:
+  Returns the underlying wrapped `net.minecraft.world.item.ItemStack` JavaObject.
+
+### get_java_object() -> JavaObject
+  Returns the underlying wrapped `net.minecraft.world.item.Item` JavaObject.
+
 ---
 
 ## `MappingsHelper`
@@ -178,23 +259,34 @@ Stores:
 
   Example: `grid_size = ContainerHelper.crafting_get_grid_size()`
 
-### crafting_place_slot(slot, crafting_slot, count = 1) -> ItemStack
+### crafting_place_slot(slot, crafting_slot, count = 1) -> ItemStackInstance | bool | None
   Places one item at a time from `slot` into `crafting_slot` repeatedly.
   `crafting_slot` must be in `crafting_get_layout().grid_slots`.
   Returns:
-  - ItemStack object from `result_slot` after placement.
+  - `ItemStackInstance` object from `result_slot` after placement.
   - `False` when layout is unsupported, slot is invalid, count is not positive, or click fails.
+  - `None` if result slot is empty after placement.
   
-  Example: `ContainerHelper.crafting_place_slot(15, 4, 2)`
+  Example: 
+  ```python
+  result = ContainerHelper.crafting_place_slot(15, 4, 2)
+  if result and result is not False:
+      print(result.get_display_name())
+  ```
 
-### crafting_shift_click_result() -> ItemStack
+### crafting_shift_click_result() -> ItemStackInstance | bool | None
   Shift-clicks the current crafting `result_slot`.
   Returns:
-  - Result slot item object that was present before click.
+  - `ItemStackInstance` object that was present in the result slot before click.
   - `None` if result slot is empty.
   - `False` when layout is unsupported or click fails.
 
-  Example: `crafted_item = ContainerHelper.crafting_shift_click_result()`
+  Example: 
+  ```python
+  crafted_item = ContainerHelper.crafting_shift_click_result()
+  if crafted_item and crafted_item is not False:
+      print(crafted_item.get_display_name())
+  ```
 
 
 ### get_container_id() -> int
@@ -209,17 +301,46 @@ Stores:
 
   Example: `container_name = ContainerHelper.get_container_class_name()`
 
-### get_container_slot(slot) -> ItemStack
+### get_container_slot(slot) -> ItemStackInstance | None
   Looks up an item entry by slot from `container_get_items()`.
-  Returns: ItemStack or `None` if not found.
+  Returns: `ItemStackInstance` or `None` if not found.
 
-  Example: `result_item = ContainerHelper.get_container_slot(0)`
+  Example: 
+  ```python
+  item = ContainerHelper.get_container_slot(0)
+  if item:
+      print(item.get_display_name())
+  ```
 
-### get_inventory_slot(slot) -> ItemStack
-### container_find_item_id(item_id: str) -> List[ItemStack]
-### inventory_find_item_id(item_id: str) -> List[ItemStack]
-### get_item_stack_by_inventory_slot(slot: int) -> JavaObject
-### get_item_stack_by_container_slot(slot: int) -> JavaObject:
+### get_inventory_slot(slot) -> ItemStackInstance | None
+
+### container_find_item_id(item_id: str) -> list[ItemStackInstance]
+  Finds all items in the container matching the given item ID.
+  Returns: List of `ItemStackInstance` objects.
+  
+  Example:
+  ```python
+  items = ContainerHelper.container_find_item_id("diamond_sword")
+  for item in items:
+      print(item.get_display_name())
+  ```
+
+### inventory_find_item_id(item_id: str) -> list[ItemStackInstance]
+  Finds all items in the player inventory matching the given item ID.
+  Returns: List of `ItemStackInstance` objects.
+
+### get_item_stack_by_inventory_slot(slot: int) -> ItemStackInstance | None
+  Returns the item at the given inventory slot wrapped in `ItemStackInstance`, or `None` if empty.
+  
+  Example:
+  ```python
+  item = ContainerHelper.get_item_stack_by_inventory_slot(0)
+  if item:
+      print(item.get_display_name(use_custom_name=True))
+  ```
+
+### get_item_stack_by_container_slot(slot: int) -> ItemStackInstance | None:
+  Returns the item at the given container slot wrapped in `ItemStackInstance`, or `None` if empty.
 
 ### raw_click(slot, button_or_slot = 0, click_type = None) -> bool
   Sends a low-level inventory click to Minecraft.
@@ -290,8 +411,8 @@ Methods for accessing to internal/private Java fields.
 
 ###  get_camera_type() -> str:
 
-FIRST_PERSON, THIRD_PERSON_BACK, THIRD_PERSON_FRONT
-
+Returns:
+  FIRST_PERSON or THIRD_PERSON_BACK or THIRD_PERSON_FRONT
 ---
 
 ## `UtilHelper`

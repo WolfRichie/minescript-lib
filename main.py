@@ -4,7 +4,7 @@ from code.Proxy import PyJinnProxy, PyJinnProxyMeta
 PyJinnProxyMeta.bind_script("library.pyj")
 
 if TYPE_CHECKING:
-  from code.type_checking import ContainerHelper, MappingsHelper, FishingHelper, ItemsHelper, UtilHelper, ClientHelper
+  from code.type_checking import ContainerHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemStackInstance, ItemInstance
 else:
   class MappingsHelper(PyJinnProxy):
     pass
@@ -15,11 +15,14 @@ else:
   class FishingHelper(PyJinnProxy):
     pass
 
-  class ItemsHelper(PyJinnProxy):
-    pass
-
   class ClientHelper(PyJinnProxy):
     pass
 
   class UtilHelper(PyJinnProxy):
+    pass
+
+  class ItemStackInstance(PyJinnProxy):
+    pass
+
+  class ItemInstance(PyJinnProxy):
     pass

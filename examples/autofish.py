@@ -2,7 +2,7 @@ from main import ContainerHelper, MappingsHelper, FishingHelper
 from time import sleep
 
 while True:
-		has_rod = FishingHelper.has_fishing_rod()
+		has_rod = FishingHelper.is_holding_rod()
 		casted = FishingHelper.is_casted()
 		biting = FishingHelper.is_biting() if casted else False
 

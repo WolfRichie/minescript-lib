@@ -4,25 +4,110 @@ Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.14
 
 ---
 
-## Table of Contents
+- [Minescript Library](#minescript-library)
+  - [ItemsHelper](#itemshelper)
+    - [get\_json(item) -\> str](#get_jsonitem---str)
+    - [get\_components(item) -\> str](#get_componentsitem---str)
+    - [get\_item\_id(item) -\> str | None](#get_item_iditem---str--none)
+    - [get\_numeric\_id(item) -\> int](#get_numeric_iditem---int)
+    - [get\_display\_name(item, use\_custom\_name=False) -\> str | None](#get_display_nameitem-use_custom_namefalse---str--none)
+    - [get\_count(item) -\> int](#get_countitem---int)
+    - [get\_max\_stack\_size(item) -\> int](#get_max_stack_sizeitem---int)
+    - [get\_item\_stack\_java\_object(item) -\> JavaObject](#get_item_stack_java_objectitem---javaobject)
+    - [get\_item\_java\_object(item) -\> JavaObject](#get_item_java_objectitem---javaobject)
+  - [ContainerHelper](#containerhelper)
+    - [crafting\_get\_layout() -\> CraftingLayout](#crafting_get_layout---craftinglayout)
+    - [crafting\_get\_grid\_size() -\> int](#crafting_get_grid_size---int)
+    - [crafting\_place\_slot(slot, crafting\_slot, count=1) -\> ItemStack | bool | None](#crafting_place_slotslot-crafting_slot-count1---itemstack--bool--none)
+    - [crafting\_shift\_click\_result() -\> ItemStack | bool | None](#crafting_shift_click_result---itemstack--bool--none)
+    - [get\_container\_id() -\> int](#get_container_id---int)
+    - [get\_container\_class\_name() -\> str](#get_container_class_name---str)
+    - [get\_container\_slot(slot) -\> ItemStack | None](#get_container_slotslot---itemstack--none)
+    - [get\_inventory\_slot(slot) -\> ItemStack | None](#get_inventory_slotslot---itemstack--none)
+    - [get\_item\_stack\_by\_inventory\_slot(slot) -\> JavaObject | None](#get_item_stack_by_inventory_slotslot---javaobject--none)
+    - [get\_item\_stack\_by\_container\_slot(slot) -\> JavaObject | None](#get_item_stack_by_container_slotslot---javaobject--none)
+    - [container\_find\_item\_id(item\_id) -\> list\[JavaObject\]](#container_find_item_iditem_id---listjavaobject)
+    - [inventory\_find\_item\_id(item\_id) -\> list\[ItemStack\]](#inventory_find_item_iditem_id---listitemstack)
+    - [get\_inventory\_free\_slot() -\> int | None](#get_inventory_free_slot---int--none)
+    - [get\_inventory\_selected\_hotbar\_slot() -\> int](#get_inventory_selected_hotbar_slot---int)
+    - [raw\_click(slot, button\_or\_slot=0, click\_type=None) -\> bool](#raw_clickslot-button_or_slot0-click_typenone---bool)
+    - [click\_slot(slot, button=0) -\> bool](#click_slotslot-button0---bool)
+    - [shift\_click\_slot(slot) -\> bool](#shift_click_slotslot---bool)
+    - [click\_swap\_with\_hotbar(slot, hotbar\_slot) -\> bool](#click_swap_with_hotbarslot-hotbar_slot---bool)
+    - [pickup\_swap\_container(slot\_a, slot\_b) -\> bool](#pickup_swap_containerslot_a-slot_b---bool)
+  - [FishingHelper](#fishinghelper)
+    - [is\_holding\_rod() -\> bool](#is_holding_rod---bool)
+    - [is\_casted() -\> bool](#is_casted---bool)
+    - [is\_biting() -\> bool | None](#is_biting---bool--none)
+    - [is\_open\_water() -\> bool | None](#is_open_water---bool--none)
+    - [get\_hooked\_entity() -\> JavaObject | None](#get_hooked_entity---javaobject--none)
+    - [get\_time\_until\_lured() -\> int | None](#get_time_until_lured---int--none)
+    - [get\_time\_until\_hooked() -\> int | None](#get_time_until_hooked---int--none)
+    - [use\_rod() -\> bool](#use_rod---bool)
+  - [ClientHelper](#clienthelper)
+    - [get\_current\_screen() -\> JavaObject | None](#get_current_screen---javaobject--none)
+    - [get\_current\_screen\_class\_name() -\> str](#get_current_screen_class_name---str)
+    - [set\_current\_screen(screen) -\> None](#set_current_screenscreen---none)
+    - [close\_current\_screen(with\_close\_container\_packet=True) -\> None](#close_current_screenwith_close_container_packettrue---none)
+    - [open\_pause\_screen() -\> None](#open_pause_screen---none)
+    - [open\_inventory\_screen() -\> None](#open_inventory_screen---none)
+    - [disconnect(reason="Disconnected by Minescript") -\> None](#disconnectreasondisconnected-by-minescript---none)
+    - [get\_fps() -\> int](#get_fps---int)
+    - [get\_camera\_position() -\> JavaObject](#get_camera_position---javaobject)
+    - [get\_camera\_type() -\> str](#get_camera_type---str)
+    - [get\_level\_data() -\> ClientLevelData](#get_level_data---clientleveldata)
+      - [ClientLevelData](#clientleveldata)
+  - [MappingsHelper](#mappingshelper)
+    - [get\_runtime\_class\_name(pretty\_class\_name) -\> str](#get_runtime_class_namepretty_class_name---str)
+    - [get\_pretty\_class\_name(runtime\_class\_name) -\> str](#get_pretty_class_nameruntime_class_name---str)
+    - [get\_runtime\_field\_name(clazz, pretty\_field\_name) -\> str](#get_runtime_field_nameclazz-pretty_field_name---str)
+    - [get\_pretty\_field\_names(clazz) -\> JavaSet\[str\]](#get_pretty_field_namesclazz---javasetstr)
+    - [get\_runtime\_method\_names(clazz, pretty\_method\_name) -\> JavaSet\[str\]](#get_runtime_method_namesclazz-pretty_method_name---javasetstr)
+    - [get\_pretty\_method\_names(clazz) -\> JavaSet\[str\]](#get_pretty_method_namesclazz---javasetstr)
+  - [ReflectionHelper](#reflectionhelper)
+    - [get\_private\_field(clazz, pretty\_field\_name) -\> Any](#get_private_fieldclazz-pretty_field_name---any)
+  - [UtilHelper](#utilhelper)
+    - [get\_class\_name(obj) -\> str](#get_class_nameobj---str)
+    - [get\_clipboard() -\> str](#get_clipboard---str)
+    - [set\_clipboard(text) -\> None](#set_clipboardtext---none)
+  - [Example Usage](#example-usage)
+- [Usage](#usage)
 
-- [ItemsHelper](#itemshelper)
-- [ContainerHelper](#containerhelper)
-- [FishingHelper](#fishinghelper)
-- [ClientHelper](#clienthelper)
-- [MappingsHelper](#mappingshelper)
-- [ReflectionHelper](#reflectionhelper)
-- [UtilHelper](#utilhelper)
 
 ---
 
 ## ItemsHelper
 
+> [!NOTE] 
+> NOTE YOU CANT PASS minescript.ItemStack instances, these ARE DATA OBJECTS
+
 Static helper class for working with items and item stacks. All methods accept item references in multiple formats:
 - `JavaObject`: Direct Item or ItemStack objects
 - `str`: Item ID (e.g., `"minecraft:diamond_sword"`, `"fishing_rod"`)
 - `int`: Numeric registry ID (e.g., `69`)
-NOTE YOU CANT PASS minescript.ItemStack instances, these ARE DATA OBJECTS
+
+### get_json(item) -> str
+Get the full serialized item stack as a JSON string
+
+```python
+item = ContainerHelper.get_item_stack_by_inventory_slot(0)
+if item:
+    json_str = ItemsHelper.get_json(item)
+    print(json_str)
+    # -> '{"id":"minecraft:iron_sword","count":1,"components":{"minecraft:enchantments":{"minecraft:unbreaking":3,"minecraft:mending":1,"minecraft:sharpness":5},"minecraft:custom_name":"test"}}'
+```
+
+### get_components(item) -> str
+Get only the `components` field from an item stack as a JSON string.
+
+```python
+item = ContainerHelper.get_item_stack_by_inventory_slot(0)
+if item:
+    components_str = ItemsHelper.get_components(item) # -> '{"minecraft:enchantments":{"minecraft:unbreaking":3,"minecraft:mending":1,"minecraft:sharpness":5},"minecraft:custom_name":"test"}'
+    components_json = json.loads(components_str)
+        enchantments = components_json.get("minecraft:enchantments", {})
+    print(enchantments)  # -> {"minecraft:enchantments":{"minecraft:unbreaking":3,"minecraft:mending":1,"minecraft:sharpness":5},"minecraft:custom_name":"test"}
+```
 
 ### get_item_id(item) -> str | None
 Get the item ID (namespace identifier) for an item.
@@ -53,21 +138,7 @@ if item:
 ```
 
 ### get_count(item) -> int
-Get the stack count. Returns `1` for single items, actual count for item stacks.
-
-```python
-ItemsHelper.get_count("diamond_sword")  # -> 1
-stack = ContainerHelper.get_item_stack_by_inventory_slot(0)
-print(ItemsHelper.get_count(stack))  # -> actual stack size
-```
-
 ### get_max_stack_size(item) -> int
-Get the maximum stack size for an item.
-
-```python
-ItemsHelper.get_max_stack_size("dirt")  # -> 64
-ItemsHelper.get_max_stack_size("diamond_sword")  # -> 1
-```
 
 ### get_item_stack_java_object(item) -> JavaObject
 Get the underlying ItemStack JavaObject (`net.minecraft.world.item.ItemStack`).
@@ -85,34 +156,9 @@ Get the underlying Item JavaObject (`net.minecraft.world.item.Item`).
 java_item = ItemsHelper.get_item_java_object("diamond_sword")
 ```
 
-### get_json(item) -> str
-Get the full serialized item stack as a JSON string
-
-```python
-item = ContainerHelper.get_item_stack_by_inventory_slot(0)
-if item:
-    json_str = ItemsHelper.get_json(item)
-    print(json_str)
-    # -> '{"id":"minecraft:iron_sword","count":1,"components":{"minecraft:enchantments":{"minecraft:unbreaking":3,"minecraft:mending":1,"minecraft:sharpness":5},"minecraft:custom_name":"test"}}'
-```
-
-### get_components(item) -> str
-Get only the `components` field from an item stack as a JSON string. Use this to access enchantments, custom names, and other component data without the full item stack wrapper.
-
-```python
-item = ContainerHelper.get_item_stack_by_inventory_slot(0)
-if item:
-    components_str = ItemsHelper.get_components(item) # -> '{"minecraft:enchantments":{"minecraft:unbreaking":3,"minecraft:mending":1,"minecraft:sharpness":5},"minecraft:custom_name":"test"}'
-    components_json = json.loads(components_str)
-        enchantments = components_json.get("minecraft:enchantments", {})
-    print(enchantments)  # -> {"minecraft:enchantments":{"minecraft:unbreaking":3,"minecraft:mending":1,"minecraft:sharpness":5},"minecraft:custom_name":"test"}
-```
-
 ---
 
 ## ContainerHelper
-
-Static helper class for container/inventory operations.
 
 ### crafting_get_layout() -> CraftingLayout
 Returns the active crafting layout object for the current container.
@@ -252,7 +298,7 @@ Raw click operation on a slot. For advanced container manipulation.
 
 Args:
 - `slot` (int): Slot to click
-- `button_or_slot` (int): Mouse button (0=left, 1=right) or drag slot
+- `button_or_slot` (int): Mouse button (0=left, 1=right) or drag slot / slot_b
 - `click_type` (str|JavaObject): Click type (PICKUP, QUICK_MOVE, SWAP, CLONE, THROW, QUICK_CRAFT, PICKUP_ALL)
 
 Returns: `True` if click succeeded, `False` otherwise
@@ -268,30 +314,13 @@ if ContainerHelper.click_slot(15, button=0):
 ### shift_click_slot(slot) -> bool
 Shift-click a slot (quick move).
 
-```python
-ContainerHelper.shift_click_slot(15)  # Quick move slot 15
-```
 
 ### click_swap_with_hotbar(slot, hotbar_slot) -> bool
-Swap item in slot with item in hotbar (number key press).
-
-```python
-# Swap slot 15 with hotbar slot 0 (key 1)
-ContainerHelper.click_swap_with_hotbar(15, 0)
-```
-
 ### pickup_swap_container(slot_a, slot_b) -> bool
-Swap items between two slots using pickup/place operations.
-
-```python
-ContainerHelper.pickup_swap_container(15, 16)
-```
 
 ---
 
 ## FishingHelper
-
-Static helper class for fishing operations.
 
 ### is_holding_rod() -> bool
 Check if player is holding a fishing rod.
@@ -302,8 +331,6 @@ if FishingHelper.is_holding_rod():
 ```
 
 ### is_casted() -> bool
-Check if fishing line is cast (hook in water).
-
 ```python
 if FishingHelper.is_casted():
     print("Line is cast")
@@ -321,16 +348,7 @@ elif biting is None:
 ```
 
 ### is_open_water() -> bool | None
-Check if hook is in open water. Returns `None` if no hook in water.
-
-```python
-if FishingHelper.is_open_water():
-    print("In open water")
-```
-
 ### get_hooked_entity() -> JavaObject | None
-Get the entity (fish or player) hooked by the fishing line, if any.
-
 ```python
 entity = FishingHelper.get_hooked_entity()
 if entity:
@@ -354,12 +372,6 @@ ticks = FishingHelper.get_time_until_hooked()
 ```
 
 ### use_rod() -> bool
-Use the fishing rod (cast or reel in).
-
-```python
-if FishingHelper.use_rod():
-    print("Rod action successful")
-```
 
 ---
 

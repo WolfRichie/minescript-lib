@@ -1,12 +1,8 @@
 from __future__ import annotations
-
 from typing import Any
-
 import java
-
 from code.Proxy import PyJinnProxy
-
-Vector3f = tuple[float, float, float]
+from minescript import Vector3f
 
 
 class MappingsHelper(PyJinnProxy):
@@ -44,11 +40,65 @@ class ReflectionHelper(PyJinnProxy):
     ...
 
 
-class CraftingLayout(PyJinnProxy):
+class CraftingLayout:
   container_name: str
   grid_slots: list[int]
   grid_size: int
   result_slot: int
+
+
+class EnchantmentInfo:
+  id: str
+  level: int
+
+
+class ItemsHelper(PyJinnProxy):
+  """Unified static helper for item and itemstack operations."""
+  
+  @staticmethod
+  def get_item_id(item: java.JavaObject | str | int) -> str | None:
+    """Get the item ID (minecraft:namespace format)."""
+    ...
+
+  @staticmethod
+  def get_numeric_id(item: java.JavaObject | str | int) -> int:
+    """Get the numeric registry ID."""
+    ...
+
+  @staticmethod
+  def get_display_name(item: java.JavaObject | str | int, use_custom_name: bool = False) -> str | None:
+    """Get display name of an item or itemstack."""
+    ...
+
+  @staticmethod
+  def get_count(item: java.JavaObject | str | int) -> int:
+    """Get stack count (1 for items, actual for itemstacks)."""
+    ...
+
+  @staticmethod
+  def get_max_stack_size(item: java.JavaObject | str | int) -> int:
+    """Get maximum stack size."""
+    ...
+
+  @staticmethod
+  def get_item_stack_java_object(item: java.JavaObject | str | int) -> java.JavaObject:
+    """Get the ItemStack JavaObject."""
+    ...
+
+  @staticmethod
+  def get_item_java_object(item: java.JavaObject | str | int) -> java.JavaObject:
+    """Get the Item JavaObject."""
+    ...
+
+  @staticmethod
+  def get_json(item: java.JavaObject | str | int) -> str:
+    """Get serialized data components."""
+    ...
+
+  @staticmethod
+  def get_components(item: java.JavaObject | str | int) -> str:
+    """Get serialized data components."""
+    ...
 
 
 class ContainerHelper(PyJinnProxy):
@@ -68,28 +118,34 @@ class ContainerHelper(PyJinnProxy):
     ...
 
   @staticmethod
-  def get_container_slot(slot: int) -> ItemStackInstance | None:
-    """Return the item entry for `slot` from `get_container_items()`.
-
-    Returns:
-      The ItemStackInstance object when found, otherwise `None`.
-    """
+  def get_container_slot(slot: int) -> java.JavaObject | None:
+    """Return the ItemStack JavaObject for `slot` from container, or None if empty."""
     ...
 
   @staticmethod
-  def get_inventory_slot(slot: int) -> ItemStackInstance | None: ...
+  def get_inventory_slot(slot: int) -> java.JavaObject | None:
+    """Return the ItemStack JavaObject for `slot` from inventory, or None if empty."""
+    ...
 
   @staticmethod
-  def get_item_stack_by_inventory_slot(slot: int) -> ItemStackInstance | None: ...
+  def get_item_stack_by_inventory_slot(slot: int) -> java.JavaObject | None:
+    """Get ItemStack JavaObject from player inventory slot, or None if empty."""
+    ...
 
   @staticmethod
-  def get_item_stack_by_container_slot(slot: int) -> ItemStackInstance | None: ...
+  def get_item_stack_by_container_slot(slot: int) -> java.JavaObject | None:
+    """Get ItemStack JavaObject from container slot, or None if empty."""
+    ...
 
   @staticmethod
-  def container_find_item_id(item_id: str) -> list[ItemStackInstance]: ...
+  def container_find_item_id(item_id: str) -> list[java.JavaObject]:
+    """Find all ItemStacks with given item_id in container."""
+    ...
 
   @staticmethod
-  def inventory_find_item_id(item_id: str) -> list[ItemStackInstance]: ...
+  def inventory_find_item_id(item_id: str) -> list[java.JavaObject]:
+    """Find all ItemStacks with given item_id in inventory."""
+    ...
 
   @staticmethod
   def crafting_get_grid_size() -> int:
@@ -115,37 +171,13 @@ class ContainerHelper(PyJinnProxy):
     ...
 
   @staticmethod
-  def crafting_place_slot(slot: int, crafting_slot: int, count: int = 1) -> ItemStackInstance | bool | None:
-    """Place item(s) from a container slot into a crafting grid slot.
-
-    Args:
-      slot (int): Source container slot index to take item(s) from.
-      crafting_slot (int): Target crafting menu slot id. Must be present in
-        `get_crafting_layout().grid_slots`.
-      count (int): Number of right-click placements to perform.
-
-    Returns:
-      ItemStackInstance: The current crafting result item from the active result slot
-        (slot 0 for crafting/inventory menus, slot 45 for crafter).
-      None: If the active result slot has no result item after placement.
-      bool: `False` when the open container is not a supported crafting UI or
-        when an interaction click fails.
-
-    Raises:
-      IndexError: If `crafting_slot` is outside the supported range.
-    """
+  def crafting_place_slot(slot: int, crafting_slot: int, count: int = 1) -> java.JavaObject | bool | None:
+    """Place item(s) from a container slot into a crafting grid slot."""
     ...
 
   @staticmethod
-  def crafting_shift_click_result() -> ItemStackInstance | bool | None:
-    """Shift-clicks the result slot and return the item that was present.
-
-    Returns:
-      ItemStackInstance: The item that was present in the active result slot before
-        shift-click (slot 0 or slot 45 for crafter).
-      bool: `False` when the open container is unsupported or the click fails.
-      None: If the result slot has no item.
-    """
+  def crafting_shift_click_result() -> java.JavaObject | bool | None:
+    """Shift-click the crafting result."""
     ...
 
   @staticmethod
@@ -178,6 +210,9 @@ class ContainerHelper(PyJinnProxy):
   @staticmethod
   def get_inventory_selected_hotbar_slot() -> int: ...
 
+  @staticmethod
+  def get_inventory_free_slot() -> int | None: ...
+  
 
 class FishingHelper(PyJinnProxy):
   @staticmethod
@@ -216,7 +251,7 @@ class ClientHelper(PyJinnProxy):
   def get_current_screen_class_name() -> str: ...
 
   @staticmethod
-  def close_current_screen() -> None: ...
+  def close_current_screen(with_close_container_packet: bool = True) -> None: ...
 
   @staticmethod
   def open_pause_screen() -> None: ...
@@ -268,43 +303,5 @@ class UtilHelper(PyJinnProxy):
   @staticmethod
   def set_clipboard(text: str) -> None: ...
 
-
-class ItemStackInstance(PyJinnProxy):
-  def __init__(self, item_stack: java.JavaObject | str) -> None: ...
-
-  def get_display_name(self: ItemStackInstance, use_custom_name: bool = False) -> str | None: ...
-
-  def get_item_id(self: ItemStackInstance) -> str | None: ...
-
-  def get_item(self: ItemStackInstance) -> ItemInstance: ...
-
-  def get_item_java_object(self: ItemStackInstance) -> java.JavaObject: ...
-
-  def get_count(self: ItemStackInstance) -> int: ...
-
-  def get_max_stack_size(self: ItemStackInstance) -> int: ...
-
-  def get_java_object(self: ItemStackInstance) -> java.JavaObject: ...
-
-
-class ItemInstance(PyJinnProxy):
-  def __init__(self, item: java.JavaObject | str) -> None: ...
-
-  def get_item_id(self: ItemInstance) -> str | None: ...
-
-  def get_numeric_id(self: ItemInstance) -> int: ...
-
   @staticmethod
-  def by_numeric_id(id: int) -> ItemInstance: ...
-
-  def get_display_name(self: ItemInstance, use_custom_name: bool = False) -> str | None: ...
-
-  def get_item_stack(self: ItemInstance) -> ItemStackInstance: ...
-
-  def get_item_stack_java_object(self: ItemInstance) -> java.JavaObject: ...
-
-  def get_count(self: ItemInstance) -> int: ...
-
-  def get_max_stack_size(self: ItemInstance) -> int: ...
-
-  def get_java_object(self: ItemInstance) -> java.JavaObject: ...
+  def test() -> None: ...

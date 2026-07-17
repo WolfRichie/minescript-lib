@@ -53,7 +53,7 @@ Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.14
     - [open\_inventory\_screen() -\> None](#open_inventory_screen---none)
     - [disconnect(reason="Disconnected by Minescript") -\> None](#disconnectreasondisconnected-by-minescript---none)
     - [get\_fps() -\> int](#get_fps---int)
-    - [get\_camera\_position() -\> JavaObject](#get_camera_position---javaobject)
+    - [get\_camera\_position() -\> Vector3f](#get_camera_position---vector3f)
     - [get\_camera\_type() -\> str](#get_camera_type---str)
     - [get\_level\_data() -\> ClientLevelData](#get_level_data---clientleveldata)
       - [ClientLevelData](#clientleveldata)
@@ -70,8 +70,6 @@ Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.14
     - [get\_class\_name(obj) -\> str](#get_class_nameobj---str)
     - [get\_clipboard() -\> str](#get_clipboard---str)
     - [set\_clipboard(text) -\> None](#set_clipboardtext---none)
-  - [Example Usage](#example-usage)
-- [Usage](#usage)
 
 
 ---
@@ -377,31 +375,14 @@ ticks = FishingHelper.get_time_until_hooked()
 
 ## ClientHelper
 
-Static helper class for client screen and connection operations.
-
 ### get_current_screen() -> JavaObject | None
-Get the current open screen. Returns `None` if no screen open.
-
-```python
-screen = ClientHelper.get_current_screen()
-if screen:
-    print(f"Screen open: {ClientHelper.get_current_screen_class_name()}")
-```
 
 ### get_current_screen_class_name() -> str
-Get the mapped class name of the current screen.
-
-```python
-class_name = ClientHelper.get_current_screen_class_name()
-if "Inventory" in class_name:
-    print("Inventory screen open")
-```
-
 ### set_current_screen(screen) -> None
 Open a screen.
 
 ```python
-screen = JavaClass("net.minecraft.client.gui.screens.PauseScreen").constructor(False)(False)
+screen = JavaClass("net.minecraft.client.gui.screens.PauseScreen")()
 ClientHelper.set_current_screen(screen)
 ```
 
@@ -416,36 +397,11 @@ ClientHelper.close_current_screen()
 ```
 
 ### open_pause_screen() -> None
-Open the pause menu.
-
-```python
-ClientHelper.open_pause_screen()
-```
-
 ### open_inventory_screen() -> None
-Open the inventory screen.
-
-```python
-ClientHelper.open_inventory_screen()
-```
-
 ### disconnect(reason="Disconnected by Minescript") -> None
-Disconnect from server.
-
-```python
-ClientHelper.disconnect("Leaving")
-```
-
 ### get_fps() -> int
-Get current FPS.
 
-```python
-fps = ClientHelper.get_fps()
-print(f"FPS: {fps}")
-```
-
-### get_camera_position() -> JavaObject
-Get the camera position as a `Vector3f` JavaObject.
+### get_camera_position() -> Vector3f
 
 ```python
 pos = ClientHelper.get_camera_position()
@@ -462,14 +418,6 @@ camera_type = ClientHelper.get_camera_type()
 ```
 
 ### get_level_data() -> ClientLevelData
-Get current level/world data. Returns `ClientLevelData` object or `None` if no level loaded.
-
-```python
-level = ClientHelper.get_level_data()
-if level:
-    print(f"Difficulty: {level.difficulty}")
-    print(f"Day time: {level.daytime}")
-```
 
 #### ClientLevelData
 Object containing level metadata:
@@ -481,7 +429,6 @@ Object containing level metadata:
 
 ## MappingsHelper
 
-Static helper class for working with Minecraft's name mappings (deobfuscation).
 
 ### get_runtime_class_name(pretty_class_name) -> str
 Resolve a mapped (readable) class name to the actual runtime class name.
@@ -498,56 +445,15 @@ pretty_name = MappingsHelper.get_pretty_class_name("net.minecraft.class_310")
 ```
 
 ### get_runtime_field_name(clazz, pretty_field_name) -> str
-Resolve a mapped field name to the runtime field name for a class.
-
-```python
-runtime_field = MappingsHelper.get_runtime_field_name(
-    minecraft.player.getClass(), 
-    "containerMenu"
-)
-```
-
 ### get_pretty_field_names(clazz) -> JavaSet[str]
-Get all mapped field names for a class.
-
-```python
-fields = MappingsHelper.get_pretty_field_names(minecraft.player.getClass())
-for field in fields:
-    print(field)
-```
-
 ### get_runtime_method_names(clazz, pretty_method_name) -> JavaSet[str]
-Resolve a mapped method name to runtime method names for a class.
-
-```python
-methods = MappingsHelper.get_runtime_method_names(
-    minecraft.player.getClass(), 
-    "getInventory"
-)
-```
-
 ### get_pretty_method_names(clazz) -> JavaSet[str]
-Get all mapped method names for a class.
-
-```python
-methods = MappingsHelper.get_pretty_method_names(minecraft.player.getClass())
-```
 
 ---
 
 ## ReflectionHelper
 
-Static helper class for Java reflection operations.
-
 ### get_private_field(clazz, pretty_field_name) -> Any
-Get a private field value from a class instance using reflection.
-
-```python
-container_menu = ReflectionHelper.get_private_field(
-    minecraft.player,
-    "containerMenu"
-)
-```
 
 ---
 
@@ -578,77 +484,3 @@ Set the clipboard contents.
 ```python
 UtilHelper.set_clipboard("Hello, World!")
 ```
-
----
-
-## Example Usage
-
-```python
-from library.pyj import *
-
-def on_item_taken(event):
-    """Event handler when item is taken from container."""
-    # Get the item that was taken
-    item = ContainerHelper.get_item_stack_by_inventory_slot(27)
-    
-    if item:
-        # Get basic item info
-        item_id = ItemsHelper.get_item_id(item)
-        count = ItemsHelper.get_count(item)
-        display_name = ItemsHelper.get_display_name(item)
-        
-        print(f"Took {count}x {display_name} ({item_id})")
-        
-        # Get components (enchantments, custom name, etc.)
-        components_str = ItemsHelper.get_components(item)
-        components = json.loads(components_str)
-        
-        # Check for enchantments
-        enchantments = components.get("minecraft:enchantments", {})
-        for ench_id, ench_level in enchantments.items():
-            print(f"  - {ench_id}: {ench_level}")
-        
-        # Check for custom name
-        custom_name = components.get("minecraft:custom_name")
-        if custom_name:
-            print(f"  Custom name: {custom_name}")
-```
-
-    - [get\_container\_slot(slot) -\> ItemStackInstance | None](#get_container_slotslot---itemstackinstance--none)
-    - [get\_inventory\_slot(slot) -\> ItemStackInstance | None](#get_inventory_slotslot---itemstackinstance--none)
-    - [container\_find\_item\_id(item\_id: str) -\> list\[ItemStackInstance\]](#container_find_item_iditem_id-str---listitemstackinstance)
-    - [inventory\_find\_item\_id(item\_id: str) -\> list\[ItemStackInstance\]](#inventory_find_item_iditem_id-str---listitemstackinstance)
-    - [get\_item\_stack\_by\_inventory\_slot(slot: int) -\> ItemStackInstance | None](#get_item_stack_by_inventory_slotslot-int---itemstackinstance--none)
-    - [get\_item\_stack\_by\_container\_slot(slot: int) -\> ItemStackInstance | None:](#get_item_stack_by_container_slotslot-int---itemstackinstance--none)
-    - [raw\_click(slot, button\_or\_slot = 0, click\_type = None) -\> bool](#raw_clickslot-button_or_slot--0-click_type--none---bool)
-    - [click\_slot(slot, button = 0) -\> bool](#click_slotslot-button--0---bool)
-    - [shift\_click\_slot(slot) -\> bool](#shift_click_slotslot---bool)
-    - [click\_swap\_with\_hotbar(slot, hotbar\_slot) -\> bool](#click_swap_with_hotbarslot-hotbar_slot---bool)
-    - [pickup\_swap\_container(slot\_a, slot\_b) -\> bool](#pickup_swap_containerslot_a-slot_b---bool)
-    - [get\_inventory\_selected\_hotbar\_slot() -\> int](#get_inventory_selected_hotbar_slot---int)
-    - [get\_inventory\_free\_slot() -\> int | None](#get_inventory_free_slot---int--none)
-  - [`ReflectionHelper`](#reflectionhelper)
-    - [get\_private\_field(clazz: JavaClass, pretty\_field\_name: str) -\> Any](#get_private_fieldclazz-javaclass-pretty_field_name-str---any)
-  - [`ClientHelper`](#clienthelper)
-    - [set\_current\_screen(screen: JavaObject) -\> None:](#set_current_screenscreen-javaobject---none)
-    - [get\_current\_screen() -\> JavaObject | None](#get_current_screen---javaobject--none)
-    - [get\_current\_screen\_class\_name() -\> str](#get_current_screen_class_name---str)
-    - [close\_current\_screen(with\_close\_container\_packet: bool = True) -\> None](#close_current_screenwith_close_container_packet-bool--true---none)
-    - [open\_pause\_screen() -\> None](#open_pause_screen---none)
-    - [open\_inventory\_screen() -\> None](#open_inventory_screen---none)
-    - [disconnect(str = "Disconnected by Minescript") -\> None](#disconnectstr--disconnected-by-minescript---none)
-    - [get\_level\_data() -\> ClientLevelData](#get_level_data---clientleveldata)
-      - [`ClientLevelData`](#clientleveldata)
-    - [get\_fps() -\> int](#get_fps---int)
-    - [get\_camera\_position() -\> Vector3f](#get_camera_position---vector3f)
-    - [get\_camera\_type() -\> str:](#get_camera_type---str)
-  - [FIRST\_PERSON or THIRD\_PERSON\_BACK or THIRD\_PERSON\_FRONT](#first_person-or-third_person_back-or-third_person_front)
-  - [`UtilHelper`](#utilhelper)
-    - [get\_class\_name(obj: JavaObject) -\> str:](#get_class_nameobj-javaobject---str)
-    - [get\_clipboard() -\> str:](#get_clipboard---str)
-    - [set\_clipboard(text: str) -\> None:](#set_clipboardtext-str---none)
-
-# Usage
-See examples/
-
-Developed in `Minecraft 1.12.11` `minescript 5.0b11` using `Fabric API 0.141.4`

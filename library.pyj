@@ -1,10 +1,12 @@
     # #!python
     # import * from java
     # import * from minescript
-
+from system.pyj.minescript import *
+import system.pyj.json as json
 
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
 minescript = JavaClass("net.minescript.common.Minescript")
+
 
 class MappingsHelper:
     mappings: JavaObject = minescript.mappingsLoader.get()
@@ -43,6 +45,12 @@ class CraftingLayout:
         self.grid_slots = grid_slots
         self.grid_size = len(grid_slots)
         self.result_slot = result_slot
+
+
+class EnchantmentInfo:
+    def __init__(self, id: str, level: int):
+        self.id = id
+        self.level = level
         
 
 class ContainerHelper:
@@ -148,25 +156,21 @@ class ContainerHelper:
         return None
 
     @staticmethod
-    def get_container_slot(slot: int) -> ItemStackInstance | None:
-        item = ContainerHelper._get_item_by_slot(container_get_items(), slot)
-        return ItemStackInstance(item) if item is not None else None
+    def get_container_slot(slot: int) -> ItemStack | None:
+        return ContainerHelper._get_item_by_slot(container_get_items(), slot)
 
     @staticmethod
-    def get_inventory_slot(slot: int) -> ItemStackInstance | None:
-        item = ContainerHelper._get_item_by_slot(player_inventory(), slot)
-        return ItemStackInstance(item) if item is not None else None
+    def get_inventory_slot(slot: int) -> ItemStack | None:
+        return ContainerHelper._get_item_by_slot(player_inventory(), slot)
     
 
     @staticmethod
-    def get_item_stack_by_inventory_slot(slot: int) -> ItemStackInstance | None:
-        item = minecraft.player.getInventory().getItem(slot)
-        return ItemStackInstance(item) if item is not None else None
+    def get_item_stack_by_inventory_slot(slot: int) -> JavaObject | None:
+        return minecraft.player.getInventory().getItem(slot)
 
     @staticmethod
-    def get_item_stack_by_container_slot(slot: int) -> ItemStackInstance | None:
-        item = ContainerHelper._get_container().getSlot(slot).getItem()
-        return ItemStackInstance(item) if item is not None else None
+    def get_item_stack_by_container_slot(slot: int) -> JavaObject | None:
+        return ContainerHelper._get_container().getSlot(slot).getItem()
 
     @staticmethod
     def _has_item_id(items: List[ItemStack], item_id: str) -> List[ItemStack]:
@@ -177,14 +181,12 @@ class ContainerHelper:
         return found_item_stacks
     
     @staticmethod
-    def container_find_item_id(item_id: str) -> List[ItemStack]:
-        items = ContainerHelper._has_item_id(container_get_items(), item_id)
-        return [ItemStackInstance(item) for item in items]
+    def container_find_item_id(item_id: str) -> list[ItemStack]:
+        return ContainerHelper._has_item_id(container_get_items(), item_id)
     
     @staticmethod
-    def inventory_find_item_id(item_id: str) -> List[ItemStack]:
-        items = ContainerHelper._has_item_id(player_inventory(), item_id)
-        return [ItemStackInstance(item) for item in items]
+    def inventory_find_item_id(item_id: str) -> list[ItemStack]:
+        return ContainerHelper._has_item_id(player_inventory(), item_id)
 
     @staticmethod
     def crafting_place_slot(slot, crafting_slot, count=1) -> ItemStack | bool | None:
@@ -230,81 +232,143 @@ class ContainerHelper:
 
         if not ContainerHelper.shift_click_slot(result_slot):
             return False
-        return result  # Already wrapped by get_container_slot
+        return result
     
     @staticmethod
     def get_inventory_selected_hotbar_slot() -> int:
         return minecraft.player.getInventory().selected
     
-class ItemInstance:
-    Item: JavaHandle = JavaClass("net.minecraft.world.item.Item")
-    Items: JavaHandle = JavaClass("net.minecraft.world.item.Items")
-    BuiltInRegistries: JavaHandle = JavaClass("net.minecraft.core.registries.BuiltInRegistries")
-    Identifier: JavaHandle = JavaClass("net.minecraft.resources.Identifier")
-
-    def __init__(self, item: JavaObject | str):
-        if type(item) is str:
-            item = ItemInstance._get_item_by_item_id(item)
-        elif isinstance(item, JavaObject):
-            class_name = UtilHelper.get_class_name(item)
-            if class_name != "net.minecraft.world.item.Item":
-                raise TypeError(f"Expected a JavaObject representing an Item, got an {class_name} instance instead.")
-        self.item = item
+    @staticmethod
+    def get_inventory_free_slot() -> int | None:
+        return minecraft.player.getInventory().getFreeSlot()
+       
+class ItemsHelper:
+    Item = JavaClass("net.minecraft.world.item.Item")
+    Items = JavaClass("net.minecraft.world.item.Items")
+    BuiltInRegistries = JavaClass("net.minecraft.core.registries.BuiltInRegistries")
+    Identifier = JavaClass("net.minecraft.resources.Identifier")
+    DataComponents = JavaClass("net.minecraft.core.component.DataComponents")
+    ItemStackClass = JavaClass("net.minecraft.world.item.ItemStack")
+    RegistryOps = JavaClass("net.minecraft.resources.RegistryOps")
+    JsonOps = JavaClass("com.mojang.serialization.JsonOps")
+    Gson = JavaClass("com.google.gson.Gson")
+    JsonParser = JavaClass("com.google.gson.JsonParser")
 
     @staticmethod
-    def _get_item_by_identifier(identifier) -> JavaObject | None:
-        optional = ItemInstance.BuiltInRegistries.ITEM.get(identifier)
-
-        if optional.isEmpty():
-            return None
-
-        return optional.get().value()
+    def _resolve_to_item_stack(item: JavaObject | str | int) -> JavaObject:
+        """Convert item_id (str), numeric_id (int), or JavaObject to ItemStack JavaObject."""
+        # Handle int and str first (convert to Item)
+        if isinstance(item, int):
+            item_obj = ItemsHelper.Item.byId(item)
+            return item_obj.getDefaultInstance()
+        elif isinstance(item, str):
+            identifier = ItemsHelper.Identifier.parse(item)
+            optional = ItemsHelper.BuiltInRegistries.ITEM.get(identifier)
+            if optional.isEmpty():
+                raise ValueError(f"Item not found: {item}")
+            item_obj = optional.get().value()
+            return item_obj.getDefaultInstance()
+        
+        # Handle JavaObject (could be Item or ItemStack)
+        class_name = UtilHelper.get_class_name(item)
+        if class_name == "net.minecraft.world.item.Item":
+            return item.getDefaultInstance()
+        elif class_name == "net.minecraft.world.item.ItemStack":
+            return item
+        else:
+            raise TypeError(f"Expected Item or ItemStack, got {class_name}")
 
     @staticmethod
-    def _get_identifier_by_item_id(item_id: str) -> JavaObject:
-        return ItemInstance.Identifier.parse(item_id)
+    def _resolve_to_item(item: JavaObject | str | int) -> JavaObject:
+        """Convert numeric_id (int), item_id (str), or JavaObject to Item JavaObject."""
+        if isinstance(item, int):
+            return ItemsHelper.Item.byId(item)
+        elif isinstance(item, str):
+            identifier = ItemsHelper.Identifier.parse(item)
+            optional = ItemsHelper.BuiltInRegistries.ITEM.get(identifier)
+            if optional.isEmpty():
+                raise ValueError(f"Item not found: {item}")
+            return optional.get().value()
+        
+        class_name = UtilHelper.get_class_name(item)
+        if class_name == "net.minecraft.world.item.Item":
+            return item
+        elif class_name == "net.minecraft.world.item.ItemStack":
+            return item.getItem()
+        else:
+            raise TypeError(f"Expected Item or ItemStack, got {class_name}")
 
     @staticmethod
-    def _get_item_by_item_id(item_id: str) -> JavaObject | None:
-        identifier = ItemInstance._get_identifier_by_item_id(item_id)
-        return ItemInstance._get_item_by_identifier(identifier)
-
-    @staticmethod
-    def by_numeric_id(id: int) -> ItemInstance:
-        return ItemInstance(ItemInstance.Item.byId(id))
-
-    def get_item_id(self) -> str | None:
-        identifier = ItemInstance.BuiltInRegistries.ITEM.getKey(self.item)
-
+    def get_item_id(item: JavaObject | str | int) -> str | None:
+        """Get the item ID (minecraft namespace identifier) for an item."""
+        item_obj = ItemsHelper._resolve_to_item(item)
+        identifier = ItemsHelper.BuiltInRegistries.ITEM.getKey(item_obj)
         if identifier is None:
             return None
-
         return identifier.getPath()
 
-    def get_numeric_id(self) -> int:
-        return ItemInstance.Item.getId(self.item)
+    @staticmethod
+    def get_numeric_id(item: JavaObject | str | int) -> int:
+        """Get the numeric registry ID for an item."""
+        item_obj = ItemsHelper._resolve_to_item(item)
+        return ItemsHelper.Item.getId(item_obj)
 
-    def get_display_name(self, use_custom_name=False) -> str | None:
-        return self.get_item_stack().get_display_name(use_custom_name)
+    @staticmethod
+    def get_display_name(item: JavaObject | str | int, use_custom_name: bool = False) -> str | None:
+        """Get the display name of an item or itemstack."""
+        stack = ItemsHelper._resolve_to_item_stack(item)
+        if use_custom_name:
+            return stack.getHoverName().getString()
+        return stack.getDisplayName().getString()
 
-    def get_count(self) -> int:
-        return self.get_item_stack().get_count()
+    @staticmethod
+    def get_count(item: JavaObject | str | int) -> int:
+        """Get the stack count. Returns 1 for single items, actual count for itemstacks."""
+        stack = ItemsHelper._resolve_to_item_stack(item)
+        return stack.getCount()
 
-    def get_max_stack_size(self) -> int:
-        return self.get_item_stack().get_max_stack_size()
-    
-    def get_item_stack(self) -> ItemStackInstance:
-        return ItemStackInstance(self.get_item_stack_java_object())
+    @staticmethod
+    def get_max_stack_size(item: JavaObject | str | int) -> int:
+        """Get the maximum stack size for an item."""
+        stack = ItemsHelper._resolve_to_item_stack(item)
+        return stack.getMaxStackSize()
 
-    def get_item_stack_java_object(self) -> JavaObject:
-        return self.item.getDefaultInstance()
-    
-    def get_java_object(self) -> JavaObject:
-        return self.item
+    @staticmethod
+    def get_item_stack_java_object(item: JavaObject | str | int) -> JavaObject:
+        """Get the ItemStack JavaObject."""
+        return ItemsHelper._resolve_to_item_stack(item)
+
+    @staticmethod
+    def get_item_java_object(item: JavaObject | str | int) -> JavaObject:
+        """Get the Item JavaObject."""
+        return ItemsHelper._resolve_to_item(item)
+
+    @staticmethod
+    def get_json(item: JavaObject | str | int) -> str:
+        """Get serialized full itemstack as JSON string."""
+        stack = ItemsHelper._resolve_to_item_stack(item)
+        
+        json_element = ItemsHelper.ItemStackClass.CODEC.encodeStart(
+            ItemsHelper.RegistryOps.create(
+                ItemsHelper.JsonOps.INSTANCE,
+                minecraft.level.registryAccess(),
+            ),
+            stack,
+        ).getOrThrow()
+        return ItemsHelper.Gson().toJson(json_element)
+
+    @staticmethod
+    def get_components(item: JavaObject | str | int) -> str:
+        """Get serialized data components as JSON string (components object only)."""
+        json_str = ItemsHelper.get_json(item)
+        json_element = ItemsHelper.JsonParser.parseString(json_str)
+        components = json_element.getAsJsonObject().get("components")
+        return ItemsHelper.Gson().toJson(components)
+
 
 
 class FishingHelper:
-    ROD: JavaObject = ItemInstance.Items.FISHING_ROD
+    ROD: JavaObject = ItemsHelper.Items.FISHING_ROD
 
     @staticmethod
     def _get_fishing_hook() -> JavaObject | None:
@@ -383,8 +447,11 @@ class ClientHelper:
         return UtilHelper.get_class_name(minecraft.screen)
     
     @staticmethod
-    def close_current_screen() -> None:
-        minecraft.setScreen(None)
+    def close_current_screen(with_close_container_packet: bool = True) -> None:
+        if with_close_container_packet:
+            minecraft.player.closeContainer()
+        else:
+            minecraft.setScreen(None)
 
     @staticmethod
     def open_pause_screen() -> None:
@@ -449,36 +516,13 @@ class UtilHelper:
     @staticmethod
     def set_clipboard(text: str) -> None:
         minecraft.keyboardHandler.setClipboard(text)
+    @staticmethod
+    def test():
+        minecraft.gui.setTitle(ClientHelper.Component.literal("f"))
+        minecraft.gui.setSubtitle(ClientHelper.Component.literal("ffda"))
+        minecraft.gui.setOverlayMessage(ClientHelper.Component.literal("hey"), True)
 
-class ItemStackInstance:
-    def __init__(self, item_stack: JavaObject | str):
-        if type(item_stack) is str:
-            item_stack = ItemInstance(item_stack).get_item_stack().get_java_object()
-        elif isinstance(item_stack, JavaObject):
-            class_name = UtilHelper.get_class_name(item_stack)
-            if class_name != "net.minecraft.world.item.ItemStack":
-                raise TypeError(f"Expected a JavaObject representing an ItemStack, got an {class_name} instance instead.")
-        self.item_stack = item_stack
-        
-    def get_display_name(self, use_custom_name=False) -> str | None:
-        if use_custom_name:
-            return self.item_stack.getHoverName().getString()
-        return self.item_stack.getDisplayName().getString()
-    
-    def get_item_id(self) -> str | None:
-        return self.get_item().get_item_id()
-    
-    def get_item(self) -> ItemInstance:
-        return ItemInstance(self.get_item_java_object())
-    
-    def get_count(self,) -> int:
-        return self.item_stack.getCount()
-    
-    def get_max_stack_size(self) -> int:
-        return self.item_stack.getMaxStackSize()
-    
-    def get_item_java_object(self) -> JavaObject:
-        return self.item_stack.getItem()
-    
-    def get_java_object(self) -> JavaObject:
-        return self.item_stack
+        print(ReflectionHelper.get_private_field(minecraft.gui, "title").getString())
+
+        return "test"
+

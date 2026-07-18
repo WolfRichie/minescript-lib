@@ -82,7 +82,7 @@ Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.14
     - [set\_clipboard(text) -\> None](#set_clipboardtext---none)
   - [RegistryHelper](#registryhelper)
     - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject](#get_by_idregistry-javaobject-identifier-str---javaobject)
-    - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject](#get_by_idregistry-javaobject-identifier-str---javaobject-1)
+    - [get\_registry\_path(registry\_name: str) -\> JavaObject](#get_registry_pathregistry_name-str---javaobject)
 
 ---
 
@@ -572,7 +572,7 @@ UtilHelper.set_clipboard("Hello, World!")
 RegistryHelper.get_by_id(RegistryHelper.BuiltInRegistries.ITEM, "diamond") # -> net.minecraft.world.item.Item
 ```
 
-### get_by_id(registry: JavaObject, identifier: str) -> JavaObject
+### get_registry_path(registry_name: str) -> JavaObject
 ```
 item_instance = ...
 RegistryHelper.get_registry_path(RegistryHelper.BuiltInRegistries.ITEM, item_instance) # -> diamond_sword

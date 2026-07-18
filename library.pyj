@@ -29,10 +29,9 @@ class MappingsHelper:
     @staticmethod
     def get_pretty_method_names(clazz: JavaClass) -> JavaSet[str]:
         return MappingsHelper.mappings.getPrettyMethodNames(clazz)
-
 class ReflectionHelper:
     @staticmethod
-    def get_private_field(instance, pretty_field_name):
+    def _get_declared_field_accessible(instance, pretty_field_name):
         current_class = instance.getClass()
 
         while current_class is not None:
@@ -45,10 +44,33 @@ class ReflectionHelper:
                 field = current_class.getDeclaredField(runtime_field_name)
                 field.setAccessible(True)
 
-                return field.get(instance)
+                return field
             except Exception:
                 current_class = current_class.getSuperclass()
+
         return None
+
+    @staticmethod
+    def get_private_field(instance, pretty_field_name) -> Any|None:
+        field = ReflectionHelper._get_declared_field_accessible(
+            instance,
+            pretty_field_name
+        )
+
+        return field.get(instance) if field is not None else None
+
+    @staticmethod
+    def set_private_field(instance, pretty_field_name, value) -> bool:
+        field = ReflectionHelper._get_declared_field_accessible(
+            instance,
+            pretty_field_name
+        )
+
+        if field is not None:
+            field.set(instance, value)
+            return True
+
+        return False
 
 class ContainerLayout:
     def __init__(
@@ -640,7 +662,7 @@ class ClientHelper:
 
     @staticmethod
     def disconnect(str = "Disconnected by Minescript") -> None:
-        minecraft.level.disconnect(ClientHelper.Component.literal(str))
+        minecraft.level.disconnect(UtilHelper.Component.literal(str))
 
     @staticmethod
     def get_level_data() -> ClientLevelData:
@@ -671,6 +693,26 @@ class ClientHelper:
     def get_camera_type() -> str:
         return minecraft.options.getCameraType().name()
 
+    @staticmethod
+    def show_toast(title: str, desc: str, display_time: float = 5000.0):
+        toast_manager = minecraft.getToastManager()
+        _title = UtilHelper.Component.literal(title)
+        _desc = UtilHelper.Component.literal(desc)
+        system_toast_id = UtilHelper.SystemToast.SystemToastId()
+        
+        ReflectionHelper.set_private_field(system_toast_id, "displayTime", display_time)
+        
+        toast_manager.addToast(UtilHelper.SystemToast.multiline(minecraft, system_toast_id, _title, _desc))
+        
+    @staticmethod
+    def is_any_toast_showing() -> bool:
+        toast_manager = minecraft.getToastManager()
+        return not toast_manager.visibleToasts.isEmpty()
+    
+    @staticmethod
+    def narrate_text(text: str):
+        minecraft.getNarrator().saySystemNow(text)
+
 class ClientLevelData:
     def __init__(self, hardcore: bool, is_flat: bool, game_time: int, day_time: int, raining: bool, difficulty: str, difficulty_locked: bool):
         self.hardcore = hardcore
@@ -682,6 +724,9 @@ class ClientLevelData:
         self.difficulty_locked = difficulty_locked
 
 class UtilHelper:
+    Component = JavaClass("net.minecraft.network.chat.Component")
+    SystemToast = JavaClass("net.minecraft.client.gui.components.toasts.SystemToast")
+
     @staticmethod
     def get_class_name(obj: JavaObject) -> str:
         return MappingsHelper.get_pretty_class_name(obj.getClass().getName())
@@ -694,6 +739,16 @@ class UtilHelper:
     def set_clipboard(text: str) -> None:
         minecraft.keyboardHandler.setClipboard(text)
 
+        
+    @staticmethod
+    def is_window_fullscreen() -> bool:
+        return minecraft.getWindow().isFullscreen()
+    
+    @staticmethod
+    def is_window_minimized() -> bool:
+        return minecraft.getWindow().isMinimized()
+
+        
 class BlocksHelper:
     BlockPos = JavaClass("net.minecraft.core.BlockPos")
 

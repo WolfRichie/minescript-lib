@@ -2,10 +2,6 @@
 
 Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.141.4`
 
-## Usage
-Place the `/code/` (and its contents) `main.py` and `library.py` inside of the minescript folder, then you can simply import the containers from main which you need and use it.
-See /examples/ for a simple script
-
 ---
 - [Minescript Library](#minescript-library)
   - [BlocksHelper](#blockshelper)
@@ -35,12 +31,12 @@ See /examples/ for a simple script
     - [enchantment\_table\_apply\_enchant(enchantment\_apply\_type: str) -\> bool](#enchantment_table_apply_enchantenchantment_apply_type-str---bool)
     - [enchantment\_table\_get\_enchant\_info(enchantment\_apply\_type) -\> EnchantmentInfo|None:](#enchantment_table_get_enchant_infoenchantment_apply_type---enchantmentinfonone)
       - [`EnchantmentInfo`](#enchantmentinfo)
-      - [`crafting_get_layout() -> CraftingLayout`](#crafting_get_layout---craftinglayout)
+    - [crafting\_get\_layout() -\> CraftingLayouts](#crafting_get_layout---craftinglayouts)
       - [`CraftingLayout`](#craftinglayout)
     - [crafting\_get\_grid\_size() -\> int](#crafting_get_grid_size---int)
     - [crafting\_place\_slot(slot, crafting\_slot, count=1) -\> ItemStack | bool | None](#crafting_place_slotslot-crafting_slot-count1---itemstack--bool--none)
     - [crafting\_shift\_click\_result() -\> ItemStack | bool | None](#crafting_shift_click_result---itemstack--bool--none)
-    - [crafting\_get\_layout() -\> CraftingLayout](#crafting_get_layout---craftinglayout-1)
+    - [crafting\_get\_layout() -\> CraftingLayout](#crafting_get_layout---craftinglayout)
       - [`CraftingLayout`](#craftinglayout-1)
     - [get\_container\_id() -\> int](#get_container_id---int)
     - [get\_container\_class\_name() -\> str](#get_container_class_name---str)
@@ -79,6 +75,9 @@ See /examples/ for a simple script
     - [get\_camera\_type() -\> str](#get_camera_type---str)
     - [get\_level\_data() -\> ClientLevelData](#get_level_data---clientleveldata)
       - [ClientLevelData](#clientleveldata)
+    - [show\_toast(title: str, desc: str, display\_time: float = 5000.0)](#show_toasttitle-str-desc-str-display_time-float--50000)
+    - [is\_any\_toast\_showing() -\> bool](#is_any_toast_showing---bool)
+    - [narrate\_text(text: str)](#narrate_texttext-str)
   - [MappingsHelper](#mappingshelper)
     - [get\_runtime\_class\_name(pretty\_class\_name) -\> str](#get_runtime_class_namepretty_class_name---str)
     - [get\_pretty\_class\_name(runtime\_class\_name) -\> str](#get_pretty_class_nameruntime_class_name---str)
@@ -87,11 +86,14 @@ See /examples/ for a simple script
     - [get\_runtime\_method\_names(clazz, pretty\_method\_name) -\> JavaSet\[str\]](#get_runtime_method_namesclazz-pretty_method_name---javasetstr)
     - [get\_pretty\_method\_names(clazz) -\> JavaSet\[str\]](#get_pretty_method_namesclazz---javasetstr)
   - [ReflectionHelper](#reflectionhelper)
-    - [get\_private\_field(clazz, pretty\_field\_name) -\> Any](#get_private_fieldclazz-pretty_field_name---any)
+    - [get\_private\_field(clazz, pretty\_field\_name) -\> Any|None](#get_private_fieldclazz-pretty_field_name---anynone)
+    - [set\_private\_field(instance, pretty\_field\_name, value) -\> bool](#set_private_fieldinstance-pretty_field_name-value---bool)
   - [UtilHelper](#utilhelper)
     - [get\_class\_name(obj) -\> str](#get_class_nameobj---str)
     - [get\_clipboard() -\> str](#get_clipboard---str)
     - [set\_clipboard(text) -\> None](#set_clipboardtext---none)
+    - [is\_window\_fullscreen() -\> bool](#is_window_fullscreen---bool)
+    - [is\_window\_minimized() -\> bool](#is_window_minimized---bool)
   - [RegistryHelper](#registryhelper)
     - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject|None](#get_by_idregistry-javaobject-identifier-str---javaobjectnone)
     - [get\_registry\_path(registry\_name: str) -\> JavaObject|None](#get_registry_pathregistry_name-str---javaobjectnone)
@@ -308,7 +310,7 @@ if enchantment_info is not null and enchantment_info.name == "minecraft:sharpnes
     ContainerHelper.enchantment_table_apply_enchant("top")
 ```
 
-#### `crafting_get_layout() -> CraftingLayout`
+### crafting_get_layout() -> CraftingLayouts
 
 Returns the active `CraftingLayout` object for the current container.
 
@@ -642,6 +644,10 @@ Object containing level metadata:
 - `daytime` (int): Current day time (0-24000)
 - `game_time` (int): Total game time in ticks
 
+### show_toast(title: str, desc: str, display_time: float = 5000.0)
+### is_any_toast_showing() -> bool
+### narrate_text(text: str)
+
 ---
 
 ## MappingsHelper
@@ -670,13 +676,11 @@ pretty_name = MappingsHelper.get_pretty_class_name("net.minecraft.class_310")
 
 ## ReflectionHelper
 
-### get_private_field(clazz, pretty_field_name) -> Any
-
+### get_private_field(clazz, pretty_field_name) -> Any|None
+### set_private_field(instance, pretty_field_name, value) -> bool
 ---
 
 ## UtilHelper
-
-Static utility helper class for miscellaneous operations.
 
 ### get_class_name(obj) -> str
 Get the mapped (readable) class name of a Java object.
@@ -689,18 +693,9 @@ if item:
 ```
 
 ### get_clipboard() -> str
-Get the current clipboard contents.
-
-```python
-text = UtilHelper.get_clipboard()
-```
-
 ### set_clipboard(text) -> None
-Set the clipboard contents.
-
-```python
-UtilHelper.set_clipboard("Hello, World!")
-```
+### is_window_fullscreen() -> bool
+### is_window_minimized() -> bool
 
 ## RegistryHelper
 

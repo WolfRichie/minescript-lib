@@ -91,66 +91,36 @@ class MappingsHelper(PyJinnProxy):
 
 class ReflectionHelper(PyJinnProxy):
   @staticmethod
-  def get_private_field(instance: JavaObject, pretty_field_name: str) -> Any:
-    """Read a private field value via mappings and reflection.
-
-    Args:
-      instance: Java object instance containing the field.
-      pretty_field_name: Mapped field name to read.
-
-    Returns:
-      The reflected field value.
-    """
-    ...
+  def get_private_field(instance: JavaObject, pretty_field_name: str) -> Any: ...
 
 
-class ItemsHelper(PyJinnProxy):
-  """Unified static helper for item and itemstack operations."""
-  
+class ItemsHelper(PyJinnProxy):  
   @staticmethod
-  def get_item_id(item: JavaObject | str | int) -> str | None:
-    """Get the item ID (minecraft:namespace format)."""
-    ...
+  def get_item_id(item: JavaObject | str | int) -> str | None: ...
 
   @staticmethod
-  def get_numeric_id(item: JavaObject | str | int) -> int:
-    """Get the numeric registry ID."""
-    ...
+  def get_numeric_id(item: JavaObject | str | int) -> int: ...
 
   @staticmethod
-  def get_display_name(item: JavaObject | str | int, use_custom_name: bool = False) -> str | None:
-    """Get display name of an item or itemstack."""
-    ...
+  def get_display_name(item: JavaObject | str | int, use_custom_name: bool = False) -> str | None:  ...
 
   @staticmethod
-  def get_count(item: JavaObject | str | int) -> int:
-    """Get stack count (1 for items, actual for itemstacks)."""
-    ...
+  def get_count(item: JavaObject | str | int) -> int: ...
 
   @staticmethod
-  def get_max_stack_size(item: JavaObject | str | int) -> int:
-    """Get maximum stack size."""
-    ...
+  def get_max_stack_size(item: JavaObject | str | int) -> int: ...
 
   @staticmethod
-  def get_item_stack_java_object(item: JavaObject | str | int) -> JavaObject:
-    """Get the ItemStack JavaObject."""
-    ...
+  def get_item_stack_java_object(item: JavaObject | str | int) -> JavaObject: ...
 
   @staticmethod
-  def get_item_java_object(item: JavaObject | str | int) -> JavaObject:
-    """Get the Item JavaObject."""
-    ...
+  def get_item_java_object(item: JavaObject | str | int) -> JavaObject: ...
 
   @staticmethod
-  def get_json(item: JavaObject | str | int) -> str:
-    """Get serialized data components."""
-    ...
+  def get_json(item: JavaObject | str | int) -> str: ...
 
   @staticmethod
-  def get_components(item: JavaObject | str | int) -> str:
-    """Get serialized data components."""
-    ...
+  def get_components(item: JavaObject | str | int) -> str: ...
 
 
 class ContainerHelper(PyJinnProxy): 
@@ -162,97 +132,43 @@ class ContainerHelper(PyJinnProxy):
   @staticmethod
   def get_container_layout() -> ContainerLayout|CraftingLayout|None: ...
   @staticmethod
-  def get_container_class_name() -> str:
-    """Return the mapped class name for the currently open container menu."""
-    ...
+  def get_container_class_name() -> str: ...
 
   @staticmethod
-  def get_container_id() -> int:
-    """Return the active container id.
-
-    Returns:
-      The menu/container id when available.
-      `-1` if no container is currently available.
-    """
-    ...
+  def get_container_id() -> int: ...
 
   @staticmethod
-  def get_container_slot(slot: int) -> JavaObject | None:
-    """Return the ItemStack JavaObject for `slot` from container, or None if empty."""
-    ...
+  def get_container_slot(slot: int) -> JavaObject | None: ...
 
   @staticmethod
-  def get_inventory_slot(slot: int) -> JavaObject | None:
-    """Return the ItemStack JavaObject for `slot` from inventory, or None if empty."""
-    ...
+  def get_inventory_slot(slot: int) -> JavaObject | None:...
 
   @staticmethod
-  def get_item_stack_by_inventory_slot(slot: int) -> JavaObject | None:
-    """Get ItemStack JavaObject from player inventory slot, or None if empty."""
-    ...
+  def get_item_stack_by_inventory_slot(slot: int) -> JavaObject | None: ...
 
   @staticmethod
-  def get_item_stack_by_container_slot(slot: int) -> JavaObject | None:
-    """Get ItemStack JavaObject from container slot, or None if empty."""
-    ...
+  def get_item_stack_by_container_slot(slot: int) -> JavaObject | None: ...
 
   @staticmethod
-  def container_find_item_id(item_id: str) -> list[JavaObject]:
-    """Find all ItemStacks with given item_id in container."""
-    ...
+  def container_find_item_id(item_id: str) -> list[JavaObject]: ...
 
   @staticmethod
-  def inventory_find_item_id(item_id: str) -> list[JavaObject]:
-    """Find all ItemStacks with given item_id in inventory."""
-    ...
+  def inventory_find_item_id(item_id: str) -> list[JavaObject]: ...
 
   @staticmethod
-  def crafting_get_grid_size() -> int:
-    """Return the crafting grid size for the currently-open container.
-
-    Returns:
-      9 for a 3x3 crafting grid, 4 for a 2x2 player crafting grid, or 0 if
-      the open container is not a crafting UI.
-    """
-    ...
+  def crafting_get_grid_size() -> int:...
 
   @staticmethod
-  def crafting_get_layout() -> CraftingLayout:
-    """Return menu-specific crafting slot layout.
-
-    Returns:
-      CraftingLayout object with:
-      - `container_name`: mapped runtime container class name.
-      - `grid_slots`: list of valid crafting menu slot ids.
-      - `grid_size`: precomputed length of `grid_slots`.
-      - `result_slot`: menu slot id for the crafting result.
-    """
-    ...
+  def crafting_get_layout() -> CraftingLayout:...
 
   @staticmethod
-  def crafting_place_slot(slot: int, crafting_slot: int, count: int = 1) -> ItemStack | bool | None:
-    """Place item(s) from a container slot into a crafting grid slot."""
-    ...
+  def crafting_place_slot(slot: int, crafting_slot: int, count: int = 1) -> ItemStack | bool | None: ...
 
   @staticmethod
-  def crafting_shift_click_result() -> ItemStack | bool | None:
-    """Shift-click the crafting result."""
-    ...
+  def crafting_shift_click_result() -> ItemStack | bool | None: ...
 
   @staticmethod
-  def raw_click(slot: int, button_or_slot: int = 0, click_type: str | None = ...) -> bool:
-    """Click a slot in the open container.
-
-    Args:
-      slot (int): Slot index to click.
-      button_or_slot (int): Mouse button or hotbar slot index, depending on click type.
-      click_type (str | None): Click type enum name as expected by runtime.
-        If `None`, defaults to PICKUP.
-
-    Returns:
-      bool: `True` when the click call was issued, otherwise `False`.
-    """
-    ...
+  def raw_click(slot: int, button_or_slot: int = 0, click_type: str | None = ...) -> bool: ...
 
   @staticmethod
   def click_slot(slot: int, button: int = 0) -> bool: ...
@@ -353,13 +269,9 @@ class ClientLevelData(PyJinnProxy):
 
 class UtilHelper(PyJinnProxy):
   @staticmethod
-  def get_class_name(obj: JavaObject) -> str:
-    """Return the mapped class name for a Java object instance."""
-    ...
-
+  def get_class_name(obj: JavaObject) -> str: ...
   @staticmethod
   def get_clipboard() -> str: ...
-
   @staticmethod
   def set_clipboard(text: str) -> None: ...
 

@@ -29,26 +29,30 @@ class MappingsHelper:
 
 class ReflectionHelper:
     @staticmethod
-    def get_private_field(clazz: JavaClass, pretty_field_name: str):
-        target_class = clazz.getClass()
-        runtime_field_name = MappingsHelper.get_runtime_field_name(target_class, pretty_field_name)
-        field = target_class.getDeclaredField(runtime_field_name)
-        field.setAccessible(True)
-        return field.get(clazz)
+    def get_private_field(instance, pretty_field_name):
+        current_class = instance.getClass()
+
+        while current_class is not None:
+            try:
+                runtime_field_name = MappingsHelper.get_runtime_field_name(
+                    current_class,
+                    pretty_field_name
+                )
+
+                field = current_class.getDeclaredField(runtime_field_name)
+                field.setAccessible(True)
+
+                return field.get(instance)
+            except Exception:
+                current_class = current_class.getSuperclass()
+        return None
 
 class CraftingLayout:
     def __init__(self, container_name: str, grid_slots: list[int], result_slot: int):
         self.container_name = container_name
         self.grid_slots = grid_slots
         self.grid_size = len(grid_slots)
-        self.result_slot = result_slot
-
-
-class EnchantmentInfo:
-    def __init__(self, id: str, level: int):
-        self.id = id
-        self.level = level
-        
+        self.result_slot = result_slot 
 
 class ContainerHelper:
     ClickType = JavaClass("net.minecraft.world.inventory.ClickType")
@@ -244,11 +248,9 @@ class ContainerHelper:
 class ItemsHelper:
     Item = JavaClass("net.minecraft.world.item.Item")
     Items = JavaClass("net.minecraft.world.item.Items")
-    BuiltInRegistries = JavaClass("net.minecraft.core.registries.BuiltInRegistries")
     Identifier = JavaClass("net.minecraft.resources.Identifier")
     DataComponents = JavaClass("net.minecraft.core.component.DataComponents")
     ItemStackClass = JavaClass("net.minecraft.world.item.ItemStack")
-    RegistryOps = JavaClass("net.minecraft.resources.RegistryOps")
 
     @staticmethod
     def _resolve_to_item_stack(item: JavaObject | str | int) -> JavaObject:
@@ -258,11 +260,7 @@ class ItemsHelper:
             item_obj = ItemsHelper.Item.byId(item)
             return item_obj.getDefaultInstance()
         elif isinstance(item, str):
-            identifier = ItemsHelper.Identifier.parse(item)
-            optional = ItemsHelper.BuiltInRegistries.ITEM.get(identifier)
-            if optional.isEmpty():
-                raise ValueError(f"Item not found: {item}")
-            item_obj = optional.get().value()
+            item_obj = RegistryHelper.get_by_id(RegistryHelper.BuiltInRegistries.ITEM, item)
             return item_obj.getDefaultInstance()
         
         class_name = UtilHelper.get_class_name(item)
@@ -279,11 +277,7 @@ class ItemsHelper:
         if isinstance(item, int):
             return ItemsHelper.Item.byId(item)
         elif isinstance(item, str):
-            identifier = ItemsHelper.Identifier.parse(item)
-            optional = ItemsHelper.BuiltInRegistries.ITEM.get(identifier)
-            if optional.isEmpty():
-                raise ValueError(f"Item not found: {item}")
-            return optional.get().value()
+            return RegistryHelper.get_by_id(RegistryHelper.BuiltInRegistries.ITEM,item)
         
         class_name = UtilHelper.get_class_name(item)
         if class_name == "net.minecraft.world.item.Item":
@@ -297,10 +291,7 @@ class ItemsHelper:
     def get_item_id(item: JavaObject | str | int) -> str | None:
         """Get the item ID (minecraft namespace identifier) for an item."""
         item_obj = ItemsHelper._resolve_to_item(item)
-        identifier = ItemsHelper.BuiltInRegistries.ITEM.getKey(item_obj)
-        if identifier is None:
-            return None
-        return identifier.getPath()
+        return RegistryHelper.get_registry_path(RegistryHelper.BuiltInRegistries.ITEM, item_obj)
 
     @staticmethod
     def get_numeric_id(item: JavaObject | str | int) -> int:
@@ -344,7 +335,7 @@ class ItemsHelper:
         stack = ItemsHelper._resolve_to_item_stack(item)
 
         json_element = ItemsHelper.ItemStackClass.CODEC.encodeStart(
-            ItemsHelper.RegistryOps.create(
+            RegistryHelper.RegistryOps.create(
                 JsonHelper.JsonOps.INSTANCE,
                 minecraft.level.registryAccess(),
             ),
@@ -553,6 +544,10 @@ class BlocksHelper:
     BlockPos = JavaClass("net.minecraft.core.BlockPos")
 
     @staticmethod
+    def _is_command_block_entity(entity) -> bool:
+        return entity is not None and UtilHelper.get_class_name(entity)== "net.minecraft.world.level.block.entity.CommandBlockEntity"
+    
+    @staticmethod
     def get_block_pos(x: int|float, y: int|float, z: int|float) -> JavaObject:
         return BlocksHelper.BlockPos(int(x), int(y), int(z))
     
@@ -564,45 +559,75 @@ class BlocksHelper:
     
     @staticmethod
     def set_command_block_entity_command(command_block_entity, command: str) -> bool:
-        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+        if not BlocksHelper._is_command_block_entity(command_block_entity):
             return False
         command_block_entity.getCommandBlock().setCommand(command)
         return True
     
     @staticmethod
     def get_command_block_entity_command(command_block_entity) -> str|None:
-        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+        if not BlocksHelper._is_command_block_entity(command_block_entity):
             return None
         return command_block_entity.getCommandBlock().getCommand()
     
     
     @staticmethod
     def get_command_block_entity_last_output(command_block_entity) -> str|None:
-        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+        if not BlocksHelper._is_command_block_entity(command_block_entity):
             return None
         return command_block_entity.getCommandBlock().getLastOutput().getString()
 
     @staticmethod
     def get_command_block_entity_mode(command_block_entity) -> str|None:
-        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+        if not BlocksHelper._is_command_block_entity(command_block_entity):
             return None
         return command_block_entity.getMode().name()
 
     @staticmethod
     def is_command_block_entity_conditions_met(command_block_entity) -> bool|None:
-        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+        if not BlocksHelper._is_command_block_entity(command_block_entity):
             return None
         return command_block_entity.wasConditionMet()
 
     @staticmethod
     def is_command_block_entity_powered(command_block_entity) -> bool|None:
-        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+        if not BlocksHelper._is_command_block_entity(command_block_entity):
             return None
         return command_block_entity.isPowered()
     
     @staticmethod
     def is_command_block_entity_automatic(command_block_entity) -> bool|None:
-        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+        if not BlocksHelper._is_command_block_entity(command_block_entity):
             return None
         return command_block_entity.isAutomatic()
     
+    @staticmethod
+    def get_spawner_block_entity_display_entity_id(spawner_block_entity) -> str|None:
+        if UtilHelper.get_class_name(spawner_block_entity) != "net.minecraft.world.level.block.entity.SpawnerBlockEntity":
+            return None
+        display_entity = ReflectionHelper.get_private_field(spawner_block_entity.getSpawner(), "displayEntity")
+        if (display_entity is None):
+            return None
+        
+        entity_type = display_entity.getType()
+        return RegistryHelper.get_registry_path(RegistryHelper.BuiltInRegistries.ENTITY_TYPE, entity_type)
+    
+class RegistryHelper:
+    BuiltInRegistries = JavaClass("net.minecraft.core.registries.BuiltInRegistries")
+    RegistryOps = JavaClass("net.minecraft.resources.RegistryOps")
+
+    @staticmethod
+    def get_by_id(registry: JavaObject, identifier: str) -> JavaObject:
+        parsed_identifier = ItemsHelper.Identifier.parse(identifier)
+        optional = registry.get(parsed_identifier)
+
+        if optional.isEmpty():
+            raise ValueError(f"Registry value not found: {identifier}")
+
+        return optional.get().value()
+    @staticmethod
+    def get_registry_path(registry: JavaObject, value: JavaObject) -> str|None:
+        identifier = registry.getKey(value)
+        if identifier is None:
+            return None
+        return identifier.getPath()

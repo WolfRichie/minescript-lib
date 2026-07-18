@@ -14,6 +14,7 @@ Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.14
     - [is\_command\_block\_entity\_conditions\_met(command\_block\_entity: JavaObject) -\> bool | Non](#is_command_block_entity_conditions_metcommand_block_entity-javaobject---bool--non)
     - [is\_command\_block\_entity\_powered(command\_block\_entity: JavaObject) -\> bool | None](#is_command_block_entity_poweredcommand_block_entity-javaobject---bool--none)
     - [is\_command\_block\_entity\_automatic(command\_block\_entity: JavaObject) -\> bool | None](#is_command_block_entity_automaticcommand_block_entity-javaobject---bool--none)
+    - [get\_spawner\_block\_entity\_display\_entity\_id(jukebox\_block\_entity: spawner\_block\_entity) -\> str | None](#get_spawner_block_entity_display_entity_idjukebox_block_entity-spawner_block_entity---str--none)
   - [ItemsHelper](#itemshelper)
     - [get\_json(item) -\> str](#get_jsonitem---str)
     - [get\_components(item) -\> str](#get_componentsitem---str)
@@ -79,6 +80,9 @@ Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.14
     - [get\_class\_name(obj) -\> str](#get_class_nameobj---str)
     - [get\_clipboard() -\> str](#get_clipboard---str)
     - [set\_clipboard(text) -\> None](#set_clipboardtext---none)
+  - [RegistryHelper](#registryhelper)
+    - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject](#get_by_idregistry-javaobject-identifier-str---javaobject)
+    - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject](#get_by_idregistry-javaobject-identifier-str---javaobject-1)
 
 ---
 
@@ -112,6 +116,7 @@ Accepted formats:
 - `JavaObject` of `net.minecraft.core.BlockPos` passed into x and y/z are left to None
 
 All float values are automatically converted to integers, they are simply allowed for compatability purposes
+
 
 ```
 targeted_block_pos = player_get_targeted_block()
@@ -147,6 +152,8 @@ Returns SEQUENCE or AUTO or REDSTONE
 ### is_command_block_entity_conditions_met(command_block_entity: JavaObject) -> bool | Non
 ### is_command_block_entity_powered(command_block_entity: JavaObject) -> bool | None
 ### is_command_block_entity_automatic(command_block_entity: JavaObject) -> bool | None
+### get_spawner_block_entity_display_entity_id(jukebox_block_entity: spawner_block_entity) -> str | None
+
 ## ItemsHelper
 
 > [!NOTE] 
@@ -556,4 +563,17 @@ Set the clipboard contents.
 
 ```python
 UtilHelper.set_clipboard("Hello, World!")
+```
+
+## RegistryHelper
+
+### get_by_id(registry: JavaObject, identifier: str) -> JavaObject
+```
+RegistryHelper.get_by_id(RegistryHelper.BuiltInRegistries.ITEM, "diamond") # -> net.minecraft.world.item.Item
+```
+
+### get_by_id(registry: JavaObject, identifier: str) -> JavaObject
+```
+item_instance = ...
+RegistryHelper.get_registry_path(RegistryHelper.BuiltInRegistries.ITEM, item_instance) # -> diamond_sword
 ```

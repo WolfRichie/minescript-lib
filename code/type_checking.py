@@ -1,14 +1,13 @@
-from __future__ import annotations
 from typing import Any
-import java
+from java import *
 from code.Proxy import PyJinnProxy
-from minescript import Vector3f
+from minescript import Vector3f, BlockPos
 
 class BlocksHelper(PyJinnProxy):
   @staticmethod
-  def get_block_pos(x: int|float|BlockPos|Vector3f, y: int|float|None = None, z: int|float|None = None) -> java.JavaObject: ...
+  def get_block_pos(x: int|float|BlockPos|Vector3f, y: int|float|None = None, z: int|float|None = None) -> JavaObject: ...
   @staticmethod
-  def get_block_entity(x: int|float|java.JavaObject|BlockPos|Vector3f, y: int|float|None = None, z: int|float|None = None) -> java.JavaObject: ...
+  def get_block_entity(x: int|float|JavaObject|BlockPos|Vector3f, y: int|float|None = None, z: int|float|None = None) -> JavaObject: ...
   @staticmethod
   def set_command_block_entity_command(command_block_entity: JavaObject, command: str) -> bool: ...
   @staticmethod
@@ -23,6 +22,12 @@ class BlocksHelper(PyJinnProxy):
   def is_command_block_entity_powered(command_block_entity: JavaObject) -> bool | None: ...
   @staticmethod
   def is_command_block_entity_automatic(command_block_entity: JavaObject) -> bool | None: ...
+  @staticmethod
+  def get_jukebox_block_entity_item(jukebox_block_entity: JavaObject) -> JavaObject | None: ...
+  @staticmethod
+  def get_jukebox_block_entity_ticks_since_song_started(jukebox_block_entity: JavaObject) -> int | None: ...
+  @staticmethod
+  def is_jukebox_block_entity_song_playing(jukebox_block_entity: JavaObject) -> bool | None: ...
   
 class MappingsHelper(PyJinnProxy):
   @staticmethod
@@ -32,21 +37,21 @@ class MappingsHelper(PyJinnProxy):
   def get_pretty_class_name(runtime_class_name: str) -> str: ...
 
   @staticmethod
-  def get_runtime_field_name(clazz: java.JavaObject, pretty_field_name: str) -> str: ...
+  def get_runtime_field_name(clazz: JavaObject, pretty_field_name: str) -> str: ...
 
   @staticmethod
-  def get_pretty_field_names(clazz: java.JavaObject) -> java.JavaObject: ...
+  def get_pretty_field_names(clazz: JavaObject) -> JavaObject: ...
 
   @staticmethod
-  def get_runtime_method_names(clazz: java.JavaObject, pretty_method_name: str) -> java.JavaObject: ...
+  def get_runtime_method_names(clazz: JavaObject, pretty_method_name: str) -> JavaObject: ...
 
   @staticmethod
-  def get_pretty_method_names(clazz: java.JavaObject) -> java.JavaObject: ...
+  def get_pretty_method_names(clazz: JavaObject) -> JavaObject: ...
 
 
 class ReflectionHelper(PyJinnProxy):
   @staticmethod
-  def get_private_field(instance: java.JavaObject, pretty_field_name: str) -> Any:
+  def get_private_field(instance: JavaObject, pretty_field_name: str) -> Any:
     """Read a private field value via mappings and reflection.
 
     Args:
@@ -65,57 +70,51 @@ class CraftingLayout:
   grid_size: int
   result_slot: int
 
-
-class EnchantmentInfo:
-  id: str
-  level: int
-
-
 class ItemsHelper(PyJinnProxy):
   """Unified static helper for item and itemstack operations."""
   
   @staticmethod
-  def get_item_id(item: java.JavaObject | str | int) -> str | None:
+  def get_item_id(item: JavaObject | str | int) -> str | None:
     """Get the item ID (minecraft:namespace format)."""
     ...
 
   @staticmethod
-  def get_numeric_id(item: java.JavaObject | str | int) -> int:
+  def get_numeric_id(item: JavaObject | str | int) -> int:
     """Get the numeric registry ID."""
     ...
 
   @staticmethod
-  def get_display_name(item: java.JavaObject | str | int, use_custom_name: bool = False) -> str | None:
+  def get_display_name(item: JavaObject | str | int, use_custom_name: bool = False) -> str | None:
     """Get display name of an item or itemstack."""
     ...
 
   @staticmethod
-  def get_count(item: java.JavaObject | str | int) -> int:
+  def get_count(item: JavaObject | str | int) -> int:
     """Get stack count (1 for items, actual for itemstacks)."""
     ...
 
   @staticmethod
-  def get_max_stack_size(item: java.JavaObject | str | int) -> int:
+  def get_max_stack_size(item: JavaObject | str | int) -> int:
     """Get maximum stack size."""
     ...
 
   @staticmethod
-  def get_item_stack_java_object(item: java.JavaObject | str | int) -> java.JavaObject:
+  def get_item_stack_java_object(item: JavaObject | str | int) -> JavaObject:
     """Get the ItemStack JavaObject."""
     ...
 
   @staticmethod
-  def get_item_java_object(item: java.JavaObject | str | int) -> java.JavaObject:
+  def get_item_java_object(item: JavaObject | str | int) -> JavaObject:
     """Get the Item JavaObject."""
     ...
 
   @staticmethod
-  def get_json(item: java.JavaObject | str | int) -> str:
+  def get_json(item: JavaObject | str | int) -> str:
     """Get serialized data components."""
     ...
 
   @staticmethod
-  def get_components(item: java.JavaObject | str | int) -> str:
+  def get_components(item: JavaObject | str | int) -> str:
     """Get serialized data components."""
     ...
 
@@ -137,32 +136,32 @@ class ContainerHelper(PyJinnProxy):
     ...
 
   @staticmethod
-  def get_container_slot(slot: int) -> java.JavaObject | None:
+  def get_container_slot(slot: int) -> JavaObject | None:
     """Return the ItemStack JavaObject for `slot` from container, or None if empty."""
     ...
 
   @staticmethod
-  def get_inventory_slot(slot: int) -> java.JavaObject | None:
+  def get_inventory_slot(slot: int) -> JavaObject | None:
     """Return the ItemStack JavaObject for `slot` from inventory, or None if empty."""
     ...
 
   @staticmethod
-  def get_item_stack_by_inventory_slot(slot: int) -> java.JavaObject | None:
+  def get_item_stack_by_inventory_slot(slot: int) -> JavaObject | None:
     """Get ItemStack JavaObject from player inventory slot, or None if empty."""
     ...
 
   @staticmethod
-  def get_item_stack_by_container_slot(slot: int) -> java.JavaObject | None:
+  def get_item_stack_by_container_slot(slot: int) -> JavaObject | None:
     """Get ItemStack JavaObject from container slot, or None if empty."""
     ...
 
   @staticmethod
-  def container_find_item_id(item_id: str) -> list[java.JavaObject]:
+  def container_find_item_id(item_id: str) -> list[JavaObject]:
     """Find all ItemStacks with given item_id in container."""
     ...
 
   @staticmethod
-  def inventory_find_item_id(item_id: str) -> list[java.JavaObject]:
+  def inventory_find_item_id(item_id: str) -> list[JavaObject]:
     """Find all ItemStacks with given item_id in inventory."""
     ...
 
@@ -190,12 +189,12 @@ class ContainerHelper(PyJinnProxy):
     ...
 
   @staticmethod
-  def crafting_place_slot(slot: int, crafting_slot: int, count: int = 1) -> java.JavaObject | bool | None:
+  def crafting_place_slot(slot: int, crafting_slot: int, count: int = 1) -> JavaObject | bool | None:
     """Place item(s) from a container slot into a crafting grid slot."""
     ...
 
   @staticmethod
-  def crafting_shift_click_result() -> java.JavaObject | bool | None:
+  def crafting_shift_click_result() -> JavaObject | bool | None:
     """Shift-click the crafting result."""
     ...
 
@@ -261,10 +260,10 @@ class FishingHelper(PyJinnProxy):
 
 class ClientHelper(PyJinnProxy):
   @staticmethod
-  def set_current_screen(screen: java.JavaObject) -> None: ...
+  def set_current_screen(screen: JavaObject) -> None: ...
 
   @staticmethod
-  def get_current_screen() -> java.JavaObject | None: ...
+  def get_current_screen() -> JavaObject | None: ...
 
   @staticmethod
   def get_current_screen_class_name() -> str: ...
@@ -312,7 +311,7 @@ class ClientLevelData(PyJinnProxy):
 
 class UtilHelper(PyJinnProxy):
   @staticmethod
-  def get_class_name(obj: java.JavaObject) -> str:
+  def get_class_name(obj: JavaObject) -> str:
     """Return the mapped class name for a Java object instance."""
     ...
 
@@ -321,3 +320,9 @@ class UtilHelper(PyJinnProxy):
 
   @staticmethod
   def set_clipboard(text: str) -> None: ...
+
+class RegistryHelper(PyJinnProxy):
+  @staticmethod
+  def get_by_id(registry: JavaObject, identifier: str) -> JavaObject: ...
+  @staticmethod
+  def get_registry(registry_name: str) -> JavaObject: ...

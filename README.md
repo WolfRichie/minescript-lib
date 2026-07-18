@@ -26,13 +26,13 @@ Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.14
     - [get\_item\_stack\_java\_object(item) -\> JavaObject](#get_item_stack_java_objectitem---javaobject)
     - [get\_item\_java\_object(item) -\> JavaObject](#get_item_java_objectitem---javaobject)
   - [ContainerHelper](#containerhelper)
+    - [get\_container\_layout() -\> ContainerLayout|CraftingLayout|None](#get_container_layout---containerlayoutcraftinglayoutnone)
+      - [`ContainerLayout`](#containerlayout)
       - [`crafting_get_layout() -> CraftingLayout`](#crafting_get_layout---craftinglayout)
       - [`CraftingLayout`](#craftinglayout)
     - [crafting\_get\_grid\_size() -\> int](#crafting_get_grid_size---int)
     - [crafting\_place\_slot(slot, crafting\_slot, count=1) -\> ItemStack | bool | None](#crafting_place_slotslot-crafting_slot-count1---itemstack--bool--none)
     - [crafting\_shift\_click\_result() -\> ItemStack | bool | None](#crafting_shift_click_result---itemstack--bool--none)
-    - [get\_container\_layout() -\> ContainerLayout|CraftingLayout|None](#get_container_layout---containerlayoutcraftinglayoutnone)
-      - [`ContainerLayout`](#containerlayout)
     - [crafting\_get\_layout() -\> CraftingLayout](#crafting_get_layout---craftinglayout-1)
       - [`CraftingLayout`](#craftinglayout-1)
     - [get\_container\_id() -\> int](#get_container_id---int)
@@ -243,6 +243,33 @@ java_item = ItemsHelper.get_item_java_object("diamond_sword")
 
 ## ContainerHelper
 
+### get_container_layout() -> ContainerLayout|CraftingLayout|None
+
+#### `ContainerLayout`
+
+`ContainerLayout` is the standard container layout for containers.
+
+Properties:
+
+- `container_name` (`str`): Fully qualified runtime container class name.
+- `layouts` (`dict[str, list[int]]`): Named slot layouts contained by the container.
+- `size` (`int`): Total number of slots across all layouts.
+- `is_unknown` (`bool`): Whether the layout is supported / and unknown
+
+Returns:
+- `CraftingLayout`: Tthe returning result is identical to `crafting_get_layout` If; the name matches `net.minecraft.world.inventory.CrafterMen` or `net.minecraft.world.inventory.CraftingMenu` or `net.minecraft.world.inventory.InventoryMenu` 
+- `ContainerLayout`: Returns a `ContainerLayout(container_name, layouts={}, is_unknown=True)` for unsupported layouts, otherwise see supported layouts
+- `None`: No container is on the screen
+
+Supported layouts:
+*  `"net.minecraft.world.inventory.HopperMenu"`:
+   - "hopper_grid" [0 to and including 45]
+   - "inventory" [5 to and including 40]
+*  `net.minecraft.world.inventory.EnchantmentMenu"`:
+   - "enchantment_grid" [0]
+   - "lapis_grid" [1]
+   - "inventory" [2 to and including 37]
+
 #### `crafting_get_layout() -> CraftingLayout`
 
 Returns the active `CraftingLayout` object for the current container.
@@ -271,7 +298,7 @@ The `layouts` dictionary contains:
 
 The layout is different per class 
 * `"net.minecraft.world.inventory.CrafterMenu"`:
-    -` "crafting_grid"`: [0 to and 8]
+    - ` "crafting_grid"`: [0 to and 8]
     - `"crafting_grid_result"`: [45]
     - `"inventory"`: 9 to and 44
 
@@ -342,29 +369,6 @@ else:
 
 ### crafting_shift_click_result() -> ItemStack | bool | None
 
-### get_container_layout() -> ContainerLayout|CraftingLayout|None
-
-#### `ContainerLayout`
-
-`ContainerLayout` is the standard container layout for containers.
-
-Properties:
-
-- `container_name` (`str`): Fully qualified runtime container class name.
-- `layouts` (`dict[str, list[int]]`): Named slot layouts contained by the container.
-- `size` (`int`): Total number of slots across all layouts.
-- `is_unknown` (`bool`): Whether the layout is supported / and unknown
-
-Returns:
-- `CraftingLayout`: Tthe returning result is identical to `crafting_get_layout` If; the name matches `net.minecraft.world.inventory.CrafterMen` or `net.minecraft.world.inventory.CraftingMenu` or `net.minecraft.world.inventory.InventoryMenu` 
-- `ContainerLayout`: Returns a `ContainerLayout(container_name, layouts={}, is_unknown=True)` for unsupported layouts, otherwise see supported layouts
-- `None`: No container is on the screen
-
-Supported layouts:
-*  `"net.minecraft.world.inventory.HopperMenu"`:
-   - "hopper_grid" [0 to and including 45]
-   - "inventory" [5 to and including 40]
-
 ### crafting_get_layout() -> CraftingLayout
 
 Returns the active `CraftingLayout` object for the current container.
@@ -389,7 +393,7 @@ The `layouts` dictionary contains:
 - `"crafting_grid"` (`GridLayout`): The crafting input grid.
 - `"crafting_grid_result"` (`GridLayout`): The crafting output/result slot.
 - `"inventory"` (`GridLayout`): The inventory slots available in the container.
-- 
+  
 ### get_container_id() -> int
 Get the current container ID. Returns `-1` if no container open.
 

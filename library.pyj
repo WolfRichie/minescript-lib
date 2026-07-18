@@ -50,6 +50,22 @@ class ReflectionHelper:
                 current_class = current_class.getSuperclass()
         return None
 
+class ContainerLayout:
+    def __init__(
+        self,
+        container_name: str,
+        layouts: dict[str, list[int]],
+        is_unknown: bool = False
+    ):
+        self.container_name = container_name
+        self.layouts = layouts
+
+        self.size = sum(
+            len(slots)
+            for slots in layouts.values()
+        )
+
+        self.is_unknown = is_unknown
 
 class CraftingLayout:
     def __init__(
@@ -138,8 +154,15 @@ class ContainerHelper:
             return ContainerLayout(container_name,layouts={
                     "hopper_grid": list(_range(0, 4)),
                     "inventory": list(_range(5, 40)),
-                }
-    )
+                })
+        elif container_name == "net.minecraft.world.inventory.EnchantmentMenu":
+            return ContainerLayout(container_name,layouts={
+                    "enchantment_grid": [0],
+                    "enchantment_grid": [1],
+                    "inventory": list(_range(2, 37)),
+                })
+      
+    
         return ContainerLayout(container_name, {}, is_unknown=True)
     @staticmethod
     def get_container_id() -> int:
@@ -287,6 +310,7 @@ class ContainerHelper:
     @staticmethod
     def get_inventory_free_slot() -> int | None:
         return minecraft.player.getInventory().getFreeSlot()
+
 
 class ItemsHelper:
     Item = JavaClass("net.minecraft.world.item.Item")

@@ -3,8 +3,17 @@
 Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.141.4`
 
 ---
-
 - [Minescript Library](#minescript-library)
+  - [BlocksHelper](#blockshelper)
+    - [get\_block\_pos(x, y=None, z=None) -\> JavaObject](#get_block_posx-ynone-znone---javaobject)
+    - [get\_block\_entity(x:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_entityx-y-intfloatnone--none-z-intfloatnone--none---javaobject)
+    - [set\_command\_block\_entity\_command(command\_block\_entity: JavaObject, command: str) -\> bool](#set_command_block_entity_commandcommand_block_entity-javaobject-command-str---bool)
+    - [get\_command\_block\_entity\_command(command\_block\_entity: JavaObject) -\> str | None](#get_command_block_entity_commandcommand_block_entity-javaobject---str--none)
+    - [get\_command\_block\_entity\_last\_output(command\_block\_entity: JavaObject) -\> str | None](#get_command_block_entity_last_outputcommand_block_entity-javaobject---str--none)
+    - [get\_command\_block\_entity\_mode(command\_block\_entity: JavaObject) -\> str | None](#get_command_block_entity_modecommand_block_entity-javaobject---str--none)
+    - [is\_command\_block\_entity\_conditions\_met(command\_block\_entity: JavaObject) -\> bool | Non](#is_command_block_entity_conditions_metcommand_block_entity-javaobject---bool--non)
+    - [is\_command\_block\_entity\_powered(command\_block\_entity: JavaObject) -\> bool | None](#is_command_block_entity_poweredcommand_block_entity-javaobject---bool--none)
+    - [is\_command\_block\_entity\_automatic(command\_block\_entity: JavaObject) -\> bool | None](#is_command_block_entity_automaticcommand_block_entity-javaobject---bool--none)
   - [ItemsHelper](#itemshelper)
     - [get\_json(item) -\> str](#get_jsonitem---str)
     - [get\_components(item) -\> str](#get_componentsitem---str)
@@ -71,9 +80,73 @@ Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.14
     - [get\_clipboard() -\> str](#get_clipboard---str)
     - [set\_clipboard(text) -\> None](#set_clipboardtext---none)
 
-
 ---
 
+## BlocksHelper
+
+### get_block_pos(x, y=None, z=None) -> JavaObject
+
+Create a Minecraft `net.minecraft.core.BlockPos` Java object from a position or coordinates.
+
+Accepted formats:
+
+- `x, y, z`: Individual numeric coordinates (float or int)
+
+All float values are automatically converted to integers, they are simply allowed for compatability purposes
+
+```
+targeted_block_pos = minescript.player_get_targeted_block()
+if targeted_block_pos is not None:
+    x, y, z = targeted_block_pos.position
+    block_pos = BlocksHelper.get_block_pos(x, y, z)
+```
+
+
+### get_block_entity(x:, y: int|float|None = None, z: int|float|None = None) -> JavaObject:
+
+Create a Minecraft `net.minecraft.core.BlockPos` Java object from a position or coordinates.
+
+Accepted formats:
+- `x, y, z`: Individual numeric coordinates (float or int)
+- `Vector3f`/`BlockPos`  `tuple` or `list`: e.g. `[x, y, z]` or `(x, y, z)` passed into x and y/z are left to None
+- `JavaObject` of `net.minecraft.core.BlockPos` passed into x and y/z are left to None
+
+All float values are automatically converted to integers, they are simply allowed for compatability purposes
+
+```
+targeted_block_pos = player_get_targeted_block()
+if targeted_block_pos is not None:
+    x, y, z = targeted_block_pos.position
+    
+    block_pos = BlocksHelper.get_block_pos(x, y, z)
+    block_entity = BlocksHelper.get_block_entity(block_pos)
+
+    # Or simply
+    block_entity = BlocksHelper.get_block_entity(x, y, z)
+
+    if block_entity is not null:
+        print(UtilHelper.get_class_name(block_entity)) -> net.minecraft.world.level.block.entity.CommandBlockEntity      
+```
+
+### set_command_block_entity_command(command_block_entity: JavaObject, command: str) -> bool
+### get_command_block_entity_command(command_block_entity: JavaObject) -> str | None
+
+```
+block_entity = ... # See previous example
+if UtilHelper.get_class_name(command_block_entity) == "net.minecraft.world.level.block.entity.
+    print(BlocksHelper.get_command_block_entity_command(block_entity)) # -> setblock ~ ~10 ~ minecraft:redstone_block
+    print(BlocksHelper.get_command_block_entity_command(block_entity)) # -> [@: Changed the block at 163, 94, 125]
+```
+
+### get_command_block_entity_last_output(command_block_entity: JavaObject) -> str | None
+### get_command_block_entity_mode(command_block_entity: JavaObject) -> str | None
+
+Returns SEQUENCE or AUTO or REDSTONE
+(Sequence being the CHAIN Command Block)
+
+### is_command_block_entity_conditions_met(command_block_entity: JavaObject) -> bool | Non
+### is_command_block_entity_powered(command_block_entity: JavaObject) -> bool | None
+### is_command_block_entity_automatic(command_block_entity: JavaObject) -> bool | None
 ## ItemsHelper
 
 > [!NOTE] 

@@ -3,7 +3,7 @@
 Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.141.4`
 
 ## Usage
-Place the `/code/` (and its contents) `main.py` and `library.py` inside of the minescript folder, then you can simply import it and use it.
+Place the `/code/` (and its contents) `main.py` and `library.py` inside of the minescript folder, then you can simply import the containers from main which you need and use it.
 See /examples/ for a simple script
 
 ---

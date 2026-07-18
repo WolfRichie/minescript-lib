@@ -149,7 +149,7 @@ if targeted_block_pos is not None:
 block_entity = ... # See previous example
 if UtilHelper.get_class_name(command_block_entity) == "net.minecraft.world.level.block.entity.
     print(BlocksHelper.get_command_block_entity_command(block_entity)) # -> setblock ~ ~10 ~ minecraft:redstone_block
-    print(BlocksHelper.get_command_block_entity_command(block_entity)) # -> [@: Changed the block at 163, 94, 125]
+    print(BlocksHelper.get_command_block_entity_last_output(block_entity)) # -> [@: Changed the block at 163, 94, 125]
 ```
 
 ### get_command_block_entity_last_output(command_block_entity: JavaObject) -> str | None

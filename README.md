@@ -28,6 +28,9 @@ Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.14
   - [ContainerHelper](#containerhelper)
     - [get\_container\_layout() -\> ContainerLayout|CraftingLayout|None](#get_container_layout---containerlayoutcraftinglayoutnone)
       - [`ContainerLayout`](#containerlayout)
+    - [enchantment\_table\_apply\_enchant(enchantment\_apply\_type: str) -\> bool](#enchantment_table_apply_enchantenchantment_apply_type-str---bool)
+    - [enchantment\_table\_get\_enchant\_info(enchantment\_apply\_type) -\> EnchantmentInfo|None:](#enchantment_table_get_enchant_infoenchantment_apply_type---enchantmentinfonone)
+      - [`EnchantmentInfo`](#enchantmentinfo)
       - [`crafting_get_layout() -> CraftingLayout`](#crafting_get_layout---craftinglayout)
       - [`CraftingLayout`](#craftinglayout)
     - [crafting\_get\_grid\_size() -\> int](#crafting_get_grid_size---int)
@@ -86,8 +89,9 @@ Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.14
     - [get\_clipboard() -\> str](#get_clipboard---str)
     - [set\_clipboard(text) -\> None](#set_clipboardtext---none)
   - [RegistryHelper](#registryhelper)
-    - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject](#get_by_idregistry-javaobject-identifier-str---javaobject)
-    - [get\_registry\_path(registry\_name: str) -\> JavaObject](#get_registry_pathregistry_name-str---javaobject)
+    - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject|None](#get_by_idregistry-javaobject-identifier-str---javaobjectnone)
+    - [get\_registry\_path(registry\_name: str) -\> JavaObject|None](#get_registry_pathregistry_name-str---javaobjectnone)
+    - [get\_holder\_by\_numeric\_id(numeric\_id: int) -\> JavaObject|None](#get_holder_by_numeric_idnumeric_id-int---javaobjectnone)
 
 ---
 
@@ -269,6 +273,36 @@ Supported layouts:
    - "enchantment_grid" [0]
    - "lapis_grid" [1]
    - "inventory" [2 to and including 37]
+*  `net.minecraft.world.inventory.AnvilMenu"`:
+   - "combine_grid" [0, 1]
+   - "lapis_grid" [2]
+   - "inventory" [3 to and including 38]
+
+### enchantment_table_apply_enchant(enchantment_apply_type: str) -> bool
+Clicks the enchantment button in the opened enchantment table container
+
+Args:
+    - `enchantment_apply_type` (`str`): top, middle, bottom
+
+### enchantment_table_get_enchant_info(enchantment_apply_type) -> EnchantmentInfo|None:
+Returns info about the enchant buttons in the opened enchantment table container
+
+Args:
+    - `enchantment_apply_type` (`str`): top, middle, bottom
+
+#### `EnchantmentInfo`
+Properties:
+
+- `id`
+- `name`
+- `level`
+- `costs`
+
+```py
+enchantment_info = ContainerHelper.enchantment_table_get_enchant_info("top")
+if enchantment_info is not null and enchantment_info.name == "minecraft:sharpness":
+    ContainerHelper.enchantment_table_apply_enchant("top")
+```
 
 #### `crafting_get_layout() -> CraftingLayout`
 
@@ -666,13 +700,16 @@ UtilHelper.set_clipboard("Hello, World!")
 
 ## RegistryHelper
 
-### get_by_id(registry: JavaObject, identifier: str) -> JavaObject
+### get_by_id(registry: JavaObject, identifier: str) -> JavaObject|None
 ```
 RegistryHelper.get_by_id(RegistryHelper.BuiltInRegistries.ITEM, "diamond") # -> net.minecraft.world.item.Item
 ```
 
-### get_registry_path(registry_name: str) -> JavaObject
+### get_registry_path(registry_name: str) -> JavaObject|None
 ```
 item_instance = ...
 RegistryHelper.get_registry_path(RegistryHelper.BuiltInRegistries.ITEM, item_instance) # -> diamond_sword
 ```
+
+
+### get_holder_by_numeric_id(numeric_id: int) -> JavaObject|None

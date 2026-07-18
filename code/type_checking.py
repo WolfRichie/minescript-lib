@@ -15,6 +15,11 @@ class ContainerLayout:
         is_unknown: bool = False,
     ) -> None: ...
 
+class EnchantmentInfo:
+    id: int
+    name: str
+    level: int
+    costs: int
 
 class CraftingLayout:
     container_name: str
@@ -150,6 +155,11 @@ class ItemsHelper(PyJinnProxy):
 
 class ContainerHelper(PyJinnProxy): 
   @staticmethod
+  def enchantment_table_get_enchant_info(enchantment_apply_type) -> EnchantmentInfo|None: ...
+  @staticmethod
+  def enchantment_table_apply_enchant(enchantment_apply_type) -> bool: ...
+
+  @staticmethod
   def get_container_layout() -> ContainerLayout|CraftingLayout|None: ...
   @staticmethod
   def get_container_class_name() -> str:
@@ -261,7 +271,8 @@ class ContainerHelper(PyJinnProxy):
 
   @staticmethod
   def get_inventory_free_slot() -> int | None: ...
-  
+  # @staticmethod
+  # def test(): ...
 
 class FishingHelper(PyJinnProxy):
   @staticmethod

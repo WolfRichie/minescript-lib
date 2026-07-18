@@ -100,6 +100,19 @@ class CraftingLayout:
     def grid_size(self) -> int:
         return len(self.layouts["crafting_grid"])
 
+class EnchantmentInfo:
+    def __init__(
+        self,
+        enchantment_id: str,
+        name: str,
+        level: int,
+        costs: int,
+    ):
+        self.id = enchantment_id
+        self.name = name
+        self.level = level
+        self.costs = costs
+        
 class ContainerHelper:
     ClickType = JavaClass("net.minecraft.world.inventory.ClickType")
     
@@ -161,6 +174,12 @@ class ContainerHelper:
                     "enchantment_grid": [1],
                     "inventory": list(_range(2, 37)),
                 })
+        elif container_name == "net.minecraft.world.inventory.AnvilMenu":
+            return ContainerLayout(container_name,layouts={
+                    "combine_grid": [0, 1],
+                    "result": [2],
+                    "inventory": list(_range(3, 38)),
+                })
       
     
         return ContainerLayout(container_name, {}, is_unknown=True)
@@ -198,6 +217,18 @@ class ContainerHelper:
         )
         return True
 
+    @staticmethod
+    def click_button(button_id) -> bool:
+        container_id = ContainerHelper.get_container_id()
+        if container_id < 0:
+            return False
+
+        minecraft.gameMode.handleInventoryButtonClick(
+            container_id,
+            button_id
+        )
+        return True
+    
     @staticmethod
     def click_slot(slot, button=0) -> bool:
         return ContainerHelper.raw_click(slot, button, ContainerHelper.ClickType.PICKUP)
@@ -310,7 +341,63 @@ class ContainerHelper:
     @staticmethod
     def get_inventory_free_slot() -> int | None:
         return minecraft.player.getInventory().getFreeSlot()
+    
+    @staticmethod
+    def _resolve_enchantment_button_index(enchantment_apply_type: str) -> int | None:
+        enchantment_buttons = {
+            "bottom": 0,
+            "middle": 1,
+            "top": 2,
+        }
 
+        if enchantment_apply_type not in enchantment_buttons:
+            return None
+
+        return enchantment_buttons[enchantment_apply_type]
+
+    @staticmethod
+    def enchantment_table_apply_enchant(enchantment_apply_type) -> bool:
+        if (ContainerHelper.get_container_class_name() != "net.minecraft.world.inventory.EnchantmentMenu"):
+            return False
+   
+        button_id = ContainerHelper._resolve_enchantment_button_index(enchantment_apply_type)
+        if button_id is None:
+            return False
+        
+        return ContainerHelper.click_button(button_id)
+    
+    @staticmethod
+    def enchantment_table_get_enchant_info(enchantment_apply_type) -> EnchantmentInfo|None:
+        if (ContainerHelper.get_container_class_name() != "net.minecraft.world.inventory.EnchantmentMenu"):
+            return None
+
+        index = ContainerHelper._resolve_enchantment_button_index(enchantment_apply_type)
+        if index is None:
+            return None
+        
+        container = ContainerHelper._get_container()
+        enchantment_id = container.enchantClue[index]
+        
+        enchantment_holder = RegistryHelper.get_holder_by_numeric_id(
+            RegistryHelper.Registries.ENCHANTMENT,
+            enchantment_id,
+        )
+        if enchantment_holder is None:
+            return None
+        
+        enchantment_level = container.levelClue[index]
+        enchantment_cost = container.costs[index]
+        enchantment_name = enchantment_holder.key().identifier().toString()
+        
+        return EnchantmentInfo(
+            enchantment_id=enchantment_id,
+            name=enchantment_name,
+            level=enchantment_level,
+            costs=enchantment_cost,
+        )    
+    # @staticmethod
+    # def test():
+    #     print(ContainerHelper.enchantment_table_get_enchant_info("top").__dict__)
 
 class ItemsHelper:
     Item = JavaClass("net.minecraft.world.item.Item")
@@ -682,14 +769,15 @@ class BlocksHelper:
 class RegistryHelper:
     BuiltInRegistries = JavaClass("net.minecraft.core.registries.BuiltInRegistries")
     RegistryOps = JavaClass("net.minecraft.resources.RegistryOps")
-
+    Registries = JavaClass("net.minecraft.core.registries.Registries")
+    
     @staticmethod
-    def get_by_id(registry: JavaObject, identifier: str) -> JavaObject:
+    def get_by_id(registry: JavaObject, identifier: str) -> JavaObject|None:
         parsed_identifier = ItemsHelper.Identifier.parse(identifier)
         optional = registry.get(parsed_identifier)
 
         if optional.isEmpty():
-            raise ValueError(f"Registry value not found: {identifier}")
+            return None
 
         return optional.get().value()
     @staticmethod
@@ -698,3 +786,10 @@ class RegistryHelper:
         if identifier is None:
             return None
         return identifier.getPath()
+    
+    @staticmethod
+    def get_holder_by_numeric_id(registry_key: JavaObject, numeric_id: int) -> JavaObject | None:
+        registry = minecraft.level.registryAccess().lookupOrThrow(registry_key)
+        holders = registry.asHolderIdMap()
+
+        return holders.byId(numeric_id)

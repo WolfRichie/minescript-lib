@@ -3,6 +3,9 @@
     # import * from minescript
 from system.pyj.minescript import *
 
+def _range(start, stop, step=1):
+    return range(start, stop + (1 if step > 0 else -1), step)
+
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
 minescript = JavaClass("net.minescript.common.Minescript")
 class MappingsHelper:
@@ -47,16 +50,43 @@ class ReflectionHelper:
                 current_class = current_class.getSuperclass()
         return None
 
+
 class CraftingLayout:
-    def __init__(self, container_name: str, grid_slots: list[int], result_slot: int):
+    def __init__(
+        self,
+        container_name: str,
+        crafting_grid: list[int],
+        result_slot: int,
+        inventory: list[int],
+        is_unknown: bool = False
+    ):
         self.container_name = container_name
-        self.grid_slots = grid_slots
-        self.grid_size = len(grid_slots)
-        self.result_slot = result_slot 
+
+        self.layouts = {
+            "crafting_grid": crafting_grid,
+            "crafting_grid_result": [result_slot],
+            "inventory": inventory,
+        }
+
+        self.size = sum(
+            len(slots)
+            for slots in self.layouts.values()
+        )
+
+        self.is_unknown = is_unknown
+        self.result_slot = result_slot
+
+    @property
+    def grid_slots(self) -> list[int]:
+        return self.layouts["crafting_grid"]
+
+    @property
+    def grid_size(self) -> int:
+        return len(self.layouts["crafting_grid"])
 
 class ContainerHelper:
     ClickType = JavaClass("net.minecraft.world.inventory.ClickType")
-
+    
     @staticmethod
     def _get_container() -> JavaObject | None:
         return minecraft.player.containerMenu
@@ -74,23 +104,43 @@ class ContainerHelper:
         return click_type
 
     @staticmethod
-    def _validate_crafting_slot(crafting_slot) -> bool:
+    def _validate_crafting_slot(crafting_slot) -> CraftingLayout | None:
         layout = ContainerHelper.crafting_get_layout()
-        if crafting_slot in layout.grid_slots:
-            return True
-        return False
+
+        # validate both crafting slot position and crafting grid layout
+        if (layout.is_unknown or crafting_slot not in layout.grid_slots):
+            return None
+
+        return layout
 
     @staticmethod
     def crafting_get_layout() -> CraftingLayout:
         container_name = ContainerHelper.get_container_class_name()
         if container_name == "net.minecraft.world.inventory.CrafterMenu":
-            return CraftingLayout(container_name, [0, 1, 2, 3, 4, 5, 6, 7, 8], 45)
-        if container_name == "net.minecraft.world.inventory.CraftingMenu":
-            return CraftingLayout(container_name, [1, 2, 3, 4, 5, 6, 7, 8, 9], 0)
-        if container_name == "net.minecraft.world.inventory.InventoryMenu":
-            return CraftingLayout(container_name, [1, 2, 3, 4], 0)
-        return CraftingLayout(container_name, [], -1)
-
+            return CraftingLayout(container_name, [0, 1, 2, 3, 4, 5, 6, 7, 8],45, list(_range(9, 44)))
+        elif container_name == "net.minecraft.world.inventory.CraftingMenu":
+            return CraftingLayout(container_name, [1, 2, 3, 4, 5, 6, 7, 8, 9], 0, list(_range(10, 45)))
+        elif container_name == "net.minecraft.world.inventory.InventoryMenu":
+            return CraftingLayout(container_name, [1, 2, 3, 4], 0, list(_range(10, 45)))
+        return CraftingLayout(container_name, [], -1, [], is_unknown=True)
+    
+    @staticmethod
+    def get_container_layout() -> ContainerLayout|CraftingLayout|None:
+        if ContainerHelper._get_container() is None:
+            return None
+        # check if theres a valid crafting_layout to return
+        crafting_layout = ContainerHelper.crafting_get_layout()
+        if not crafting_layout.is_unknown:
+            return crafting_layout
+        
+        container_name = ContainerHelper.get_container_class_name()
+        if container_name == "net.minecraft.world.inventory.HopperMenu":
+            return ContainerLayout(container_name,layouts={
+                    "hopper_grid": list(_range(0, 4)),
+                    "inventory": list(_range(5, 40)),
+                }
+    )
+        return ContainerLayout(container_name, {}, is_unknown=True)
     @staticmethod
     def get_container_id() -> int:
         container = ContainerHelper._get_container()
@@ -107,8 +157,7 @@ class ContainerHelper:
     
     @staticmethod
     def crafting_get_grid_size() -> int:
-        layout = ContainerHelper.crafting_get_layout()
-        return layout.grid_size
+        return ContainerHelper.crafting_get_layout().grid_size
     
     @staticmethod
     def raw_click(slot, button_or_slot=0, click_type=None) -> bool:
@@ -191,14 +240,9 @@ class ContainerHelper:
 
     @staticmethod
     def crafting_place_slot(slot, crafting_slot, count=1) -> ItemStack | bool | None:
-        layout = ContainerHelper.crafting_get_layout()
-        grid = layout.grid_size
-        if grid not in (4, 9):
-            return False
-
-        result_slot = layout.result_slot
-
-        if(not ContainerHelper._validate_crafting_slot(crafting_slot)):
+        layout = ContainerHelper._validate_crafting_slot(crafting_slot)
+        
+        if(layout is None):
             return False
 
         if count <= 0:
@@ -216,22 +260,23 @@ class ContainerHelper:
                 return False
 
         ContainerHelper.raw_click(slot, 0, ContainerHelper.ClickType.PICKUP)
-        result = ContainerHelper.get_container_slot(result_slot)
+        result = ContainerHelper.get_container_slot(layout.result_slot)
         return result
     
     @staticmethod
     def crafting_shift_click_result() -> ItemStack | bool | None:
-        layout = ContainerHelper.crafting_get_layout()
-        result_slot = layout.result_slot
-        grid = layout.grid_size
-        if grid not in (4, 9):
-            return False
+        layout = ContainerHelper._validate_crafting_slot(
+            ContainerHelper.crafting_get_layout().grid_slots[0]
+        )   
+        
+        if layout is None:
+            return None
 
-        result = ContainerHelper.get_container_slot(result_slot)
+        result = ContainerHelper.get_container_slot(layout.result_slot)
         if result is None:
             return None
 
-        if not ContainerHelper.shift_click_slot(result_slot):
+        if not ContainerHelper.shift_click_slot(layout.result_slot):
             return False
         return result
     
@@ -242,8 +287,6 @@ class ContainerHelper:
     @staticmethod
     def get_inventory_free_slot() -> int | None:
         return minecraft.player.getInventory().getFreeSlot()
-    
-
 
 class ItemsHelper:
     Item = JavaClass("net.minecraft.world.item.Item")

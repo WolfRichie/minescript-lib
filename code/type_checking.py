@@ -1,8 +1,43 @@
-from typing import Any
 from java import *
 from code.Proxy import PyJinnProxy
 from minescript import Vector3f, BlockPos
 
+class ContainerLayout:
+    container_name: str
+    layouts: dict[str, list[int]]
+    size: int
+    is_unknown: bool
+
+    def __init__(
+        self,
+        container_name: str,
+        layouts: dict[str, list[int]],
+        is_unknown: bool = False,
+    ) -> None: ...
+
+
+class CraftingLayout:
+    container_name: str
+    layouts: dict[str, list[int]]
+    result_slot: int
+    is_unknown: bool
+    size: int
+
+    def __init__(
+        self,
+        container_name: str,
+        crafting_grid: list[int],
+        result_slot: int,
+        inventory: list[int],
+        is_unknown: bool = False,
+    ) -> None: ...
+
+    @property
+    def grid_slots(self) -> list[int]: ...
+
+    @property
+    def grid_size(self) -> int: ...
+  
 class BlocksHelper(PyJinnProxy):
   @staticmethod
   def get_block_pos(x: int|float|BlockPos|Vector3f, y: int|float|None = None, z: int|float|None = None) -> JavaObject: ...
@@ -64,12 +99,6 @@ class ReflectionHelper(PyJinnProxy):
     ...
 
 
-class CraftingLayout:
-  container_name: str
-  grid_slots: list[int]
-  grid_size: int
-  result_slot: int
-
 class ItemsHelper(PyJinnProxy):
   """Unified static helper for item and itemstack operations."""
   
@@ -119,7 +148,9 @@ class ItemsHelper(PyJinnProxy):
     ...
 
 
-class ContainerHelper(PyJinnProxy):
+class ContainerHelper(PyJinnProxy): 
+  @staticmethod
+  def get_container_layout() -> ContainerLayout|CraftingLayout|None: ...
   @staticmethod
   def get_container_class_name() -> str:
     """Return the mapped class name for the currently open container menu."""
@@ -189,12 +220,12 @@ class ContainerHelper(PyJinnProxy):
     ...
 
   @staticmethod
-  def crafting_place_slot(slot: int, crafting_slot: int, count: int = 1) -> JavaObject | bool | None:
+  def crafting_place_slot(slot: int, crafting_slot: int, count: int = 1) -> ItemStack | bool | None:
     """Place item(s) from a container slot into a crafting grid slot."""
     ...
 
   @staticmethod
-  def crafting_shift_click_result() -> JavaObject | bool | None:
+  def crafting_shift_click_result() -> ItemStack | bool | None:
     """Shift-click the crafting result."""
     ...
 

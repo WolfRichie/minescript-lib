@@ -26,10 +26,15 @@ Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.14
     - [get\_item\_stack\_java\_object(item) -\> JavaObject](#get_item_stack_java_objectitem---javaobject)
     - [get\_item\_java\_object(item) -\> JavaObject](#get_item_java_objectitem---javaobject)
   - [ContainerHelper](#containerhelper)
-    - [crafting\_get\_layout() -\> CraftingLayout](#crafting_get_layout---craftinglayout)
+      - [`crafting_get_layout() -> CraftingLayout`](#crafting_get_layout---craftinglayout)
+      - [`CraftingLayout`](#craftinglayout)
     - [crafting\_get\_grid\_size() -\> int](#crafting_get_grid_size---int)
     - [crafting\_place\_slot(slot, crafting\_slot, count=1) -\> ItemStack | bool | None](#crafting_place_slotslot-crafting_slot-count1---itemstack--bool--none)
     - [crafting\_shift\_click\_result() -\> ItemStack | bool | None](#crafting_shift_click_result---itemstack--bool--none)
+    - [get\_container\_layout() -\> ContainerLayout|CraftingLayout|None](#get_container_layout---containerlayoutcraftinglayoutnone)
+      - [`ContainerLayout`](#containerlayout)
+    - [crafting\_get\_layout() -\> CraftingLayout](#crafting_get_layout---craftinglayout-1)
+      - [`CraftingLayout`](#craftinglayout-1)
     - [get\_container\_id() -\> int](#get_container_id---int)
     - [get\_container\_class\_name() -\> str](#get_container_class_name---str)
     - [get\_container\_slot(slot) -\> ItemStack | None](#get_container_slotslot---itemstack--none)
@@ -238,19 +243,67 @@ java_item = ItemsHelper.get_item_java_object("diamond_sword")
 
 ## ContainerHelper
 
-### crafting_get_layout() -> CraftingLayout
-Returns the active crafting layout object for the current container.
+#### `crafting_get_layout() -> CraftingLayout`
 
-Returns: `CraftingLayout` object with:
-- `container_name` (str): Mapped runtime container class name
-- `grid_slots` (list[int]): List of valid crafting slot IDs
-- `grid_size` (int): Length of `grid_slots`
-- `result_slot` (int): Slot ID containing crafting output
+Returns the active `CraftingLayout` object for the current container.
+
+If the current container does not support crafting, an empty `CraftingLayout` is returned with `is_unknown=True`.
+
+#### `CraftingLayout`
+
+`CraftingLayout` is a specialized container layout for containers that support crafting.
+
+Properties:
+
+- `container_name` (`str`): Fully qualified runtime container class name.
+- `layouts` (`dict[str, list[int]]`): Named slot layouts contained by the container.
+- `size` (`int`): Total number of slots across all layouts.
+- `grid_slots` (`list[int]`): List of valid crafting input slot IDs.
+- `grid_size` (`int`): Number of crafting input slots.
+- `result_slot` (`int`): Slot ID containing the crafting output.
+- `is_unknown` (`bool`): Whether the layout is supported / and unknown
+
+The `layouts` dictionary contains:
+
+- `"crafting_grid"` (`list[int]`): Crafting input slot IDs.
+- `"crafting_grid_result"` (`list[int]`): Crafting output slot ID.
+- `"inventory"` (`list[int]`): Inventory slot IDs available in the container.
+
+The layout is different per class 
+* `"net.minecraft.world.inventory.CrafterMenu"`:
+    -` "crafting_grid"`: [0 to and 8]
+    - `"crafting_grid_result"`: [45]
+    - `"inventory"`: 9 to and 44
+
+* `net.minecraft.world.inventory.CraftingMenu`:
+    - `"crafting_grid"`: [1 to and 9]
+    - `"crafting_grid_result"`: [0]
+    - `"inventory"`: 10 to and 45
+
+* `"net.minecraft.world.inventory.InventoryMenu"`:
+    - `"crafting_grid"`: [1 to and 4]
+    - `"crafting_grid_result"`: [0]
+    - `"inventory"`: 10 to and 45
+
+Example:
 
 ```python
 layout = ContainerHelper.crafting_get_layout()
-print(layout.grid_size)  # -> 4, 9, or 0 if crafting unsupported
-print(layout.result_slot)  # -> slot ID for result
+
+print(layout.container_name)
+# -> net.minecraft.world.inventory.CraftingMenu
+
+print(layout.grid_slots)
+# -> [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+print(layout.result_slot)
+# -> 0
+
+print(layout.layouts["crafting_grid"])
+# -> [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+print(layout.layouts["crafting_grid_result"])
+# -> [0]
 ```
 
 ### crafting_get_grid_size() -> int
@@ -288,13 +341,55 @@ else:
 ```
 
 ### crafting_shift_click_result() -> ItemStack | bool | None
-Shift-click the current crafting result slot.
+
+### get_container_layout() -> ContainerLayout|CraftingLayout|None
+
+#### `ContainerLayout`
+
+`ContainerLayout` is the standard container layout for containers.
+
+Properties:
+
+- `container_name` (`str`): Fully qualified runtime container class name.
+- `layouts` (`dict[str, list[int]]`): Named slot layouts contained by the container.
+- `size` (`int`): Total number of slots across all layouts.
+- `is_unknown` (`bool`): Whether the layout is supported / and unknown
 
 Returns:
-- `ItemStack`: ItemStack from result slot before click
-- `None`: Result slot was empty
-- `False`: Layout unsupported or click failed
+- `CraftingLayout`: Tthe returning result is identical to `crafting_get_layout` If; the name matches `net.minecraft.world.inventory.CrafterMen` or `net.minecraft.world.inventory.CraftingMenu` or `net.minecraft.world.inventory.InventoryMenu` 
+- `ContainerLayout`: Returns a `ContainerLayout(container_name, layouts={}, is_unknown=True)` for unsupported layouts, otherwise see supported layouts
+- `None`: No container is on the screen
 
+Supported layouts:
+*  `"net.minecraft.world.inventory.HopperMenu"`:
+   - "hopper_grid" [0 to and including 45]
+   - "inventory" [5 to and including 40]
+
+### crafting_get_layout() -> CraftingLayout
+
+Returns the active `CraftingLayout` object for the current container.
+
+If the current container does not support crafting, an empty `CraftingLayout` is returned.
+
+`CraftingLayout` inherits from `ContainerLayout` and contains named `GridLayout` objects for the crafting grid, crafting result, and inventory.
+
+#### `CraftingLayout`
+
+Properties:
+
+- `container_name` (`str`): Fully qualified runtime container class name.
+- `layouts` (`dict[str, GridLayout]`): Named layouts contained by the container.
+- `size` (`int`): Total number of slots across all layouts.
+- `grid_slots` (`list[int]`): List of valid crafting input slot IDs.
+- `grid_size` (`int`): Number of crafting input slots.
+- `result_slot` (`int`): Slot ID containing the crafting output.
+
+The `layouts` dictionary contains:
+
+- `"crafting_grid"` (`GridLayout`): The crafting input grid.
+- `"crafting_grid_result"` (`GridLayout`): The crafting output/result slot.
+- `"inventory"` (`GridLayout`): The inventory slots available in the container.
+- 
 ### get_container_id() -> int
 Get the current container ID. Returns `-1` if no container open.
 

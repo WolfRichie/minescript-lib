@@ -2,12 +2,9 @@
     # import * from java
     # import * from minescript
 from system.pyj.minescript import *
-import system.pyj.json as json
 
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
 minescript = JavaClass("net.minescript.common.Minescript")
-
-
 class MappingsHelper:
     mappings: JavaObject = minescript.mappingsLoader.get()
 
@@ -241,7 +238,9 @@ class ContainerHelper:
     @staticmethod
     def get_inventory_free_slot() -> int | None:
         return minecraft.player.getInventory().getFreeSlot()
-       
+    
+
+
 class ItemsHelper:
     Item = JavaClass("net.minecraft.world.item.Item")
     Items = JavaClass("net.minecraft.world.item.Items")
@@ -250,9 +249,6 @@ class ItemsHelper:
     DataComponents = JavaClass("net.minecraft.core.component.DataComponents")
     ItemStackClass = JavaClass("net.minecraft.world.item.ItemStack")
     RegistryOps = JavaClass("net.minecraft.resources.RegistryOps")
-    JsonOps = JavaClass("com.mojang.serialization.JsonOps")
-    Gson = JavaClass("com.google.gson.Gson")
-    JsonParser = JavaClass("com.google.gson.JsonParser")
 
     @staticmethod
     def _resolve_to_item_stack(item: JavaObject | str | int) -> JavaObject:
@@ -269,7 +265,6 @@ class ItemsHelper:
             item_obj = optional.get().value()
             return item_obj.getDefaultInstance()
         
-        # Handle JavaObject (could be Item or ItemStack)
         class_name = UtilHelper.get_class_name(item)
         if class_name == "net.minecraft.world.item.Item":
             return item.getDefaultInstance()
@@ -347,25 +342,62 @@ class ItemsHelper:
     def get_json(item: JavaObject | str | int) -> str:
         """Get serialized full itemstack as JSON string."""
         stack = ItemsHelper._resolve_to_item_stack(item)
-        
+
         json_element = ItemsHelper.ItemStackClass.CODEC.encodeStart(
             ItemsHelper.RegistryOps.create(
-                ItemsHelper.JsonOps.INSTANCE,
+                JsonHelper.JsonOps.INSTANCE,
                 minecraft.level.registryAccess(),
             ),
             stack,
+
         ).getOrThrow()
-        return ItemsHelper.Gson().toJson(json_element)
+        return JsonHelper.dumps(json_element)
+    
+    @staticmethod
+    def get_components(item: JavaObject | str | int):
+        """Get item data components as a Python dictionary."""
+        components = JsonHelper.get(
+            ItemsHelper.get_json(item),
+            "components",
+        )
+        return JsonHelper.dumps(components)
+
+
+import system.pyj.json as json
+
+class JsonHelper:
+    JsonParser = JavaClass("com.google.gson.JsonParser")
+    JsonOps = JavaClass("com.mojang.serialization.JsonOps")
 
     @staticmethod
-    def get_components(item: JavaObject | str | int) -> str:
-        """Get serialized data components as JSON string (components object only)."""
-        json_str = ItemsHelper.get_json(item)
-        json_element = ItemsHelper.JsonParser.parseString(json_str)
-        components = json_element.getAsJsonObject().get("components")
-        return ItemsHelper.Gson().toJson(components)
+    def loads(data: str):
+        """Parse a JSON string into a Gson JsonElement."""
+        return json.loads(data)
+    
+    @staticmethod
+    def parse(data: str):
+        """Parse a JSON string into a Gson JsonElement."""
+        return JsonHelper.JsonParser.parseString(data)
 
+    @staticmethod
+    def dumps(element) -> str:
+        return element.toString()
 
+    @staticmethod
+    def get(data: str, key: str):
+        element = JsonHelper.parse(data)
+
+        if not element.isJsonObject():
+            raise TypeError(
+                "JSON root must be a JsonObject"
+            )
+
+        value = element.get(key)
+
+        if value is None or value.isJsonNull():
+            return None
+
+        return json._from_json(value)
 
 class FishingHelper:
     ROD: JavaObject = ItemsHelper.Items.FISHING_ROD
@@ -492,7 +524,7 @@ class ClientHelper:
     
     @staticmethod
     def get_camera_type() -> str:
-        return minecraft.options.cameraType().get().name()
+        return minecraft.options.getCameraType().name()
 
 class ClientLevelData:
     def __init__(self, hardcore: bool, is_flat: bool, game_time: int, day_time: int, raining: bool, difficulty: str, difficulty_locked: bool):
@@ -516,13 +548,61 @@ class UtilHelper:
     @staticmethod
     def set_clipboard(text: str) -> None:
         minecraft.keyboardHandler.setClipboard(text)
+
+class BlocksHelper:
+    BlockPos = JavaClass("net.minecraft.core.BlockPos")
+
     @staticmethod
-    def test():
-        minecraft.gui.setTitle(ClientHelper.Component.literal("f"))
-        minecraft.gui.setSubtitle(ClientHelper.Component.literal("ffda"))
-        minecraft.gui.setOverlayMessage(ClientHelper.Component.literal("hey"), True)
+    def get_block_pos(x: int|float, y: int|float, z: int|float) -> JavaObject:
+        return BlocksHelper.BlockPos(int(x), int(y), int(z))
+    
+    @staticmethod
+    def get_block_entity(x: int|float|JavaObject, y: int|float|None = None, z: int|float|None = None) -> JavaObject:
+        if UtilHelper.get_class_name(x) == "net.minecraft.core.BlockPos":
+            return minecraft.level.getBlockEntity(x)
+        return minecraft.level.getBlockEntity(BlocksHelper.get_block_pos(x, y, z))
+    
+    @staticmethod
+    def set_command_block_entity_command(command_block_entity, command: str) -> bool:
+        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+            return False
+        command_block_entity.getCommandBlock().setCommand(command)
+        return True
+    
+    @staticmethod
+    def get_command_block_entity_command(command_block_entity) -> str|None:
+        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+            return None
+        return command_block_entity.getCommandBlock().getCommand()
+    
+    
+    @staticmethod
+    def get_command_block_entity_last_output(command_block_entity) -> str|None:
+        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+            return None
+        return command_block_entity.getCommandBlock().getLastOutput().getString()
 
-        print(ReflectionHelper.get_private_field(minecraft.gui, "title").getString())
+    @staticmethod
+    def get_command_block_entity_mode(command_block_entity) -> str|None:
+        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+            return None
+        return command_block_entity.getMode().name()
 
-        return "test"
+    @staticmethod
+    def is_command_block_entity_conditions_met(command_block_entity) -> bool|None:
+        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+            return None
+        return command_block_entity.wasConditionMet()
 
+    @staticmethod
+    def is_command_block_entity_powered(command_block_entity) -> bool|None:
+        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+            return None
+        return command_block_entity.isPowered()
+    
+    @staticmethod
+    def is_command_block_entity_automatic(command_block_entity) -> bool|None:
+        if UtilHelper.get_class_name(command_block_entity) != "net.minecraft.world.level.block.entity.CommandBlockEntity":
+            return None
+        return command_block_entity.isAutomatic()
+    

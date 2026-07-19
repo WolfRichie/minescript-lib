@@ -191,9 +191,6 @@ class ContainerHelper(PyJinnProxy):
   @staticmethod
   def get_slot_screen_position(slot: int) -> Vec2 | None: ...
 
-  @staticmethod
-  def click_slot_screen(slot: int, button: int = 0, press: bool = True) -> bool: ...
-
 class FishingHelper(PyJinnProxy):
   @staticmethod
   def is_holding_rod() -> bool: ...

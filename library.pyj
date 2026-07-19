@@ -5,6 +5,8 @@ from system.pyj.minescript import *
 
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
 minescript = JavaClass("net.minescript.common.Minescript")
+Thread = JavaClass("java.lang.Thread")
+System = JavaClass("java.lang.System")
 
 class Vec3:
     def __init__(self, x: float, y: float, z: float):
@@ -138,17 +140,6 @@ class ContainerHelper:
     @staticmethod
     def _get_container() -> JavaObject | None:
         return minecraft.player.containerMenu
-
-    @staticmethod
-    def click_slot_screen(slot: int, button: int = 0, press: bool = True) -> bool:
-        position = ContainerHelper.get_slot_screen_position(slot)
-        print(position)
-        if position is None:
-            return False
-
-        GLFWHelper.set_cursor_position(position.x, position.y)
-        GLFWHelper.send_mouse_button(button, press)
-        return True
 
     @staticmethod
     def get_slot_screen_position(slot: int) -> Vec2 | None:
@@ -733,6 +724,18 @@ class GLFWHelper:
     GLFW = JavaClass("org.lwjgl.glfw.GLFW")
     BufferUtils = JavaClass("org.lwjgl.BufferUtils")
     MouseButtonInfo = JavaClass("net.minecraft.client.input.MouseButtonInfo")
+    
+    _onButton_method = None
+
+    @staticmethod
+    def _get_mouse_helper_onButton_method():
+        if GLFWHelper._onButton_method is None:
+            mouse_handler = minecraft.mouseHandler
+            GLFWHelper._onButton_method = ReflectionHelper._get_declared_method_accessible(
+                mouse_handler,
+                "onButton"
+            )
+        return GLFWHelper._onButton_method
 
     @staticmethod
     def get_cursor_position() -> Vec3:
@@ -748,6 +751,18 @@ class GLFWHelper:
     @staticmethod
     def set_cursor_position(x: float, y: float):
         GLFWHelper.GLFW.glfwSetCursorPos(WindowHelper.get_window_handle(), JavaFloat(x), JavaFloat(y))
+
+    @staticmethod
+    def wait_for_cursor_position(x: float, y: float, timeout_ms: int = 250, tolerance: float = 1.0) -> bool:
+        deadline = System.currentTimeMillis() + timeout_ms
+
+        while System.currentTimeMillis() < deadline:
+            position = GLFWHelper.get_cursor_position()
+            if abs(position.x - x) <= tolerance and abs(position.y - y) <= tolerance:
+                return True
+            Thread.sleep(10)
+
+        return False
         
     @staticmethod
     def show_cursor():
@@ -768,7 +783,6 @@ class GLFWHelper:
     @staticmethod
     def is_mouse_button_pressed(button: int) -> bool:
         return GLFWHelper.GLFW.glfwGetMouseButton(WindowHelper.get_window_handle(), button) == GLFWHelper.GLFW.GLFW_PRESS
-    
 
     @staticmethod
     def send_mouse_button(button: int, press: bool):
@@ -776,10 +790,7 @@ class GLFWHelper:
 
         button_info = GLFWHelper.MouseButtonInfo(button, 0)
 
-        method = ReflectionHelper._get_declared_method_accessible(
-            mouse_handler,
-            "onButton"
-        )
+        method = GLFWHelper._get_mouse_helper_onButton_method()
 
         if (press):
             action = GLFWHelper.GLFW.GLFW_PRESS
@@ -793,6 +804,10 @@ class GLFWHelper:
         ))
 
         method.invoke(mouse_handler, args)
+        
+        # If release, send it twice FOR SOME FUCKING REASON
+        if not press:
+            method.invoke(mouse_handler, args)
         
         
 class BlocksHelper:

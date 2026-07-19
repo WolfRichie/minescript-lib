@@ -57,7 +57,6 @@ See /examples/ for a simple script
     - [get\_item\_java\_object(item) -\> JavaObject](#get_item_java_objectitem---javaobject)
   - [ContainerHelper](#containerhelper)
     - [get\_slot\_screen\_position(slot: int) -\> Vec2 | None](#get_slot_screen_positionslot-int---vec2--none)
-    - [click\_slot\_screen(slot: int, button: int = 0, press: bool = True) -\> bool](#click_slot_screenslot-int-button-int--0-press-bool--true---bool)
     - [enchantment\_table\_apply\_enchant(enchantment\_apply\_type: str) -\> bool](#enchantment_table_apply_enchantenchantment_apply_type-str---bool)
     - [enchantment\_table\_get\_enchant\_info(enchantment\_apply\_type) -\> EnchantmentInfo|None:](#enchantment_table_get_enchant_infoenchantment_apply_type---enchantmentinfonone)
       - [`EnchantmentInfo`](#enchantmentinfo)
@@ -137,6 +136,10 @@ Vec2 has x,y fields
 
 ### send_mouse_button(button: int, press: bool): ...
 Click the current position on the screen, (or release if press is set to false)
+
+> [!WARNING]
+> BUGGY
+
 
 ```py
 GLFW_MOUSE_BUTTON_LEFT = 0
@@ -358,26 +361,12 @@ java_item = ItemsHelper.get_item_java_object("diamond_sword")
 ## ContainerHelper
 
 ### get_slot_screen_position(slot: int) -> Vec2 | None
+Get the screen-space position for a container slot so you can move the cursor manually.
 
-Example of clicking the first slot
-(!!!DONT DO THIS, THIS IS FOR EXAMPLE PURPOSES)
-(THERE IS A FUNCTION WHICH DOES THIS FOR YOU CALLED `click_slot_screen`)
 ```py
-GLFW_MOUSE_BUTTON_LEFT = 0
-
 pos = ContainerHelper.get_slot_screen_position(1)
 if pos:
-    GLFWHelper.set_cursor_position(pos, pos.y)
-    GLFWHelper.send_mouse_button(GLFW_MOUSE_BUTTON_LEFT, True)
-
-```
-
-### click_slot_screen(slot: int, button: int = 0, press: bool = True) -> bool
-Move the cursor to the screen position of a container slot and send a mouse button event.
-
-```py
-GLFW_MOUSE_BUTTON_LEFT = 0
-ContainerHelper.click_slot_screen(slot, GLFW_MOUSE_BUTTON_LEFT, True)
+    GLFWHelper.set_cursor_position(pos.x, pos.y)
 ```
 
 ### enchantment_table_apply_enchant(enchantment_apply_type: str) -> bool
@@ -674,3 +663,10 @@ RegistryHelper.get_registry_path(RegistryHelper.BuiltInRegistries.ITEM, item_ins
 ```
 
 ### get_holder_by_numeric_id(numeric_id: int) -> JavaObject|None
+
+    if result_item:
+        ContainerHelper.click_slot(result_slot, button=0)  # Pick up result
+        free_slot = ContainerHelper.get_inventory_free_slot()
+        if free_slot:
+            ContainerHelper.click_slot(free_slot, button=0)  # Place in inventory
+```

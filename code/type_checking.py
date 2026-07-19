@@ -42,46 +42,11 @@ class WindowHelper(PyJinnProxy):
     @staticmethod
     def get_screen_position(gui_x: float, gui_y: float) -> Vec2: ...
 
-class ContainerLayout:
-    container_name: str
-    layouts: dict[str, list[int]]
-    size: int
-    is_unknown: bool
-
-    def __init__(
-        self,
-        container_name: str,
-        layouts: dict[str, list[int]],
-        is_unknown: bool = False,
-    ) -> None: ...
-
 class EnchantmentInfo:
     id: int
     name: str
     level: int
     costs: int
-
-class CraftingLayout:
-    container_name: str
-    layouts: dict[str, list[int]]
-    result_slot: int
-    is_unknown: bool
-    size: int
-
-    def __init__(
-        self,
-        container_name: str,
-        crafting_grid: list[int],
-        result_slot: int,
-        inventory: list[int],
-        is_unknown: bool = False,
-    ) -> None: ...
-
-    @property
-    def grid_slots(self) -> list[int]: ...
-
-    @property
-    def grid_size(self) -> int: ...
   
 class BlocksHelper(PyJinnProxy):
   @staticmethod
@@ -179,8 +144,6 @@ class ContainerHelper(PyJinnProxy):
   def enchantment_table_apply_enchant(enchantment_apply_type) -> bool: ...
 
   @staticmethod
-  def get_container_layout() -> ContainerLayout|CraftingLayout|None: ...
-  @staticmethod
   def get_container_class_name() -> str: ...
 
   @staticmethod
@@ -205,18 +168,6 @@ class ContainerHelper(PyJinnProxy):
   def inventory_find_item_id(item_id: str) -> list[JavaObject]: ...
 
   @staticmethod
-  def crafting_get_grid_size() -> int:...
-
-  @staticmethod
-  def crafting_get_layout() -> CraftingLayout:...
-
-  @staticmethod
-  def crafting_place_slot(slot: int, crafting_slot: int, count: int = 1) -> ItemStack | bool | None: ...
-
-  @staticmethod
-  def crafting_shift_click_result() -> ItemStack | bool | None: ...
-
-  @staticmethod
   def raw_click(slot: int, button_or_slot: int = 0, click_type: str | None = ...) -> bool: ...
 
   @staticmethod
@@ -239,6 +190,9 @@ class ContainerHelper(PyJinnProxy):
   
   @staticmethod
   def get_slot_screen_position(slot: int) -> Vec2 | None: ...
+
+  @staticmethod
+  def click_slot_screen(slot: int, button: int = 0, press: bool = True) -> bool: ...
 
 class FishingHelper(PyJinnProxy):
   @staticmethod

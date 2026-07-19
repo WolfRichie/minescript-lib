@@ -47,7 +47,7 @@ class EnchantmentInfo:
     name: str
     level: int
     costs: int
-  
+
 class BlocksHelper(PyJinnProxy):
   @staticmethod
   def get_block_pos(x: int|float, y: int|float|None = None, z: int|float|None = None) -> JavaObject: ...
@@ -190,6 +190,9 @@ class ContainerHelper(PyJinnProxy):
   
   @staticmethod
   def get_slot_screen_position(slot: int) -> Vec2 | None: ...
+
+  @staticmethod
+  def get_container_layout() -> CraftingInventoryLayout|AnvilLayout|EnchantmentLayout|DefaultContainerLayout | None: ...
 
 class FishingHelper(PyJinnProxy):
   @staticmethod

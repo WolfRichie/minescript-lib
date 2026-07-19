@@ -57,6 +57,12 @@ See /examples/ for a simple script
     - [get\_item\_java\_object(item) -\> JavaObject](#get_item_java_objectitem---javaobject)
   - [ContainerHelper](#containerhelper)
     - [get\_slot\_screen\_position(slot: int) -\> Vec2 | None](#get_slot_screen_positionslot-int---vec2--none)
+    - [get\_container\_layout() | None](#get_container_layout--none)
+      - [ContainerLayout](#containerlayout)
+      - [DefaultContainerLayout](#defaultcontainerlayout)
+      - [CraftingInventoryLayout](#craftinginventorylayout)
+      - [AnvilLayout](#anvillayout)
+      - [EnchantmentLayout](#enchantmentlayout)
     - [enchantment\_table\_apply\_enchant(enchantment\_apply\_type: str) -\> bool](#enchantment_table_apply_enchantenchantment_apply_type-str---bool)
     - [enchantment\_table\_get\_enchant\_info(enchantment\_apply\_type) -\> EnchantmentInfo|None:](#enchantment_table_get_enchant_infoenchantment_apply_type---enchantmentinfonone)
       - [`EnchantmentInfo`](#enchantmentinfo)
@@ -136,10 +142,6 @@ Vec2 has x,y fields
 
 ### send_mouse_button(button: int, press: bool): ...
 Click the current position on the screen, (or release if press is set to false)
-
-> [!WARNING]
-> BUGGY
-
 
 ```py
 GLFW_MOUSE_BUTTON_LEFT = 0
@@ -369,6 +371,67 @@ if pos:
     GLFWHelper.set_cursor_position(pos.x, pos.y)
 ```
 
+### get_container_layout() | None
+Return a python layout object for the currently open container.
+
+```python
+ayout = ContainerHelper.get_container_layout()
+print("Container Layout:", type(layout), layout.__dict__) 
+# ->
+# Container Layout: <class 'main.AnvilLayout'> {'container_name': 'net.minecraft.world.inventory.AnvilMenu', 'layouts': {'combine_grid': [0, 1], 'result': [2], 'inventory': [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38]}}
+
+```
+**See the supported containers below**
+
+<details>
+<summary>Container layout classes</summary>
+
+#### ContainerLayout
+Common properties and methods:
+
+- `container_name`: runtime class name of the current container
+- `layouts`: mapping of group names to slot indexes
+- `groups`: alias for `layouts`
+- `size`: total number of slots represented by the layout
+- `is_unknown`: `True` for fallback layouts with no special handling
+- `get_group(name)`: return the slot list for a group
+- `get_layouts()`: return the full layout mapping
+
+#### DefaultContainerLayout
+Used as a fallback when the current container menu does not have a built-in layout mapping.
+
+Properties:
+- `slots`: slots `?-?` (DEPENDS ON THE CONTAINER)
+
+Example of a unsupported container
+`{'container_name': 'net.minecraft.world.inventory.HopperMenu', 'layouts': {'slots': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]}}`
+
+#### CraftingInventoryLayout
+Returned for `net.minecraft.world.inventory.InventoryMenu` and `net.minecraft.world.inventory.CrafterMenu` and `net.minecraft.world.inventory.CraftingMenu`
+Layouts:
+- `crafting_grid`: slots `[1-4]` for inventory, `[0-8]` for crafter, `1-9` for crafting table
+- `result`: slot `[0]` for inventory, `[45]` for crafter, `[0]` for crafting table
+- `inventory`: slots `[9-44]` for inventory, `[9-44]` for crafter, `[10-45]` for crafting table
+
+Methods:
+- `get_inventory_slots()`: return the inventory slot layout
+- `get_crafting_slots()`: return the crafting-grid slot layout
+- `get_result_slot()`: return the result slot index
+
+#### AnvilLayout
+Layouts:
+- `combine_grid`: slots `[0-1]`
+- `result`: slot `[2]`
+- `inventory`: slots `[3-38]`
+
+#### EnchantmentLayout
+Layouts:
+- `enchantment_grid`: slot `[0]`
+- `lapis_grid`: slot `[1]`
+- `inventory`: slots `[2-37]`
+
+</details>
+
 ### enchantment_table_apply_enchant(enchantment_apply_type: str) -> bool
 Clicks the enchantment button in the opened enchantment table container
 
@@ -491,6 +554,7 @@ if ContainerHelper.click_slot(15, button=0):
 
 ### shift_click_slot(slot) -> bool
 Shift-click a slot (quick move).
+
 
 
 ### click_swap_with_hotbar(slot, hotbar_slot) -> bool

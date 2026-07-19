@@ -133,6 +133,96 @@ class EnchantmentInfo:
         self.name = name
         self.level = level
         self.costs = costs
+
+class ContainerLayout:
+    def __init__(self, container_name: str, layouts=None):
+        self.container_name = container_name
+        self.layouts = layouts if layouts is not None else {}
+
+    @property
+    def groups(self):
+        return self.layouts
+
+    @property
+    def size(self) -> int:
+        return sum(len(group_slots) for group_slots in self.layouts.values())
+
+    @property
+    def is_unknown(self) -> bool:
+        return False
+
+    def get_group(self, group_name: str):
+        return self.layouts.get(group_name, [])
+
+    def get_layouts(self):
+        return self.layouts
+
+class DefaultContainerLayout(ContainerLayout):
+    def __init__(self, container_name: str, container=None):
+        self.container_name = container_name
+        self.layouts = {"slots": self._resolve_slot_indexes(container)}
+
+    @property
+    def is_unknown(self) -> bool:
+        return True
+
+    def _resolve_slot_indexes(self, container):
+        if container is None:
+            return []
+
+        try:
+            slots = container.slots
+        except Exception:
+            return []
+
+        try:
+            slot_count = len(slots)
+        except Exception:
+            try:
+                slot_count = slots.size()
+            except Exception:
+                return []
+
+        return list(range(slot_count))
+
+class InventoryLayout(ContainerLayout):
+    def __init__(self, container_name: str, layouts=None):
+        self.container_name = container_name
+        self.layouts = layouts if layouts is not None else {
+            "crafting_grid": [1, 2, 3, 4],
+            "result": [0],
+            "inventory": list(range(9, 36)),
+        }
+
+    def get_inventory_slots(self):
+        return self.get_group("inventory")
+
+    def get_crafting_slots(self):
+        return self.get_group("crafting_grid")
+
+    def get_result_slot(self):
+        result_slots = self.get_group("result")
+        return result_slots[0] if result_slots else None
+
+
+class AnvilLayout(InventoryLayout):
+    def __init__(self, container_name: str):
+        self.container_name = container_name
+        self.layouts = {
+            "combine_grid": [0, 1],
+            "result": [2],
+            "inventory": list(range(3, 39)),
+        }
+
+
+class EnchantmentLayout(InventoryLayout):
+    def __init__(self, container_name: str, layouts=None):
+        self.container_name = container_name
+        self.layouts = {
+            "enchantment_grid": [0],
+            "lapis_grid": [1],
+            "inventory": list(range(2, 38)),
+        }
         
 class ContainerHelper:
     ClickType = JavaClass("net.minecraft.world.inventory.ClickType")
@@ -185,6 +275,22 @@ class ContainerHelper:
         if container is None:
             return ""
         return UtilHelper.get_class_name(container)
+
+    @staticmethod
+    def get_container_layout() -> InventoryLayout|AnvilLayout|EnchantmentLayout|DefaultContainerLayout:
+        container = ContainerHelper._get_container()
+        if container is None:
+            return None
+
+        container_name = ContainerHelper.get_container_class_name()
+        if container_name == "net.minecraft.world.inventory.InventoryMenu":
+            return InventoryLayout(container_name, None)
+        if container_name == "net.minecraft.world.inventory.AnvilMenu":
+            return AnvilLayout(container_name)
+        if container_name == "net.minecraft.world.inventory.EnchantmentMenu":
+            return EnchantmentLayout(container_name, None)
+
+        return DefaultContainerLayout(container_name, container)
     
     @staticmethod
     def raw_click(slot, button_or_slot=0, click_type=None) -> bool:

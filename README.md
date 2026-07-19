@@ -135,7 +135,7 @@ Vec2 has x,y fields
 ### set_cursor_position(x: float, y: float)
 ### show_cursor()
 ### hide_cursor(x: float, y: float)
-### disable_cursor(x: float, y: float)
+### disable_cursor()
 ### is_cursor_hidden_or_disabled() -> bool
 ### is_mouse_button_pressed(button: int) -> bool
 

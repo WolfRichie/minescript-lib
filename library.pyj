@@ -384,7 +384,7 @@ class ContainerHelper:
 
     @staticmethod
     def get_inventory_selected_hotbar_slot() -> int:
-        return minecraft.player.getInventory().selected
+        return int(ReflectionHelper.get_private_field(minecraft.player.getInventory(), "selected"))
     
     @staticmethod
     def get_inventory_free_slot() -> int | None:

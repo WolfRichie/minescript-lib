@@ -1,6 +1,6 @@
 from java import *
 from code.Proxy import PyJinnProxy
-from minescript import Vector3f, BlockPos
+from minescript import Vector3f, BlockPos, ItemStack
 
 class GLFWHelper(PyJinnProxy):
     @staticmethod
@@ -150,10 +150,10 @@ class ContainerHelper(PyJinnProxy):
   def get_container_id() -> int: ...
 
   @staticmethod
-  def get_container_slot(slot: int) -> JavaObject | None: ...
+  def get_container_slot(slot: int) -> ItemStack | None: ...
 
   @staticmethod
-  def get_inventory_slot(slot: int) -> JavaObject | None:...
+  def get_inventory_slot(slot: int) -> ItemStack | None:...
 
   @staticmethod
   def get_item_stack_by_inventory_slot(slot: int) -> JavaObject | None: ...
@@ -259,6 +259,13 @@ class ClientHelper(PyJinnProxy):
     FIRST_PERSON, THIRD_PERSON_BACK, THIRD_PERSON_FRONT
     """
     ...
+    
+  @staticmethod
+  def show_toast(title: str, desc: str, display_time: float = 5000.0): ...
+  @staticmethod
+  def is_any_toast_showing() -> bool: ...
+  @staticmethod
+  def narrate_text(text: str): ...
 
 
 class ClientLevelData(PyJinnProxy):

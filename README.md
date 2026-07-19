@@ -14,9 +14,10 @@ See /examples/ for a simple script
     - [set\_cursor\_position(x: float, y: float)](#set_cursor_positionx-float-y-float)
     - [show\_cursor()](#show_cursor)
     - [hide\_cursor(x: float, y: float)](#hide_cursorx-float-y-float)
-    - [disable\_cursor(x: float, y: float)](#disable_cursorx-float-y-float)
+    - [disable\_cursor()](#disable_cursor)
     - [is\_cursor\_hidden\_or\_disabled() -\> bool](#is_cursor_hidden_or_disabled---bool)
     - [is\_mouse\_button\_pressed(button: int) -\> bool](#is_mouse_button_pressedbutton-int---bool)
+    - [send\_mouse\_button(button: int, press: bool): ...](#send_mouse_buttonbutton-int-press-bool-)
   - [WindowHelper](#windowhelper)
     - [get\_window\_handle() -\> JavaObject](#get_window_handle---javaobject)
     - [set\_fullscreen(fullscreen: bool)](#set_fullscreenfullscreen-bool)
@@ -27,6 +28,7 @@ See /examples/ for a simple script
     - [get\_screen\_size() -\> WindowSize](#get_screen_size---windowsize)
     - [get\_gui\_size() -\> WindowSize:](#get_gui_size---windowsize)
     - [get\_gui\_scale() -\> float](#get_gui_scale---float)
+    - [get\_aspect\_ratio() -\> float](#get_aspect_ratio---float)
   - [BlocksHelper](#blockshelper)
     - [get\_block\_pos(x, y=None, z=None) -\> JavaObject](#get_block_posx-ynone-znone---javaobject)
     - [get\_block\_state(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_statex-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
@@ -139,6 +141,15 @@ Vec2 has x,y fields
 ### is_cursor_hidden_or_disabled() -> bool
 ### is_mouse_button_pressed(button: int) -> bool
 
+### send_mouse_button(button: int, press: bool): ...
+Click the current position on the screen, (or release if press is set to false)
+
+```py
+GLFW_MOUSE_BUTTON_LEFT = 0
+GLFWHelper.set_cursor_position(439.0, 425.0) # some position you retrieved earlier with get_cursor_position
+GLFWHelper.send_mouse_button(GLFW_MOUSE_BUTTON_LEFT, True)
+```
+
 ---
 
 ## WindowHelper
@@ -153,9 +164,11 @@ Returns a `java.lang.Long` JavaObject
 Vec2 has x,y fields
 ### get_size() -> WindowSize
 WindowSize has width,height fields
+
 ### get_screen_size() -> WindowSize
 ### get_gui_size() -> WindowSize:
 ### get_gui_scale() -> float
+### get_aspect_ratio() -> float
 
 ---
 

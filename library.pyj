@@ -1,6 +1,6 @@
-    # #!python
-    # import * from java
-    # import * from minescript
+# #!python
+# import * from java
+# import * from minescript
 from system.pyj.minescript import *
 
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
@@ -48,6 +48,7 @@ class MappingsHelper:
     def get_pretty_method_names(clazz: JavaClass) -> JavaSet[str]:
         return MappingsHelper.mappings.getPrettyMethodNames(clazz)
 
+
 class ReflectionHelper:
     @staticmethod
     def _get_declared_field_accessible(instance, pretty_field_name):
@@ -90,6 +91,33 @@ class ReflectionHelper:
             return True
 
         return False
+    
+    @staticmethod
+    def _get_declared_method_accessible(instance, pretty_method_name):
+        current_class = instance.getClass()
+
+        while current_class is not None:
+            try:
+                runtime_method_names = MappingsHelper.get_runtime_method_names(
+                    current_class,
+                    pretty_method_name
+                )
+
+                if runtime_method_names is None or runtime_method_names.isEmpty():
+                    current_class = current_class.getSuperclass()
+                    continue
+
+                for method in current_class.getDeclaredMethods():
+                    if runtime_method_names.contains(method.getName()):
+                        method.setAccessible(True)
+                        return method
+
+            except Exception as e:
+                print("Class failed:", e)
+
+            current_class = current_class.getSuperclass()
+
+        return None
 
 class ContainerLayout:
     def __init__(
@@ -663,7 +691,7 @@ class ClientHelper:
 
     @staticmethod
     def open_inventory_screen() -> None:
-        ClientHelper.set_current_screen(ClientHelper.InventoryScreen())
+        ClientHelper.set_current_screen(ClientHelper.InventoryScreen(minecraft.player))
 
     @staticmethod
     def disconnect(str = "Disconnected by Minescript") -> None:
@@ -796,9 +824,16 @@ class WindowHelper:
     def get_gui_scale() -> float:
         return WindowHelper._get_window().getGuiScale()
     
+    @staticmethod
+    def get_aspect_ratio() -> float:
+        window_size = WindowHelper.get_size()
+        return window_size.width / window_size.height
+
 class GLFWHelper:
     GLFW = JavaClass("org.lwjgl.glfw.GLFW")
     BufferUtils = JavaClass("org.lwjgl.BufferUtils")
+    MouseButtonInfo = JavaClass("net.minecraft.client.input.MouseButtonInfo")
+
     @staticmethod
     def get_cursor_position() -> Vec3:
         x = GLFWHelper.BufferUtils.createDoubleBuffer(1)
@@ -833,6 +868,31 @@ class GLFWHelper:
     @staticmethod
     def is_mouse_button_pressed(button: int) -> bool:
         return GLFWHelper.GLFW.glfwGetMouseButton(WindowHelper.get_window_handle(), button) == GLFWHelper.GLFW.GLFW_PRESS
+    
+
+    @staticmethod
+    def send_mouse_button(button: int, press: bool):
+        mouse_handler = minecraft.mouseHandler
+
+        button_info = GLFWHelper.MouseButtonInfo(button, 0)
+
+        method = ReflectionHelper._get_declared_method_accessible(
+            mouse_handler,
+            "onButton"
+        )
+
+        if (press):
+            action = GLFWHelper.GLFW.GLFW_PRESS
+        else:
+            action = GLFWHelper.GLFW.GLFW_RELEASE
+        
+        args = JavaArray((
+            WindowHelper.get_window_handle(),
+            button_info,
+            action
+        ))
+
+        method.invoke(mouse_handler, args)
         
         
 class BlocksHelper:

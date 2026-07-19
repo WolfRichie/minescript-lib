@@ -26,7 +26,7 @@ else:
 
   class BlocksHelper(PyJinnProxy):
     pass
-  
+
   class GLFWHelper(PyJinnProxy):
     pass
 

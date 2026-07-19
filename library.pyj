@@ -3,11 +3,29 @@
     # import * from minescript
 from system.pyj.minescript import *
 
+minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
+minescript = JavaClass("net.minescript.common.Minescript")
+
+class Vec3:
+    def __init__(self, x: float, y: float, z: float):
+        self.x = x
+        self.y = y
+        self.z = z
+        
+class Vec2:
+    def __init__(self, x: float, y: float):
+        self.x = x
+        self.y = y
+
+class WindowSize:
+    def __init__(self, width: float, height: float):
+        self.width = width
+        self.height = height
+
 def _range(start, stop, step=1):
     return range(start, stop + (1 if step > 0 else -1), step)
 
-minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
-minescript = JavaClass("net.minescript.common.Minescript")
+
 class MappingsHelper:
     mappings: JavaObject = minescript.mappingsLoader.get()
 
@@ -29,6 +47,7 @@ class MappingsHelper:
     @staticmethod
     def get_pretty_method_names(clazz: JavaClass) -> JavaSet[str]:
         return MappingsHelper.mappings.getPrettyMethodNames(clazz)
+
 class ReflectionHelper:
     @staticmethod
     def _get_declared_field_accessible(instance, pretty_field_name):
@@ -193,7 +212,7 @@ class ContainerHelper:
         elif container_name == "net.minecraft.world.inventory.EnchantmentMenu":
             return ContainerLayout(container_name,layouts={
                     "enchantment_grid": [0],
-                    "enchantment_grid": [1],
+                    "lapis_grid": [1],
                     "inventory": list(_range(2, 37)),
                 })
         elif container_name == "net.minecraft.world.inventory.AnvilMenu":
@@ -416,10 +435,7 @@ class ContainerHelper:
             name=enchantment_name,
             level=enchantment_level,
             costs=enchantment_cost,
-        )    
-    # @staticmethod
-    # def test():
-    #     print(ContainerHelper.enchantment_table_get_enchant_info("top").__dict__)
+        ) 
 
 class ItemsHelper:
     Item = JavaClass("net.minecraft.world.item.Item")
@@ -507,32 +523,20 @@ class ItemsHelper:
 
     @staticmethod
     def get_json(item: JavaObject | str | int) -> str:
-        """Get serialized full itemstack as JSON string."""
         stack = ItemsHelper._resolve_to_item_stack(item)
 
-        json_element = ItemsHelper.ItemStackClass.CODEC.encodeStart(
-            RegistryHelper.RegistryOps.create(
-                JsonHelper.JsonOps.INSTANCE,
-                minecraft.level.registryAccess(),
-            ),
-            stack,
-
-        ).getOrThrow()
-        return JsonHelper.dumps(json_element)
+        json_element = RegistryHelper._encodeStart(ItemsHelper.ItemStackClass,stack,)
+        return _JsonHelper.dumps(json_element)
     
     @staticmethod
-    def get_components(item: JavaObject | str | int):
-        """Get item data components as a Python dictionary."""
-        components = JsonHelper.get(
-            ItemsHelper.get_json(item),
-            "components",
-        )
-        return JsonHelper.dumps(components)
+    def get_components(item: JavaObject | str | int) -> str:
+        components = _JsonHelper.get(ItemsHelper.get_json(item),"components",)
+        return _JsonHelper.dumps(components)
 
 
 import system.pyj.json as json
 
-class JsonHelper:
+class _JsonHelper:
     JsonParser = JavaClass("com.google.gson.JsonParser")
     JsonOps = JavaClass("com.mojang.serialization.JsonOps")
 
@@ -544,7 +548,7 @@ class JsonHelper:
     @staticmethod
     def parse(data: str):
         """Parse a JSON string into a Gson JsonElement."""
-        return JsonHelper.JsonParser.parseString(data)
+        return _JsonHelper.JsonParser.parseString(data)
 
     @staticmethod
     def dumps(element) -> str:
@@ -552,7 +556,7 @@ class JsonHelper:
 
     @staticmethod
     def get(data: str, key: str):
-        element = JsonHelper.parse(data)
+        element = _JsonHelper.parse(data)
 
         if not element.isJsonObject():
             raise TypeError(
@@ -630,6 +634,7 @@ class ClientHelper:
     PauseScreen = JavaClass("net.minecraft.client.gui.screens.PauseScreen")
     InventoryScreen = JavaClass("net.minecraft.client.gui.screens.inventory.InventoryScreen")
     Component = JavaClass("net.minecraft.network.chat.Component")
+    SystemToast = JavaClass("net.minecraft.client.gui.components.toasts.SystemToast")
 
     @staticmethod
     def set_current_screen(screen: JavaObject) -> None:
@@ -662,7 +667,7 @@ class ClientHelper:
 
     @staticmethod
     def disconnect(str = "Disconnected by Minescript") -> None:
-        minecraft.level.disconnect(UtilHelper.Component.literal(str))
+        minecraft.level.disconnect(ClientHelper.Component.literal(str))
 
     @staticmethod
     def get_level_data() -> ClientLevelData:
@@ -683,26 +688,36 @@ class ClientHelper:
         return minecraft.getFps()
     
     @staticmethod
-    def get_camera_position() -> Vector3f:
-        """Get current camera position"""
-        camera = minecraft.gameRenderer.getMainCamera()
-        pos = camera.getPosition()
-        return (pos.x, pos.y, pos.z)
-    
-    @staticmethod
     def get_camera_type() -> str:
         return minecraft.options.getCameraType().name()
+    
+    @staticmethod
+    def _get_camera() -> JavaObject:
+        return minecraft.gameRenderer.getMainCamera()
+    
+    @staticmethod
+    def get_camera_position() -> Vector3f:
+        """Get current camera position"""
+        camera = ClientHelper._get_camera()
+        pos = camera.position()
+        return (pos.getX(), pos.getY(), pos.getZ())
+    
+    @staticmethod
+    def get_camera_block_position() -> Vector3f:
+        camera = ClientHelper._get_camera()
+        pos = camera.blockPosition()
+        return (pos.getX(), pos.getY(), pos.getZ())
 
     @staticmethod
     def show_toast(title: str, desc: str, display_time: float = 5000.0):
         toast_manager = minecraft.getToastManager()
-        _title = UtilHelper.Component.literal(title)
-        _desc = UtilHelper.Component.literal(desc)
-        system_toast_id = UtilHelper.SystemToast.SystemToastId()
+        _title = ClientHelper.Component.literal(title)
+        _desc = ClientHelper.Component.literal(desc)
+        system_toast_id = ClientHelper.SystemToast.SystemToastId()
         
         ReflectionHelper.set_private_field(system_toast_id, "displayTime", display_time)
         
-        toast_manager.addToast(UtilHelper.SystemToast.multiline(minecraft, system_toast_id, _title, _desc))
+        toast_manager.addToast(ClientHelper.SystemToast.multiline(minecraft, system_toast_id, _title, _desc))
         
     @staticmethod
     def is_any_toast_showing() -> bool:
@@ -724,9 +739,6 @@ class ClientLevelData:
         self.difficulty_locked = difficulty_locked
 
 class UtilHelper:
-    Component = JavaClass("net.minecraft.network.chat.Component")
-    SystemToast = JavaClass("net.minecraft.client.gui.components.toasts.SystemToast")
-
     @staticmethod
     def get_class_name(obj: JavaObject) -> str:
         return MappingsHelper.get_pretty_class_name(obj.getClass().getName())
@@ -739,26 +751,112 @@ class UtilHelper:
     def set_clipboard(text: str) -> None:
         minecraft.keyboardHandler.setClipboard(text)
 
+class WindowHelper:
+    @staticmethod
+    def _get_window():
+        return minecraft.getWindow()
+    
+    @staticmethod
+    def get_window_handle():
+        return WindowHelper._get_window().handle()
+    
+    @staticmethod
+    def set_fullscreen(fullscreen: bool):
+        ReflectionHelper.set_private_field(WindowHelper._get_window(), "fullscreen", fullscreen)
         
     @staticmethod
     def is_window_fullscreen() -> bool:
-        return minecraft.getWindow().isFullscreen()
+        return WindowHelper._get_window().isFullscreen()
     
     @staticmethod
     def is_window_minimized() -> bool:
-        return minecraft.getWindow().isMinimized()
+        return WindowHelper._get_window().isMinimized()
+        
+    @staticmethod
+    def get_position() -> Vec2:
+        window = WindowHelper._get_window()
+        return Vec2(window.getX(), window.getY())
+    
+    @staticmethod
+    def get_size() -> WindowSize:
+        window = WindowHelper._get_window()
+        return WindowSize(window.getWidth(), window.getHeight())
 
+    @staticmethod
+    def get_screen_size() -> WindowSize:
+        window = WindowHelper._get_window()
+        return WindowSize(window.getScreenWidth(), window.getScreenHeight())
+
+    @staticmethod
+    def get_gui_size() -> WindowSize:
+        window = WindowHelper._get_window()
+        return WindowSize(window.getGuiScaledWidth(), window.getGuiScaledHeight())
+
+    @staticmethod
+    def get_gui_scale() -> float:
+        return WindowHelper._get_window().getGuiScale()
+    
+class GLFWHelper:
+    GLFW = JavaClass("org.lwjgl.glfw.GLFW")
+    BufferUtils = JavaClass("org.lwjgl.BufferUtils")
+    @staticmethod
+    def get_cursor_position() -> Vec3:
+        x = GLFWHelper.BufferUtils.createDoubleBuffer(1)
+        y = GLFWHelper.BufferUtils.createDoubleBuffer(1)
+
+        GLFWHelper.GLFW.glfwGetCursorPos(WindowHelper.get_window_handle(), x, y)
+
+        mouse_x = x.get(0)
+        mouse_y = y.get(0)
+        return Vec2(mouse_x, mouse_y)
+
+    @staticmethod
+    def set_cursor_position(x: float, y: float):
+        GLFWHelper.GLFW.glfwSetCursorPos(WindowHelper.get_window_handle(), x, y)
+        
+    @staticmethod
+    def show_cursor():
+        GLFWHelper.GLFW.glfwSetInputMode(WindowHelper.get_window_handle(), GLFWHelper.GLFW.GLFW_CURSOR, GLFWHelper.GLFW.GLFW_CURSOR_NORMAL)
+
+    @staticmethod
+    def hide_cursor():
+        GLFWHelper.GLFW.glfwSetInputMode(WindowHelper.get_window_handle(), GLFWHelper.GLFW.GLFW_CURSOR, GLFWHelper.GLFW.GLFW_CURSOR_HIDDEN)
+        
+    @staticmethod
+    def disable_cursor():
+        GLFWHelper.GLFW.glfwSetInputMode(WindowHelper.get_window_handle(), GLFWHelper.GLFW.GLFW_CURSOR, GLFWHelper.GLFW.GLFW_CURSOR_DISABLED)
+        
+    @staticmethod
+    def is_cursor_hidden_or_disabled() -> bool:
+        return GLFWHelper.GLFW.glfwGetInputMode(WindowHelper.get_window_handle(), GLFWHelper.GLFW.GLFW_CURSOR) in [GLFWHelper.GLFW.GLFW_CURSOR_HIDDEN , GLFWHelper.GLFW.GLFW_CURSOR_DISABLED]
+
+    @staticmethod
+    def is_mouse_button_pressed(button: int) -> bool:
+        return GLFWHelper.GLFW.glfwGetMouseButton(WindowHelper.get_window_handle(), button) == GLFWHelper.GLFW.GLFW_PRESS
+        
         
 class BlocksHelper:
     BlockPos = JavaClass("net.minecraft.core.BlockPos")
-
-    @staticmethod
-    def _is_command_block_entity(entity) -> bool:
-        return entity is not None and UtilHelper.get_class_name(entity)== "net.minecraft.world.level.block.entity.CommandBlockEntity"
+    BlockState = JavaClass("net.minecraft.world.level.block.state.BlockState")
+    BlockEntity = JavaClass("net.minecraft.world.level.block.entity.BlockEntity")
     
     @staticmethod
     def get_block_pos(x: int|float, y: int|float, z: int|float) -> JavaObject:
         return BlocksHelper.BlockPos(int(x), int(y), int(z))
+    
+    @staticmethod
+    def get_block_state(x: int|float|JavaObject, y: int|float|None = None, z: int|float|None = None) -> JavaObject:
+        if UtilHelper.get_class_name(x) == "net.minecraft.core.BlockPos":
+            return minecraft.level.getBlockState(x)
+        return minecraft.level.getBlockState(BlocksHelper.get_block_pos(x, y, z))
+    
+    @staticmethod
+    def get_block_state_block(block_state: JavaObject) -> JavaObject:
+        return block_state.getBlock()
+
+    @staticmethod
+    def get_block_state_json(block_state: JavaObject) -> str:
+        return _JsonHelper.dumps(RegistryHelper._encodeStart(BlocksHelper.BlockState, block_state))
     
     @staticmethod
     def get_block_entity(x: int|float|JavaObject, y: int|float|None = None, z: int|float|None = None) -> JavaObject:
@@ -767,46 +865,50 @@ class BlocksHelper:
         return minecraft.level.getBlockEntity(BlocksHelper.get_block_pos(x, y, z))
     
     @staticmethod
+    def is_command_block_entity(block_entity: JavaObject) -> bool:
+        return block_entity is not None and UtilHelper.get_class_name(block_entity)== "net.minecraft.world.level.block.entity.CommandBlockEntity"
+    
+    @staticmethod
     def set_command_block_entity_command(command_block_entity, command: str) -> bool:
-        if not BlocksHelper._is_command_block_entity(command_block_entity):
+        if not BlocksHelper.is_command_block_entity(command_block_entity):
             return False
         command_block_entity.getCommandBlock().setCommand(command)
         return True
     
     @staticmethod
     def get_command_block_entity_command(command_block_entity) -> str|None:
-        if not BlocksHelper._is_command_block_entity(command_block_entity):
+        if not BlocksHelper.is_command_block_entity(command_block_entity):
             return None
         return command_block_entity.getCommandBlock().getCommand()
     
     
     @staticmethod
     def get_command_block_entity_last_output(command_block_entity) -> str|None:
-        if not BlocksHelper._is_command_block_entity(command_block_entity):
+        if not BlocksHelper.is_command_block_entity(command_block_entity):
             return None
         return command_block_entity.getCommandBlock().getLastOutput().getString()
 
     @staticmethod
     def get_command_block_entity_mode(command_block_entity) -> str|None:
-        if not BlocksHelper._is_command_block_entity(command_block_entity):
+        if not BlocksHelper.is_command_block_entity(command_block_entity):
             return None
         return command_block_entity.getMode().name()
 
     @staticmethod
     def is_command_block_entity_conditions_met(command_block_entity) -> bool|None:
-        if not BlocksHelper._is_command_block_entity(command_block_entity):
+        if not BlocksHelper.is_command_block_entity(command_block_entity):
             return None
         return command_block_entity.wasConditionMet()
 
     @staticmethod
     def is_command_block_entity_powered(command_block_entity) -> bool|None:
-        if not BlocksHelper._is_command_block_entity(command_block_entity):
+        if not BlocksHelper.is_command_block_entity(command_block_entity):
             return None
         return command_block_entity.isPowered()
     
     @staticmethod
     def is_command_block_entity_automatic(command_block_entity) -> bool|None:
-        if not BlocksHelper._is_command_block_entity(command_block_entity):
+        if not BlocksHelper.is_command_block_entity(command_block_entity):
             return None
         return command_block_entity.isAutomatic()
     
@@ -825,7 +927,17 @@ class RegistryHelper:
     BuiltInRegistries = JavaClass("net.minecraft.core.registries.BuiltInRegistries")
     RegistryOps = JavaClass("net.minecraft.resources.RegistryOps")
     Registries = JavaClass("net.minecraft.core.registries.Registries")
-    
+
+    @staticmethod
+    def _encodeStart(clazz, instsance: JavaObject) -> str:
+        return clazz.CODEC.encodeStart(
+            RegistryHelper.RegistryOps.create(
+                _JsonHelper.JsonOps.INSTANCE,
+                minecraft.level.registryAccess(),
+            ),
+            instsance,
+        ).getOrThrow()
+
     @staticmethod
     def get_by_id(registry: JavaObject, identifier: str) -> JavaObject|None:
         parsed_identifier = ItemsHelper.Identifier.parse(identifier)

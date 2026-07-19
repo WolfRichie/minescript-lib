@@ -8,9 +8,31 @@ See /examples/ for a simple script
 
 ---
 - [Minescript Library](#minescript-library)
+  - [Usage](#usage)
+  - [GLFWHelper](#glfwhelper)
+    - [get\_cursor\_position() -\> Vec2](#get_cursor_position---vec2)
+    - [set\_cursor\_position(x: float, y: float)](#set_cursor_positionx-float-y-float)
+    - [show\_cursor()](#show_cursor)
+    - [hide\_cursor(x: float, y: float)](#hide_cursorx-float-y-float)
+    - [disable\_cursor(x: float, y: float)](#disable_cursorx-float-y-float)
+    - [is\_cursor\_hidden\_or\_disabled() -\> bool](#is_cursor_hidden_or_disabled---bool)
+  - [WindowHelper](#windowhelper)
+    - [get\_window\_handle() -\> JavaObject](#get_window_handle---javaobject)
+    - [set\_fullscreen(fullscreen: bool)](#set_fullscreenfullscreen-bool)
+    - [is\_window\_fullscreen() -\> bool](#is_window_fullscreen---bool)
+    - [is\_window\_minimized() -\> bool](#is_window_minimized---bool)
+    - [get\_position() -\> Vec2](#get_position---vec2)
+    - [get\_size() -\> WindowSize](#get_size---windowsize)
+    - [get\_screen\_size() -\> WindowSize](#get_screen_size---windowsize)
+    - [get\_gui\_size() -\> WindowSize:](#get_gui_size---windowsize)
+    - [get\_gui\_scale() -\> float](#get_gui_scale---float)
   - [BlocksHelper](#blockshelper)
     - [get\_block\_pos(x, y=None, z=None) -\> JavaObject](#get_block_posx-ynone-znone---javaobject)
-    - [get\_block\_entity(x:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_entityx-y-intfloatnone--none-z-intfloatnone--none---javaobject)
+    - [get\_block\_state(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_statex-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
+    - [get\_block\_state\_block(block\_state: JavaObject) -\> JavaObject:](#get_block_state_blockblock_state-javaobject---javaobject)
+    - [get\_block\_state\_json(block\_state: JavaObject) -\> JavaObject:](#get_block_state_jsonblock_state-javaobject---javaobject)
+    - [get\_block\_entity(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_entityx-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
+    - [is\_command\_block\_entity(block\_entity: JavaObject) -\> bool:](#is_command_block_entityblock_entity-javaobject---bool)
     - [set\_command\_block\_entity\_command(command\_block\_entity: JavaObject, command: str) -\> bool](#set_command_block_entity_commandcommand_block_entity-javaobject-command-str---bool)
     - [get\_command\_block\_entity\_command(command\_block\_entity: JavaObject) -\> str | None](#get_command_block_entity_commandcommand_block_entity-javaobject---str--none)
     - [get\_command\_block\_entity\_last\_output(command\_block\_entity: JavaObject) -\> str | None](#get_command_block_entity_last_outputcommand_block_entity-javaobject---str--none)
@@ -76,6 +98,7 @@ See /examples/ for a simple script
     - [disconnect(reason="Disconnected by Minescript") -\> None](#disconnectreasondisconnected-by-minescript---none)
     - [get\_fps() -\> int](#get_fps---int)
     - [get\_camera\_position() -\> Vector3f](#get_camera_position---vector3f)
+    - [get\_camera\_block\_position() -\> Vector3f](#get_camera_block_position---vector3f)
     - [get\_camera\_type() -\> str](#get_camera_type---str)
     - [get\_level\_data() -\> ClientLevelData](#get_level_data---clientleveldata)
       - [ClientLevelData](#clientleveldata)
@@ -96,12 +119,41 @@ See /examples/ for a simple script
     - [get\_class\_name(obj) -\> str](#get_class_nameobj---str)
     - [get\_clipboard() -\> str](#get_clipboard---str)
     - [set\_clipboard(text) -\> None](#set_clipboardtext---none)
-    - [is\_window\_fullscreen() -\> bool](#is_window_fullscreen---bool)
-    - [is\_window\_minimized() -\> bool](#is_window_minimized---bool)
   - [RegistryHelper](#registryhelper)
     - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject|None](#get_by_idregistry-javaobject-identifier-str---javaobjectnone)
     - [get\_registry\_path(registry\_name: str) -\> JavaObject|None](#get_registry_pathregistry_name-str---javaobjectnone)
     - [get\_holder\_by\_numeric\_id(numeric\_id: int) -\> JavaObject|None](#get_holder_by_numeric_idnumeric_id-int---javaobjectnone)
+
+---
+
+## GLFWHelper
+
+### get_cursor_position() -> Vec2
+Vec2 has x,y fields
+
+### set_cursor_position(x: float, y: float)
+### show_cursor()
+### hide_cursor(x: float, y: float)
+### disable_cursor(x: float, y: float)
+### is_cursor_hidden_or_disabled() -> bool
+
+---
+
+## WindowHelper
+
+### get_window_handle() -> JavaObject
+Returns a `java.lang.Long` JavaObject
+
+### set_fullscreen(fullscreen: bool)
+### is_window_fullscreen() -> bool
+### is_window_minimized() -> bool
+### get_position() -> Vec2
+Vec2 has x,y fields
+### get_size() -> WindowSize
+WindowSize has width,height fields
+### get_screen_size() -> WindowSize
+### get_gui_size() -> WindowSize:
+### get_gui_scale() -> float
 
 ---
 
@@ -124,17 +176,41 @@ if targeted_block_pos is not None:
     block_pos = BlocksHelper.get_block_pos(x, y, z)
 ```
 
+### get_block_state(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -> JavaObject:
 
-### get_block_entity(x:, y: int|float|None = None, z: int|float|None = None) -> JavaObject:
-
-Create a Minecraft `net.minecraft.core.BlockPos` Java object from a position or coordinates.
+Returnws the minecraft `net.minecraft.world.level.block.state.BlockState` Java object from a position or coordinates.
 
 Accepted formats:
 - `x, y, z`: Individual numeric coordinates (float or int)
-- `Vector3f`/`BlockPos`  `tuple` or `list`: e.g. `[x, y, z]` or `(x, y, z)` passed into x and y/z are left to None
 - `JavaObject` of `net.minecraft.core.BlockPos` passed into x and y/z are left to None
 
-All float values are automatically converted to integers, they are simply allowed for compatability purposes
+### get_block_state_block(block_state: JavaObject) -> JavaObject:
+
+Returnws the minecraft `net.minecraft.world.level.block.Block` from a blockstate
+
+Accepted formats:
+- `JavaObject` of ``net.minecraft.world.level.block.state.BlockState`
+  
+### get_block_state_json(block_state: JavaObject) -> JavaObject:
+
+Accepted formats:
+- `JavaObject` of `net.minecraft.world.level.block.state.BlockState`
+  
+```py
+targeted_block_pos = player_get_targeted_block()
+if targeted_block_pos is not None:
+    x, y, z = targeted_block_pos.position
+    block_state = BlocksHelper.get_block_state(x, y, z)
+        print(BlocksHelper.get_block_state_json(block_state)) # -> "{"Properties":{"powered":"false","open":"true","in_wall":"false","facing":"north"},"Name":"minecraft:oak_fence_gate"}"
+```
+
+### get_block_entity(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -> JavaObject:
+
+Returnws the minecraft `net.minecraft.world.level.block.entity.BlockEntity` Java object from a position or coordinates.
+
+Accepted formats:
+- `x, y, z`: Individual numeric coordinates (float or int)
+- `JavaObject` of `net.minecraft.core.BlockPos` passed into x and y/z are left to None
 
 
 ```
@@ -152,6 +228,7 @@ if targeted_block_pos is not None:
         print(UtilHelper.get_class_name(block_entity)) -> net.minecraft.world.level.block.entity.CommandBlockEntity      
 ```
 
+### is_command_block_entity(block_entity: JavaObject) -> bool:
 ### set_command_block_entity_command(command_block_entity: JavaObject, command: str) -> bool
 ### get_command_block_entity_command(command_block_entity: JavaObject) -> str | None
 
@@ -236,7 +313,6 @@ if item:
 
 ### get_count(item) -> int
 ### get_max_stack_size(item) -> int
-
 ### get_item_stack_java_object(item) -> JavaObject
 Get the underlying ItemStack JavaObject (`net.minecraft.world.item.ItemStack`).
 
@@ -624,14 +700,8 @@ ClientHelper.close_current_screen()
 ### disconnect(reason="Disconnected by Minescript") -> None
 ### get_fps() -> int
 
-### get_camera_position() -> Vector3f
-
-```python
-pos = ClientHelper.get_camera_position()
-x = pos.x()
-y = pos.y()
-z = pos.z()
-```
+### get_camera_position() -> [Vector3f](https://minescript.net/docs#vector3f)
+### get_camera_block_position() -> [Vector3f](https://minescript.net/docs#vector3f)
 
 ### get_camera_type() -> str
 Get the current camera type: `"FIRST_PERSON"`, `"THIRD_PERSON_BACK"`, or `"THIRD_PERSON_FRONT"`.
@@ -655,7 +725,6 @@ Object containing level metadata:
 ---
 
 ## MappingsHelper
-
 
 ### get_runtime_class_name(pretty_class_name) -> str
 Resolve a mapped (readable) class name to the actual runtime class name.
@@ -698,8 +767,6 @@ if item:
 
 ### get_clipboard() -> str
 ### set_clipboard(text) -> None
-### is_window_fullscreen() -> bool
-### is_window_minimized() -> bool
 
 ## RegistryHelper
 
@@ -713,6 +780,5 @@ RegistryHelper.get_by_id(RegistryHelper.BuiltInRegistries.ITEM, "diamond") # -> 
 item_instance = ...
 RegistryHelper.get_registry_path(RegistryHelper.BuiltInRegistries.ITEM, item_instance) # -> diamond_sword
 ```
-
 
 ### get_holder_by_numeric_id(numeric_id: int) -> JavaObject|None

@@ -16,6 +16,7 @@ See /examples/ for a simple script
     - [hide\_cursor(x: float, y: float)](#hide_cursorx-float-y-float)
     - [disable\_cursor(x: float, y: float)](#disable_cursorx-float-y-float)
     - [is\_cursor\_hidden\_or\_disabled() -\> bool](#is_cursor_hidden_or_disabled---bool)
+    - [is\_mouse\_button\_pressed(button: int) -\> bool](#is_mouse_button_pressedbutton-int---bool)
   - [WindowHelper](#windowhelper)
     - [get\_window\_handle() -\> JavaObject](#get_window_handle---javaobject)
     - [set\_fullscreen(fullscreen: bool)](#set_fullscreenfullscreen-bool)
@@ -136,6 +137,7 @@ Vec2 has x,y fields
 ### hide_cursor(x: float, y: float)
 ### disable_cursor(x: float, y: float)
 ### is_cursor_hidden_or_disabled() -> bool
+### is_mouse_button_pressed(button: int) -> bool
 
 ---
 

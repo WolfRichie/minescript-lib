@@ -29,6 +29,7 @@ See /examples/ for a simple script
     - [get\_gui\_size() -\> WindowSize:](#get_gui_size---windowsize)
     - [get\_gui\_scale() -\> float](#get_gui_scale---float)
     - [get\_aspect\_ratio() -\> float](#get_aspect_ratio---float)
+    - [get\_screen\_position(gui\_x: float, gui\_y: float) -\> Vec2](#get_screen_positiongui_x-float-gui_y-float---vec2)
   - [BlocksHelper](#blockshelper)
     - [get\_block\_pos(x, y=None, z=None) -\> JavaObject](#get_block_posx-ynone-znone---javaobject)
     - [get\_block\_state(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_statex-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
@@ -55,6 +56,7 @@ See /examples/ for a simple script
     - [get\_item\_stack\_java\_object(item) -\> JavaObject](#get_item_stack_java_objectitem---javaobject)
     - [get\_item\_java\_object(item) -\> JavaObject](#get_item_java_objectitem---javaobject)
   - [ContainerHelper](#containerhelper)
+    - [get\_slot\_screen\_position(slot: int) -\> Vec2 | None](#get_slot_screen_positionslot-int---vec2--none)
     - [get\_container\_layout() -\> ContainerLayout|CraftingLayout|None](#get_container_layout---containerlayoutcraftinglayoutnone)
       - [`ContainerLayout`](#containerlayout)
     - [enchantment\_table\_apply\_enchant(enchantment\_apply\_type: str) -\> bool](#enchantment_table_apply_enchantenchantment_apply_type-str---bool)
@@ -170,6 +172,21 @@ WindowSize has width,height fields
 ### get_gui_scale() -> float
 ### get_aspect_ratio() -> float
 
+### get_screen_position(gui_x: float, gui_y: float) -> Vec2
+Convert Minecraft GUI-scaled coordinates into absolute window coordinates
+This function is used by `get_slot_screen_position` to calculate the position of a slot in a container
+```py
+slot = container.getSlot(slot)
+
+# Calculate relative to the container's screen origin
+left_pos = ReflectionHelper.get_private_field(screen, "leftPos")
+top_pos = ReflectionHelper.get_private_field(screen, "topPos")
+
+gui_x = left_pos + slot.x + 8
+gui_y = top_pos + slot.y + 8
+
+return WindowHelper.get_screen_position(gui_x, gui_y)
+```
 ---
 
 ## BlocksHelper
@@ -347,6 +364,18 @@ java_item = ItemsHelper.get_item_java_object("diamond_sword")
 ---
 
 ## ContainerHelper
+
+### get_slot_screen_position(slot: int) -> Vec2 | None
+
+Example of clicking the first slot
+```py
+pos = ContainerHelper.get_slot_screen_position(1)
+if pos:
+    print(pos.x, pos.y)
+    GLFW_MOUSE_BUTTON_LEFT = 0
+    GLFWHelper.set_cursor_position(pos, pos.y)
+    GLFWHelper.send_mouse_button(GLFW_MOUSE_BUTTON_LEFT, True)
+```
 
 ### get_container_layout() -> ContainerLayout|CraftingLayout|None
 

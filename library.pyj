@@ -190,6 +190,25 @@ class ContainerHelper:
         return minecraft.player.containerMenu
 
     @staticmethod
+    def get_slot_screen_position(slot: int) -> Vec2 | None:
+        container = ContainerHelper._get_container()
+        screen = ClientHelper.get_current_screen()
+
+        if container is None or screen is None:
+            return None
+
+        slot = container.getSlot(slot)
+
+        # Calculate relative to the container's screen origin
+        left_pos = ReflectionHelper.get_private_field(screen, "leftPos")
+        top_pos = ReflectionHelper.get_private_field(screen, "topPos")
+
+        gui_x = left_pos + slot.x + 8
+        gui_y = top_pos + slot.y + 8
+
+        return WindowHelper.get_screen_position(gui_x, gui_y)
+    
+    @staticmethod
     def _resolve_click_type(click_type) -> JavaObject:
         if click_type is None:
             return ContainerHelper.ClickType.PICKUP
@@ -269,7 +288,7 @@ class ContainerHelper:
     @staticmethod
     def crafting_get_grid_size() -> int:
         return ContainerHelper.crafting_get_layout().grid_size
-    
+
     @staticmethod
     def raw_click(slot, button_or_slot=0, click_type=None) -> bool:
         click_type = ContainerHelper._resolve_click_type(click_type)
@@ -336,7 +355,6 @@ class ContainerHelper:
     def get_inventory_slot(slot: int) -> ItemStack | None:
         return ContainerHelper._get_item_by_slot(player_inventory(), slot)
     
-
     @staticmethod
     def get_item_stack_by_inventory_slot(slot: int) -> JavaObject | None:
         return minecraft.player.getInventory().getItem(slot)
@@ -828,6 +846,24 @@ class WindowHelper:
     def get_aspect_ratio() -> float:
         window_size = WindowHelper.get_size()
         return window_size.width / window_size.height
+
+    @staticmethod
+    def get_screen_position(gui_x: float, gui_y: float) -> Vec2:
+        window = WindowHelper._get_window()
+
+        gui_width = window.getGuiScaledWidth()
+        gui_height = window.getGuiScaledHeight()
+
+        window_width = window.getWidth()
+        window_height = window.getHeight()
+
+        scale_x = window_width / gui_width
+        scale_y = window_height / gui_height
+
+        return Vec2(
+            gui_x * scale_x,
+            gui_y * scale_y
+        )
 
 class GLFWHelper:
     GLFW = JavaClass("org.lwjgl.glfw.GLFW")

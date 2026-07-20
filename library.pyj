@@ -5,8 +5,6 @@ from system.pyj.minescript import *
 
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
 minescript = JavaClass("net.minescript.common.Minescript")
-Thread = JavaClass("java.lang.Thread")
-System = JavaClass("java.lang.System")
 
 class Vec3:
     def __init__(self, x: float, y: float, z: float):
@@ -23,10 +21,6 @@ class WindowSize:
     def __init__(self, width: float, height: float):
         self.width = width
         self.height = height
-
-def _range(start, stop, step=1):
-    return range(start, stop + (1 if step > 0 else -1), step)
-
 
 class MappingsHelper:
     mappings: JavaObject = minescript.mappingsLoader.get()
@@ -858,18 +852,6 @@ class GLFWHelper:
     def set_cursor_position(x: float, y: float):
         GLFWHelper.GLFW.glfwSetCursorPos(WindowHelper.get_window_handle(), JavaFloat(x), JavaFloat(y))
 
-    @staticmethod
-    def wait_for_cursor_position(x: float, y: float, timeout_ms: int = 250, tolerance: float = 1.0) -> bool:
-        deadline = System.currentTimeMillis() + timeout_ms
-
-        while System.currentTimeMillis() < deadline:
-            position = GLFWHelper.get_cursor_position()
-            if abs(position.x - x) <= tolerance and abs(position.y - y) <= tolerance:
-                return True
-            Thread.sleep(10)
-
-        return False
-        
     @staticmethod
     def show_cursor():
         GLFWHelper.GLFW.glfwSetInputMode(WindowHelper.get_window_handle(), GLFWHelper.GLFW.GLFW_CURSOR, GLFWHelper.GLFW.GLFW_CURSOR_NORMAL)

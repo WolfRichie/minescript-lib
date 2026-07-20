@@ -61,7 +61,9 @@ See /examples/ for a simple script
       - [ContainerLayout](#containerlayout)
       - [DefaultContainerLayout](#defaultcontainerlayout)
       - [CraftingInventoryLayout](#craftinginventorylayout)
+      - [ChestLayout](#chestlayout)
       - [AnvilLayout](#anvillayout)
+      - [BrewingStandLayout](#brewingstandlayout)
       - [EnchantmentLayout](#enchantmentlayout)
     - [enchantment\_table\_apply\_enchant(enchantment\_apply\_type: str) -\> bool](#enchantment_table_apply_enchantenchantment_apply_type-str---bool)
     - [enchantment\_table\_get\_enchant\_info(enchantment\_apply\_type) -\> EnchantmentInfo|None:](#enchantment_table_get_enchant_infoenchantment_apply_type---enchantmentinfonone)
@@ -393,7 +395,7 @@ Common properties and methods:
 - `layouts`: mapping of group names to slot indexes
 - `groups`: alias for `layouts`
 - `size`: total number of slots represented by the layout
-- `is_unknown`: `True` for fallback layouts with no special handling
+- `is_unknown`: `True` for fallback layouts with no special handling (@property method, does not show up in __dict__, can be read obviously however)
 - `get_group(name)`: return the slot list for a group
 - `get_layouts()`: return the full layout mapping
 
@@ -411,25 +413,79 @@ Returned for `net.minecraft.world.inventory.InventoryMenu` and `net.minecraft.wo
 Layouts:
 - `crafting_grid`: slots `[1-4]` for inventory, `[0-8]` for crafter, `1-9` for crafting table
 - `result`: slot `[0]` for inventory, `[45]` for crafter, `[0]` for crafting table
-- `inventory`: slots `[9-44]` for inventory, `[9-44]` for crafter, `[10-45]` for crafting table
+- `inventory_grid`: slots `[9-44]` for inventory, `[9-44]` for crafter, `[10-45]` for crafting table
 
-Methods:
-- `get_inventory_slots()`: return the inventory slot layout
+<details>
+<susmmary>Methods:</Summary>
+
+- `get_inventory_slots()`: return the inventory_grid slot layout
 - `get_crafting_slots()`: return the crafting-grid slot layout
 - `get_result_slot()`: return the result slot index
+</details>
+
+#### ChestLayout
+Returned for `net.minecraft.world.inventory.ChestMenu` (any chest like menu)
+
+Layouts:
+- `chest`: slot `[0-25]` for single chests/boat_chests/minecart_chests, `[0-53]` for double chests
+- `inventory_grid`: slots `[27-52]` for single chests/boat_chests/minecart_chests,  `[54-89]` for double chests
+
+<details>
+<susmmary>Methods:</Summary>
+
+- `get_combine_slots()`: return thec chest slot layout
+- `get_inventory_slots()`: return the inventory_grid slot layout
+</details>
 
 #### AnvilLayout
+Returned for `net.minecraft.world.inventory.AnvilMenu`
+
 Layouts:
 - `combine_grid`: slots `[0-1]`
 - `result`: slot `[2]`
-- `inventory`: slots `[3-38]`
+- `inventory_grid`: slots `[3-38]`
+
+<details>
+<susmmary>Methods:</Summary>
+
+- `get_combine_slots()`: return thec combine_grid slot layout
+- `get_ingredient_slot()`: return the ingredient slot
+- `get_blaze_powder_slot()`: return the blaze powder slot
+- `get_inventory_slots()`: return the inventory_grid slot layout
+</details>
+
+#### BrewingStandLayout
+Returned for `net.minecraft.world.inventory.BrewingStandMenu`
+
+Layouts:
+- `potions_grid`: slots `[0-1, 2]`
+- `ingredient`: slot `[3]`
+- `blaze_powder`: slots `[4]`
+- `inventory_grid`: slots `[5-40]`
+
+<details>
+<susmmary>Methods:</Summary>
+
+- `get_potion_slots()`: return thec potions_grid slot layout
+- `get_ingredient_slot()`: return the ingredient slot
+- `get_blaze_powder_slot()`: return the blaze powder slot
+- `get_inventory_slots()`: return the inventory_grid slot layout
+</details>
 
 #### EnchantmentLayout
+Returned for `net.minecraft.world.inventory.EnchantmentMenu`
+
 Layouts:
 - `enchantment_grid`: slot `[0]`
 - `lapis_grid`: slot `[1]`
-- `inventory`: slots `[2-37]`
+- `inventory_grid`: slots `[2-37]`
 
+<details>
+<susmmary>Methods:</Summary>
+
+- `get_enchantment_slot()`: return the enchantment grid slot
+- `get_lapis_slot()`: return the lapis grid slot
+- `get_inventory_slots()`: return the inventory_grid slot layout
 </details>
 
 ### enchantment_table_apply_enchant(enchantment_apply_type: str) -> bool

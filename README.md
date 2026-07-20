@@ -11,6 +11,7 @@ See /examples/ for a simple script
   - [Usage](#usage)
   - [GLFWHelper](#glfwhelper)
     - [get\_cursor\_position() -\> Vec2](#get_cursor_position---vec2)
+    - [get\_cursor\_gui\_position() -\> Vec2](#get_cursor_gui_position---vec2)
     - [set\_cursor\_position(x: float, y: float)](#set_cursor_positionx-float-y-float)
     - [show\_cursor()](#show_cursor)
     - [hide\_cursor(x: float, y: float)](#hide_cursorx-float-y-float)
@@ -27,9 +28,11 @@ See /examples/ for a simple script
     - [get\_size() -\> WindowSize](#get_size---windowsize)
     - [get\_screen\_size() -\> WindowSize](#get_screen_size---windowsize)
     - [get\_gui\_size() -\> WindowSize:](#get_gui_size---windowsize)
-    - [get\_gui\_scale() -\> float](#get_gui_scale---float)
     - [get\_aspect\_ratio() -\> float](#get_aspect_ratio---float)
+    - [get\_gui\_scale() -\> float](#get_gui_scale---float)
+    - [get\_coordinate\_scale(window\_to\_gui: bool = False) -\> Vec2](#get_coordinate_scalewindow_to_gui-bool--false---vec2)
     - [get\_screen\_position(gui\_x: float, gui\_y: float) -\> Vec2](#get_screen_positiongui_x-float-gui_y-float---vec2)
+    - [get\_gui\_position(window\_x: float, window\_y: float) -\> Vec2:](#get_gui_positionwindow_x-float-window_y-float---vec2)
   - [BlocksHelper](#blockshelper)
     - [get\_block\_pos(x, y=None, z=None) -\> JavaObject](#get_block_posx-ynone-znone---javaobject)
     - [get\_block\_state(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_statex-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
@@ -123,6 +126,7 @@ See /examples/ for a simple script
     - [get\_class\_name(obj) -\> str](#get_class_nameobj---str)
     - [get\_clipboard() -\> str](#get_clipboard---str)
     - [set\_clipboard(text) -\> None](#set_clipboardtext---none)
+    - [random\_uuid() -\> str](#random_uuid---str)
   - [RegistryHelper](#registryhelper)
     - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject|None](#get_by_idregistry-javaobject-identifier-str---javaobjectnone)
     - [get\_registry\_path(registry\_name: str) -\> JavaObject|None](#get_registry_pathregistry_name-str---javaobjectnone)
@@ -135,6 +139,7 @@ See /examples/ for a simple script
 ### get_cursor_position() -> Vec2
 Vec2 has x,y fields
 
+### get_cursor_gui_position() -> Vec2
 ### set_cursor_position(x: float, y: float)
 ### show_cursor()
 ### hide_cursor(x: float, y: float)
@@ -168,8 +173,9 @@ WindowSize has width,height fields
 
 ### get_screen_size() -> WindowSize
 ### get_gui_size() -> WindowSize:
-### get_gui_scale() -> float
 ### get_aspect_ratio() -> float
+### get_gui_scale() -> float
+### get_coordinate_scale(window_to_gui: bool = False) -> Vec2
 
 ### get_screen_position(gui_x: float, gui_y: float) -> Vec2
 Convert Minecraft GUI-scaled coordinates into absolute window coordinates
@@ -186,6 +192,10 @@ gui_y = top_pos + slot.y + 8
 
 return WindowHelper.get_screen_position(gui_x, gui_y)
 ```
+
+### get_gui_position(window_x: float, window_y: float) -> Vec2:
+Inverse of `get_screen_position`
+
 ---
 
 ## BlocksHelper
@@ -488,6 +498,8 @@ Layouts:
 - `get_inventory_slots()`: return the inventory_grid slot layout
 </details>
 
+</details>
+
 ### enchantment_table_apply_enchant(enchantment_apply_type: str) -> bool
 Clicks the enchantment button in the opened enchantment table container
 
@@ -768,6 +780,7 @@ if item:
 
 ### get_clipboard() -> str
 ### set_clipboard(text) -> None
+### random_uuid() -> str
 
 ## RegistryHelper
 

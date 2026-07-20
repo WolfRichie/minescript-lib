@@ -114,7 +114,7 @@ class ReflectionHelper:
             current_class = current_class.getSuperclass()
 
         return None
-
+        
 class EnchantmentInfo:
     def __init__(
         self,
@@ -740,6 +740,8 @@ class ClientLevelData:
         self.difficulty_locked = difficulty_locked
 
 class UtilHelper:
+    UUID = JavaClass("java.util.UUID")
+
     @staticmethod
     def get_class_name(obj: JavaObject) -> str:
         return MappingsHelper.get_pretty_class_name(obj.getClass().getName())
@@ -751,6 +753,10 @@ class UtilHelper:
     @staticmethod
     def set_clipboard(text: str) -> None:
         minecraft.keyboardHandler.setClipboard(text)
+        
+    @staticmethod
+    def random_uuid():
+        return UtilHelper.UUID.randomUUID().toString()
 
 class WindowHelper:
     @staticmethod
@@ -803,21 +809,36 @@ class WindowHelper:
         return window_size.width / window_size.height
 
     @staticmethod
-    def get_screen_position(gui_x: float, gui_y: float) -> Vec2:
+    def get_coordinate_scale(window_to_gui: bool = False) -> Vec2:
         window = WindowHelper._get_window()
 
-        gui_width = window.getGuiScaledWidth()
-        gui_height = window.getGuiScaledHeight()
-
-        window_width = window.getWidth()
-        window_height = window.getHeight()
-
-        scale_x = window_width / gui_width
-        scale_y = window_height / gui_height
+        if window_to_gui:
+            return Vec2(
+                window.getGuiScaledWidth() / window.getWidth(),
+                window.getGuiScaledHeight() / window.getHeight()
+            )
 
         return Vec2(
-            gui_x * scale_x,
-            gui_y * scale_y
+            window.getWidth() / window.getGuiScaledWidth(),
+            window.getHeight() / window.getGuiScaledHeight()
+        )   
+
+    @staticmethod
+    def get_screen_position(gui_x: float, gui_y: float) -> Vec2:
+        scale = WindowHelper.get_coordinate_scale(False)
+
+        return Vec2(
+            gui_x * scale.x,
+            gui_y * scale.y
+        )
+
+    @staticmethod
+    def get_gui_position(window_x: float, window_y: float) -> Vec2:
+        scale = WindowHelper.get_coordinate_scale(True)
+
+        return Vec2(
+            window_x * scale.x,
+            window_y * scale.y
         )
 
 class GLFWHelper:
@@ -838,7 +859,7 @@ class GLFWHelper:
         return GLFWHelper._onButton_method
 
     @staticmethod
-    def get_cursor_position() -> Vec3:
+    def get_cursor_position() -> Vec2:
         x = GLFWHelper.BufferUtils.createDoubleBuffer(1)
         y = GLFWHelper.BufferUtils.createDoubleBuffer(1)
 
@@ -847,6 +868,12 @@ class GLFWHelper:
         mouse_x = x.get(0)
         mouse_y = y.get(0)
         return Vec2(mouse_x, mouse_y)
+    
+    @staticmethod
+    def get_cursor_gui_position() -> Vec2:
+        cursor = GLFWHelper.get_cursor_position()
+
+        return WindowHelper.get_gui_position(cursor.x, cursor.y)
 
     @staticmethod
     def set_cursor_position(x: float, y: float):

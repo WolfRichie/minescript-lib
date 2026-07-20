@@ -416,7 +416,7 @@ Layouts:
 - `inventory_grid`: slots `[9-44]` for inventory, `[9-44]` for crafter, `[10-45]` for crafting table
 
 <details>
-<susmmary>Methods:</Summary>
+<summary>Methods:</summary>
 
 - `get_inventory_slots()`: return the inventory_grid slot layout
 - `get_crafting_slots()`: return the crafting-grid slot layout
@@ -431,7 +431,7 @@ Layouts:
 - `inventory_grid`: slots `[27-52]` for single chests/boat_chests/minecart_chests,  `[54-89]` for double chests
 
 <details>
-<susmmary>Methods:</Summary>
+<summary>Methods:</summary>
 
 - `get_combine_slots()`: return thec chest slot layout
 - `get_inventory_slots()`: return the inventory_grid slot layout
@@ -446,7 +446,7 @@ Layouts:
 - `inventory_grid`: slots `[3-38]`
 
 <details>
-<susmmary>Methods:</Summary>
+<summary>Methods:</summary>
 
 - `get_combine_slots()`: return thec combine_grid slot layout
 - `get_ingredient_slot()`: return the ingredient slot
@@ -464,7 +464,7 @@ Layouts:
 - `inventory_grid`: slots `[5-40]`
 
 <details>
-<susmmary>Methods:</Summary>
+<summary>Methods:</summary>
 
 - `get_potion_slots()`: return thec potions_grid slot layout
 - `get_ingredient_slot()`: return the ingredient slot
@@ -481,7 +481,7 @@ Layouts:
 - `inventory_grid`: slots `[2-37]`
 
 <details>
-<susmmary>Methods:</Summary>
+<summary>Methods:</summary>
 
 - `get_enchantment_slot()`: return the enchantment grid slot
 - `get_lapis_slot()`: return the lapis grid slot

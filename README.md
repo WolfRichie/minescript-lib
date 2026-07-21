@@ -18,7 +18,7 @@ See /examples/ for a simple script
     - [disable\_cursor()](#disable_cursor)
     - [is\_cursor\_hidden\_or\_disabled() -\> bool](#is_cursor_hidden_or_disabled---bool)
     - [is\_mouse\_button\_pressed(button: int) -\> bool](#is_mouse_button_pressedbutton-int---bool)
-    - [send\_mouse\_button(button: int, press: bool): ...](#send_mouse_buttonbutton-int-press-bool-)
+    - [send\_mouse\_button(button: int, press: bool)](#send_mouse_buttonbutton-int-press-bool)
   - [WindowHelper](#windowhelper)
     - [get\_window\_handle() -\> JavaObject](#get_window_handle---javaobject)
     - [set\_fullscreen(fullscreen: bool)](#set_fullscreenfullscreen-bool)
@@ -35,10 +35,20 @@ See /examples/ for a simple script
     - [get\_gui\_position(window\_x: float, window\_y: float) -\> Vec2:](#get_gui_positionwindow_x-float-window_y-float---vec2)
   - [MerchantHelper](#merchanthelper)
     - [is\_container\_merchant() -\> bool](#is_container_merchant---bool)
+    - [set\_selected\_trade\_index(index: int)](#set_selected_trade_indexindex-int)
     - [get\_offers\_json() -\> str | None](#get_offers_json---str--none)
     - [get\_xp() -\> int | None](#get_xp---int--none)
     - [get\_total\_xp\_needed\_for\_level\_up() -\> int | None](#get_total_xp_needed_for_level_up---int--none)
     - [get\_level() -\> int | None](#get_level---int--none)
+  - [BookScreenHelper](#bookscreenhelper)
+    - [is\_edit\_book\_screen() -\> bool](#is_edit_book_screen---bool)
+    - [is\_view\_book\_screen() -\> bool](#is_view_book_screen---bool)
+    - [is\_book\_screen() -\> bool](#is_book_screen---bool)
+    - [get\_page\_count() -\> int | None](#get_page_count---int--none)
+    - [is\_last\_page() -\> bool | None](#is_last_page---bool--none)
+    - [get\_current\_page\_index() -\> int | None](#get_current_page_index---int--none)
+    - [page\_forward() -\> None](#page_forward---none)
+    - [page\_back() -\> None](#page_back---none)
   - [BlocksHelper](#blockshelper)
     - [get\_block\_pos(x, y=None, z=None) -\> JavaObject](#get_block_posx-ynone-znone---javaobject)
     - [get\_block\_state(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_statex-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
@@ -128,8 +138,10 @@ See /examples/ for a simple script
     - [get\_runtime\_method\_names(clazz, pretty\_method\_name) -\> JavaSet\[str\]](#get_runtime_method_namesclazz-pretty_method_name---javasetstr)
     - [get\_pretty\_method\_names(clazz) -\> JavaSet\[str\]](#get_pretty_method_namesclazz---javasetstr)
   - [ReflectionHelper](#reflectionhelper)
-    - [get\_private\_field(clazz, pretty\_field\_name) -\> Any|None](#get_private_fieldclazz-pretty_field_name---anynone)
+    - [get\_private\_field(instance, pretty\_field\_name) -\> Any|None](#get_private_fieldinstance-pretty_field_name---anynone)
     - [set\_private\_field(instance, pretty\_field\_name, value) -\> bool](#set_private_fieldinstance-pretty_field_name-value---bool)
+    - [get\_declared\_method\_accessible(instance, pretty\_method\_name)](#get_declared_method_accessibleinstance-pretty_method_name)
+    - [invoke\_private\_method(instance, pretty\_method\_name, \*args):](#invoke_private_methodinstance-pretty_method_name-args)
   - [UtilHelper](#utilhelper)
     - [get\_class\_name(obj) -\> str](#get_class_nameobj---str)
     - [get\_clipboard() -\> str](#get_clipboard---str)
@@ -157,7 +169,7 @@ Vec2 has x,y fields
 ### is_cursor_hidden_or_disabled() -> bool
 ### is_mouse_button_pressed(button: int) -> bool
 
-### send_mouse_button(button: int, press: bool): ...
+### send_mouse_button(button: int, press: bool)
 Click the current position on the screen, (or release if press is set to false)
 
 ```py
@@ -217,6 +229,9 @@ There is also a [MerchantLayout](#merchantlayout) which can be returned by [get\
 
 ### is_container_merchant() -> bool
 
+### set_selected_trade_index(index: int)
+Automatically puts in the correct items from your inventory into the slots if possible
+
 ### get_offers_json() -> str | None
 
 ```
@@ -229,6 +244,27 @@ print(MerchantHelper.get_offers_json())
 ### get_total_xp_needed_for_level_up() -> int | None
 ### get_level() -> int | None
 
+---
+
+## BookScreenHelper
+
+### is_edit_book_screen() -> bool
+### is_view_book_screen() -> bool
+
+### is_book_screen() -> bool
+Wrapper for is_edit_book_screen() || is_view_book_screen()
+
+### get_page_count() -> int | None
+
+### is_last_page() -> bool | None
+
+### get_current_page_index() -> int | None
+to get the current page "number" as shown on screen get_current_page_index + 1
+
+### page_forward() -> None
+### page_back() -> None
+
+---
 ## BlocksHelper
 
 ### get_block_pos(x, y=None, z=None) -> JavaObject
@@ -810,8 +846,31 @@ pretty_name = MappingsHelper.get_pretty_class_name("net.minecraft.class_310")
 
 ## ReflectionHelper
 
-### get_private_field(clazz, pretty_field_name) -> Any|None
+### get_private_field(instance, pretty_field_name) -> Any|None
 ### set_private_field(instance, pretty_field_name, value) -> bool
+
+### get_declared_method_accessible(instance, pretty_method_name)
+
+> [!WARNING]
+> This cannot easily be used outside of pyjinn and is NOT RECOMMENDED TO BE USED
+> Use `invoke_private_method` instead
+
+
+Invoking a instanc method without args
+```
+current_screen = ClientHelper.get_current_screen()
+page_forward_method = ReflectionHelper.get_declared_method_accessible(current_screen, "pageForward")
+page_forward_method.invoke(current_screen, JavaArray(()))
+```
+
+### invoke_private_method(instance, pretty_method_name, *args):
+
+Invoking a instance method without args
+```
+current_screen = ClientHelper.get_current_screen()
+ReflectionHelper.invoke_private_method(current_screen, "pageForward")
+```
+
 ---
 
 ## UtilHelper

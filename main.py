@@ -4,8 +4,11 @@ from code.Proxy import PyJinnProxy, PyJinnProxyMeta
 PyJinnProxyMeta.bind_script("library.pyj")
 
 if TYPE_CHECKING:
-  from code.type_checking import ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper
+  from code.type_checking import BookScreenHelper, ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper
 else:
+  class BookScreenHelper(PyJinnProxy):
+    pass
+  
   class MappingsHelper(PyJinnProxy):
     pass
   class MerchantHelper(PyJinnProxy):
@@ -15,7 +18,7 @@ else:
     @staticmethod
     def get_container_layout():
       runtime_helper = PyJinnProxyMeta._pyj_class(ContainerHelper)
-      container = runtime_helper._get_container()
+      container = runtime_helper.get_container()
 
       if container is None:
         return None

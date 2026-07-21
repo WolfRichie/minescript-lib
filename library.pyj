@@ -5,7 +5,80 @@ from system.pyj.minescript import *
 
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
 minescript = JavaClass("net.minescript.common.Minescript")
-            
+
+class BookScreenHelper:
+    @staticmethod
+    def is_edit_book_screen() -> bool:
+        current_screen = ClientHelper.get_current_screen()
+        if current_screen is None:
+            return False
+        return UtilHelper.get_class_name(current_screen) == "net.minecraft.client.gui.screens.inventory.BookEditScreen"
+    
+    @staticmethod
+    def is_view_book_screen() -> bool:
+        current_screen = ClientHelper.get_current_screen()
+        if current_screen is None:
+            return False
+        return UtilHelper.get_class_name(current_screen) == "net.minecraft.client.gui.screens.inventory.BookViewScreen"
+    
+    @staticmethod
+    def is_book_screen() -> bool:
+        return BookScreenHelper.is_edit_book_screen() or BookScreenHelper.is_view_book_screen()
+    
+    @staticmethod
+    def _get_pages() -> JavaObject | None:
+        if not BookScreenHelper.is_book_screen():
+            return None
+        
+        current_screen = ClientHelper.get_current_screen()
+        
+        if BookScreenHelper.is_edit_book_screen():
+            return ReflectionHelper.get_private_field(current_screen, "pages")
+        elif BookScreenHelper.is_view_book_screen():
+            book_access = ReflectionHelper.get_private_field(current_screen, "bookAccess")
+            return ReflectionHelper.get_private_field(book_access, "pages")
+    
+    @staticmethod
+    def get_page_count() -> int | None:
+        if not BookScreenHelper.is_book_screen():
+            return None
+        
+        return BookScreenHelper._get_pages().size() # type: ignore
+    
+    @staticmethod
+    def get_current_page_index() -> int | None:
+        if not BookScreenHelper.is_book_screen():
+            return None
+        
+        current_screen = ClientHelper.get_current_screen()
+        return ReflectionHelper.get_private_field(current_screen, "currentPage")
+    
+    @staticmethod
+    def is_last_page() -> bool | None:
+        if not BookScreenHelper.is_book_screen():
+            return None
+        
+        current_page = BookScreenHelper.get_current_page_index()
+        page_count = BookScreenHelper.get_page_count()
+        
+        return current_page == (page_count - 1) # type: ignore
+    
+    @staticmethod
+    def page_forward() -> None:
+        if not BookScreenHelper.is_book_screen():
+            return None
+        
+        current_screen = ClientHelper.get_current_screen()
+        ReflectionHelper.invoke_private_method(current_screen, "pageForward")
+
+    @staticmethod
+    def page_back() -> None:
+        if not BookScreenHelper.is_book_screen():
+            return None
+        
+        current_screen = ClientHelper.get_current_screen()
+        ReflectionHelper.invoke_private_method(current_screen, "pageBack")
+        
 class Vec3:
     def __init__(self, x: float, y: float, z: float):
         self.x = x
@@ -46,6 +119,8 @@ class MappingsHelper:
 
 
 class ReflectionHelper:
+    _method_cache = {}
+
     @staticmethod
     def _get_declared_field_accessible(instance, pretty_field_name):
         current_class = instance.getClass()
@@ -89,8 +164,13 @@ class ReflectionHelper:
         return False
     
     @staticmethod
-    def _get_declared_method_accessible(instance, pretty_method_name):
+    def get_declared_method_accessible(instance, pretty_method_name):
         current_class = instance.getClass()
+        cache_key = (current_class, pretty_method_name)
+
+        method = ReflectionHelper._method_cache.get(cache_key)
+        if method is not None:
+            return method
 
         while current_class is not None:
             try:
@@ -106,6 +186,7 @@ class ReflectionHelper:
                 for method in current_class.getDeclaredMethods():
                     if runtime_method_names.contains(method.getName()):
                         method.setAccessible(True)
+                        ReflectionHelper._method_cache[cache_key] = method
                         return method
 
             except Exception as e:
@@ -114,6 +195,18 @@ class ReflectionHelper:
             current_class = current_class.getSuperclass()
 
         return None
+
+    @staticmethod
+    def invoke_private_method(instance, pretty_method_name, *args):
+        method = ReflectionHelper.get_declared_method_accessible(
+            instance,
+            pretty_method_name
+        )
+
+        if method is None:
+            return None
+
+        return method.invoke(instance, JavaArray(args))
         
 class EnchantmentInfo:
     def __init__(
@@ -222,12 +315,12 @@ class ContainerHelper:
     ClickType = JavaClass("net.minecraft.world.inventory.ClickType")
     
     @staticmethod
-    def _get_container() -> JavaObject | None:
+    def get_container() -> JavaObject | None:
         return minecraft.player.containerMenu
 
     @staticmethod
     def get_slot_screen_position(slot: int) -> Vec2 | None:
-        container = ContainerHelper._get_container()
+        container = ContainerHelper.get_container()
         screen = ClientHelper.get_current_screen()
 
         if container is None or screen is None:
@@ -258,21 +351,21 @@ class ContainerHelper:
 
     @staticmethod
     def get_container_id() -> int:
-        container = ContainerHelper._get_container()
+        container = ContainerHelper.get_container()
         if container is None:
             return -1
         return container.containerId
 
     @staticmethod
     def get_container_class_name() -> str:
-        container = ContainerHelper._get_container()
+        container = ContainerHelper.get_container()
         if container is None:
             return ""
         return UtilHelper.get_class_name(container)
 
     @staticmethod
     def get_container_layout() -> InventoryLayout|AnvilLayout|EnchantmentLayout|DefaultContainerLayout:
-        container = ContainerHelper._get_container()
+        container = ContainerHelper.get_container()
         if container is None:
             return None
 
@@ -358,7 +451,7 @@ class ContainerHelper:
 
     @staticmethod
     def get_item_stack_by_container_slot(slot: int) -> JavaObject | None:
-        return ContainerHelper._get_container().getSlot(slot).getItem()
+        return ContainerHelper.get_container().getSlot(slot).getItem()
 
     @staticmethod
     def _has_item_id(items: List[ItemStack], item_id: str) -> List[ItemStack]:
@@ -417,7 +510,7 @@ class ContainerHelper:
         if index is None:
             return None
         
-        container = ContainerHelper._get_container()
+        container = ContainerHelper.get_container()
         enchantment_id = container.enchantClue[index]
         
         enchantment_holder = RegistryHelper.get_holder_by_numeric_id(
@@ -646,7 +739,7 @@ class MerchantHelper:
         if not MerchantHelper.is_container_merchant():
             return None
         
-        container = ContainerHelper._get_container()
+        container = ContainerHelper.get_container()
         offers = container.getOffers()
         
         json_element = RegistryHelper._encodeStart(
@@ -658,11 +751,11 @@ class MerchantHelper:
         return _JsonHelper.dumps(recipes)
 
     @staticmethod
-    def press_selected_trade_index(index: int) -> bool:
+    def set_selected_trade_index(index: int) -> bool:
         if not MerchantHelper.is_container_merchant():
             return False
         
-        container = ContainerHelper._get_container()
+        container = ContainerHelper.get_container()
         
         container.setSelectionHint(index)
         container.tryMoveItems(index)
@@ -674,7 +767,7 @@ class MerchantHelper:
         if not MerchantHelper.is_container_merchant():
             return None
         
-        container = ContainerHelper._get_container()
+        container = ContainerHelper.get_container()
         return container.getTraderXp()
     
     @staticmethod
@@ -682,7 +775,7 @@ class MerchantHelper:
         if not MerchantHelper.is_container_merchant():
             return None
         
-        container = ContainerHelper._get_container()
+        container = ContainerHelper.get_container()
         return container.getFutureTraderXp()
     
     @staticmethod
@@ -690,7 +783,7 @@ class MerchantHelper:
         if not MerchantHelper.is_container_merchant():
             return None
         
-        container = ContainerHelper._get_container()
+        container = ContainerHelper.get_container()
         return container.getTraderLevel()
 
 class ClientHelper:
@@ -907,18 +1000,6 @@ class GLFWHelper:
     GLFW = JavaClass("org.lwjgl.glfw.GLFW")
     BufferUtils = JavaClass("org.lwjgl.BufferUtils")
     MouseButtonInfo = JavaClass("net.minecraft.client.input.MouseButtonInfo")
-    
-    _onButton_method = None
-
-    @staticmethod
-    def _get_mouse_helper_onButton_method():
-        if GLFWHelper._onButton_method is None:
-            mouse_handler = minecraft.mouseHandler
-            GLFWHelper._onButton_method = ReflectionHelper._get_declared_method_accessible(
-                mouse_handler,
-                "onButton"
-            )
-        return GLFWHelper._onButton_method
 
     @staticmethod
     def get_cursor_position() -> Vec2:
@@ -967,24 +1048,28 @@ class GLFWHelper:
 
         button_info = GLFWHelper.MouseButtonInfo(button, 0)
 
-        method = GLFWHelper._get_mouse_helper_onButton_method()
-
         if (press):
             action = GLFWHelper.GLFW.GLFW_PRESS
         else:
             action = GLFWHelper.GLFW.GLFW_RELEASE
         
-        args = JavaArray((
+        ReflectionHelper.invoke_private_method(
+            mouse_handler,
+            "onButton",
             WindowHelper.get_window_handle(),
             button_info,
             action
-        ))
-
-        method.invoke(mouse_handler, args)
+        )
         
         # If release, send it twice FOR SOME FUCKING REASON
         if not press:
-            method.invoke(mouse_handler, args)
+            ReflectionHelper.invoke_private_method(
+                mouse_handler,
+                "onButton",
+                WindowHelper.get_window_handle(),
+                button_info,
+                action
+            )
         
         
 class BlocksHelper:

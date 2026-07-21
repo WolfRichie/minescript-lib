@@ -10,6 +10,10 @@ from main import *
 ```
 See /examples/ for a simple script
 
+For any suggestions or issues with the library please make an issue on this repository
+
+If you are encountering errors, please provide the latest.log file from `%appdata%/.minecraft/logs/latest.log` in the issue.
+
 ---
 - [Minescript Library](#minescript-library)
   - [Usage](#usage)

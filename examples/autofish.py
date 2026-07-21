@@ -1,4 +1,4 @@
-from main import ContainerHelper, MappingsHelper, FishingHelper
+from main import *
 from time import sleep
 
 while True:

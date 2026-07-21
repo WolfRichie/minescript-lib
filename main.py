@@ -4,11 +4,12 @@ from code.Proxy import PyJinnProxy, PyJinnProxyMeta
 PyJinnProxyMeta.bind_script("library.pyj")
 
 if TYPE_CHECKING:
-  from code.type_checking import ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper
+  from code.type_checking import ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper
 else:
   class MappingsHelper(PyJinnProxy):
     pass
-
+  class MerchantHelper(PyJinnProxy):
+    pass
 
   class ContainerHelper(PyJinnProxy):
     @staticmethod
@@ -20,7 +21,9 @@ else:
         return None
 
       total_slots = container.slots.size()
-
+      
+      # todo move ContainerNames into class if not changing
+      
       container_name = runtime_helper.get_container_class_name()
       if container_name == "net.minecraft.world.inventory.InventoryMenu":
         return CraftingInventoryLayout(
@@ -55,7 +58,9 @@ else:
         return AnvilLayout(container_name)
       elif container_name == "net.minecraft.world.inventory.EnchantmentMenu":
         return EnchantmentLayout(container_name)
-
+      elif container_name == "net.minecraft.world.inventory.MerchantMenu":
+        return MerchantLayout(container_name)
+      
       return DefaultContainerLayout(container_name, layouts={"slots":list(range(total_slots))})
 
   class FishingHelper(PyJinnProxy):
@@ -201,3 +206,20 @@ class BrewingStandLayout(ContainerLayout):
   
   def get_inventory_slots(self):
     return self.get_group("inventory_grid")
+  
+class MerchantLayout(ContainerLayout):
+  def __init__(self, container_name):
+    super().__init__(container_name, {
+      "cost_sell_grid": [0, 1],
+      "result": [2],
+      "inventory_grid": list(range(3, 38+1)),
+    })
+    
+    def get_cost_sell_slots(self):
+      return self.get_group("cost_sell_grid")
+    
+    def get_result_slot(self):
+      return self.get_group("result")[0]
+    
+    def get_inventory_slots(self):
+      return self.get_group("inventory_grid")

@@ -1,7 +1,7 @@
 from java import *
 from code.Proxy import PyJinnProxy
 from minescript import Vector3f, BlockPos, ItemStack
-
+  
 class GLFWHelper(PyJinnProxy):
     @staticmethod
     def get_cursor_gui_position() -> Vec2: ...
@@ -149,6 +149,8 @@ class ContainerHelper(PyJinnProxy):
   @staticmethod
   def enchantment_table_apply_enchant(enchantment_apply_type) -> bool: ...
 
+  @staticmethod
+  def get_container() -> JavaObject | None:
   @staticmethod
   def get_container_class_name() -> str: ...
 
@@ -314,3 +316,17 @@ class Vec2:
 class WindowSize:
   width: float
   height: float
+  
+class MerchantHelper(PyJinnProxy):
+  @staticmethod
+  def is_container_merchant() -> bool: ...
+  @staticmethod
+  def get_offers_json() -> str | None: ...
+  @staticmethod
+  def set_selected_trade_index(index: int) -> bool | None: ...
+  @staticmethod
+  def get_xp() -> int | None: ...
+  @staticmethod
+  def get_total_xp_needed_for_level_up() -> int | None: ...
+  @staticmethod
+  def get_level() -> int | None: ...

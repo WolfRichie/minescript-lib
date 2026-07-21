@@ -5,7 +5,7 @@ from system.pyj.minescript import *
 
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
 minescript = JavaClass("net.minescript.common.Minescript")
-
+            
 class Vec3:
     def __init__(self, x: float, y: float, z: float):
         self.x = x
@@ -630,7 +630,69 @@ class FishingHelper:
 
         player_press_use(True)
         return True
+
     
+class MerchantHelper:
+    MerchantOffers = JavaClass("net.minecraft.world.item.trading.MerchantOffers")
+    ServerboundSelectTradePacket = JavaClass("net.minecraft.network.protocol.game.ServerboundSelectTradePacket")
+
+    @staticmethod
+    def is_container_merchant() -> bool:
+        container_name = ContainerHelper.get_container_class_name()
+        return container_name == "net.minecraft.world.inventory.MerchantMenu"
+    
+    @staticmethod
+    def get_offers_json():
+        if not MerchantHelper.is_container_merchant():
+            return None
+        
+        container = ContainerHelper._get_container()
+        offers = container.getOffers()
+        
+        json_element = RegistryHelper._encodeStart(
+            MerchantHelper.MerchantOffers,
+            offers
+        )
+        recipes = json_element.get("Recipes")
+        
+        return _JsonHelper.dumps(recipes)
+
+    @staticmethod
+    def press_selected_trade_index(index: int) -> bool:
+        if not MerchantHelper.is_container_merchant():
+            return False
+        
+        container = ContainerHelper._get_container()
+        
+        container.setSelectionHint(index)
+        container.tryMoveItems(index)
+        minecraft.getConnection().send(MerchantHelper.ServerboundSelectTradePacket(index));
+        return True
+    
+    @staticmethod
+    def get_xp() -> int | None:
+        if not MerchantHelper.is_container_merchant():
+            return None
+        
+        container = ContainerHelper._get_container()
+        return container.getTraderXp()
+    
+    @staticmethod
+    def get_total_xp_needed_for_level_up() -> int | None:
+        if not MerchantHelper.is_container_merchant():
+            return None
+        
+        container = ContainerHelper._get_container()
+        return container.getFutureTraderXp()
+    
+    @staticmethod
+    def get_level() -> int | None:
+        if not MerchantHelper.is_container_merchant():
+            return None
+        
+        container = ContainerHelper._get_container()
+        return container.getTraderLevel()
+
 class ClientHelper:
     PauseScreen = JavaClass("net.minecraft.client.gui.screens.PauseScreen")
     InventoryScreen = JavaClass("net.minecraft.client.gui.screens.inventory.InventoryScreen")

@@ -33,6 +33,12 @@ See /examples/ for a simple script
     - [get\_coordinate\_scale(window\_to\_gui: bool = False) -\> Vec2](#get_coordinate_scalewindow_to_gui-bool--false---vec2)
     - [get\_screen\_position(gui\_x: float, gui\_y: float) -\> Vec2](#get_screen_positiongui_x-float-gui_y-float---vec2)
     - [get\_gui\_position(window\_x: float, window\_y: float) -\> Vec2:](#get_gui_positionwindow_x-float-window_y-float---vec2)
+  - [MerchantHelper](#merchanthelper)
+    - [is\_container\_merchant() -\> bool](#is_container_merchant---bool)
+    - [get\_offers\_json() -\> str | None](#get_offers_json---str--none)
+    - [get\_xp() -\> int | None](#get_xp---int--none)
+    - [get\_total\_xp\_needed\_for\_level\_up() -\> int | None](#get_total_xp_needed_for_level_up---int--none)
+    - [get\_level() -\> int | None](#get_level---int--none)
   - [BlocksHelper](#blockshelper)
     - [get\_block\_pos(x, y=None, z=None) -\> JavaObject](#get_block_posx-ynone-znone---javaobject)
     - [get\_block\_state(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_statex-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
@@ -68,9 +74,11 @@ See /examples/ for a simple script
       - [AnvilLayout](#anvillayout)
       - [BrewingStandLayout](#brewingstandlayout)
       - [EnchantmentLayout](#enchantmentlayout)
+      - [MerchantLayout](#merchantlayout)
     - [enchantment\_table\_apply\_enchant(enchantment\_apply\_type: str) -\> bool](#enchantment_table_apply_enchantenchantment_apply_type-str---bool)
     - [enchantment\_table\_get\_enchant\_info(enchantment\_apply\_type) -\> EnchantmentInfo|None:](#enchantment_table_get_enchant_infoenchantment_apply_type---enchantmentinfonone)
       - [`EnchantmentInfo`](#enchantmentinfo)
+    - [get\_container() -\> JavaObject | None:](#get_container---javaobject--none)
     - [get\_container\_id() -\> int](#get_container_id---int)
     - [get\_container\_class\_name() -\> str](#get_container_class_name---str)
     - [get\_container\_slot(slot) -\> ItemStack | None](#get_container_slotslot---itemstack--none)
@@ -140,6 +148,8 @@ See /examples/ for a simple script
 Vec2 has x,y fields
 
 ### get_cursor_gui_position() -> Vec2
+Vec2 has x,y fields
+
 ### set_cursor_position(x: float, y: float)
 ### show_cursor()
 ### hide_cursor(x: float, y: float)
@@ -168,6 +178,7 @@ Returns a `java.lang.Long` JavaObject
 ### is_window_minimized() -> bool
 ### get_position() -> Vec2
 Vec2 has x,y fields
+
 ### get_size() -> WindowSize
 WindowSize has width,height fields
 
@@ -178,6 +189,8 @@ WindowSize has width,height fields
 ### get_coordinate_scale(window_to_gui: bool = False) -> Vec2
 
 ### get_screen_position(gui_x: float, gui_y: float) -> Vec2
+Vec2 has x,y fields
+
 Convert Minecraft GUI-scaled coordinates into absolute window coordinates
 This function is used by `get_slot_screen_position` to calculate the position of a slot in a container
 ```py
@@ -194,9 +207,27 @@ return WindowHelper.get_screen_position(gui_x, gui_y)
 ```
 
 ### get_gui_position(window_x: float, window_y: float) -> Vec2:
+Vec2 has x,y fields. 
 Inverse of `get_screen_position`
 
 ---
+
+## MerchantHelper
+There is also a [MerchantLayout](#merchantlayout) which can be returned by [get\_container\_layout() | None](#get_container_layout--none)
+
+### is_container_merchant() -> bool
+
+### get_offers_json() -> str | None
+
+```
+print(MerchantHelper.get_offers_json())
+# ->
+# [{"buy":{"id":"minecraft:wheat","count":20},"sell":{"id":"minecraft:emerald","count":1},"maxUses":16,"priceMultiplier":0.05,"xp":2},{"buy":{"id":"minecraft:beetroot","count":15},"sell":{"id":"minecraft:emerald","count":1},"maxUses":16,"priceMultiplier":0.05,"xp":2}]
+```
+
+### get_xp() -> int | None
+### get_total_xp_needed_for_level_up() -> int | None
+### get_level() -> int | None
 
 ## BlocksHelper
 
@@ -459,8 +490,7 @@ Layouts:
 <summary>Methods:</summary>
 
 - `get_combine_slots()`: return thec combine_grid slot layout
-- `get_ingredient_slot()`: return the ingredient slot
-- `get_blaze_powder_slot()`: return the blaze powder slot
+- `get_result_slot()`: return the ingredient slot
 - `get_inventory_slots()`: return the inventory_grid slot layout
 </details>
 
@@ -498,6 +528,22 @@ Layouts:
 - `get_inventory_slots()`: return the inventory_grid slot layout
 </details>
 
+#### MerchantLayout
+Returned for `net.minecraft.world.inventory.MerchantMenu`
+
+Layouts:
+- `cost_sell_grid`: slots `[0-1]`
+- `result`: slot `[2]`
+- `inventory_grid`: slots `[3-38]`
+
+<details>
+<summary>Methods:</summary>
+
+- `get_cost_sell_slots()`: return thec cost_sell_grid slot layout
+- `get_result_slot()`: return the ingredient slot
+- `get_inventory_slots()`: return the inventory_grid slot layout
+</details>
+
 </details>
 
 ### enchantment_table_apply_enchant(enchantment_apply_type: str) -> bool
@@ -525,6 +571,8 @@ enchantment_info = ContainerHelper.enchantment_table_get_enchant_info("top")
 if enchantment_info is not null and enchantment_info.name == "minecraft:sharpness":
     ContainerHelper.enchantment_table_apply_enchant("top")
 ```
+
+### get_container() -> JavaObject | None:
 
 ### get_container_id() -> int
 Get the current container ID. Returns `-1` if no container open.

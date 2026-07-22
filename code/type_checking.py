@@ -4,6 +4,30 @@ from main import ContainerLayout
 
 from minescript import ItemStack, Vector3f
 
+class Stat:
+    def __init__(self, stat_id: str, value: int, display_name: str): ...
+    stat_id: str
+    value: int
+    display_name: str
+
+class StatGroup:
+    def __init__(self, group_id: str, display_name: str): ...
+    group_id: str
+    display_name: str
+    stats: List[Stat]
+
+class StatisticsHelper(PyJinnProxy):
+    @staticmethod
+    def get_stats() -> List[StatGroup]: ...
+    @staticmethod
+    def get_stat_value(stat: JavaObject) -> int:
+      """
+      Returns the value of the stat
+      Args:
+      - `stat` (JavaObject): Accepts an `net.minecraft.stats.Stat` JavaObject
+      """
+      ...
+    
 class Waypoint:
     def __init__(self, name: str, initials: str, x: int, y: int, z: int, index: int = 0, set_name: str = ""): ...
     name: str
@@ -694,6 +718,8 @@ class UtilHelper(PyJinnProxy):
   def get_clipboard() -> str: ...
   @staticmethod
   def set_clipboard(text: str) -> None: ...
+  @staticmethod
+  def random_uuid() -> str: ...
 
 class PlayerHelper(PyJinnProxy):
   @staticmethod

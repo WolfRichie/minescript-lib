@@ -4,7 +4,7 @@ from code.Proxy import PyJinnProxy
 PyJinnProxy.bind_script("library.pyj")
 
 if TYPE_CHECKING:
-  from code.type_checking import XaeroHelper, WidgetScreenHelper, ScreenHelper, BookScreenHelper, ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper, PlayerHelper, RegistryHelper
+  from code.type_checking import StatisticsHelper, XaeroHelper, WidgetScreenHelper, ScreenHelper, BookScreenHelper, ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper, PlayerHelper, RegistryHelper
 else:
   XaeroHelper = PyJinnProxy("XaeroHelper")
   RegistryHelper = PyJinnProxy("RegistryHelper")
@@ -75,6 +75,7 @@ else:
   BlocksHelper = PyJinnProxy("BlocksHelper")
   GLFWHelper = PyJinnProxy("GLFWHelper")
   WindowHelper = PyJinnProxy("WindowHelper")
+  StatisticsHelper = PyJinnProxy("StatisticsHelper")
 
 class ContainerLayout:
   def __init__(self, container_name, layouts=None):

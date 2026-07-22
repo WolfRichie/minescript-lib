@@ -5,6 +5,70 @@ from system.pyj.minescript import *
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
 minescript = JavaClass("net.minescript.common.Minescript")
 
+class StatGroup:
+    def __init__(self, group_id: str, display_name: str):
+        self.group_id = group_id
+        self.display_name = display_name
+        self.stats = []
+
+class Stat:
+    def __init__(self, stat_id: str, value: int, display_name: str):
+        self.stat_id = stat_id
+        self.value = value
+        self.display_name = display_name
+
+class StatisticsHelper:
+    @staticmethod
+    def _get_stat_type_registry() -> JavaObject:
+        return RegistryHelper.BuiltInRegistries.STAT_TYPE
+    
+    @staticmethod
+    def _get_stats_counter() -> JavaObject:
+        return minecraft.player.getStats()
+    
+    @staticmethod
+    def get_stat_value(stat: JavaObject) -> int:
+        return StatisticsHelper._get_stats_counter().getValue(stat)
+    
+    @staticmethod
+    def _extract_stat(stat_type: JavaObject, stat_key: JavaObject, group_name: str) -> Stat | None:
+        stat_id = RegistryHelper.get_id(stat_type.getRegistry(), stat_key)
+        if not stat_id:
+            return None
+            
+        stat_obj = stat_type.get(stat_key)
+        value = StatisticsHelper.get_stat_value(stat_obj)
+        
+        if value > 0:
+            return Stat(stat_id, value, group_name)
+        return None
+
+    @staticmethod
+    def _extract_stat_group(stat_type: JavaObject) -> StatGroup | None:
+        group_id = RegistryHelper.get_id(StatisticsHelper._get_stat_type_registry(), stat_type)
+        if not group_id:
+            return None
+            
+        group_name = stat_type.getDisplayName().getString()
+        stat_group = StatGroup(group_id, group_name)
+        
+        for stat_key in stat_type.getRegistry():
+            stat = StatisticsHelper._extract_stat(stat_type, stat_key, group_name)
+            if stat:
+                stat_group.stats.append(stat)
+                
+        return stat_group if stat_group.stats else None
+
+    @staticmethod
+    def test() -> List[StatGroup]: 
+        stat_groups = []
+        for stat_type in StatisticsHelper._get_stat_type_registry():
+            stat_group = StatisticsHelper._extract_stat_group(stat_type)
+            if stat_group:
+                stat_groups.append(stat_group)
+                
+        return JavaArray(tuple(stat_groups))
+
 class XaeroHelper:
     BuiltInHudModules = None
     
@@ -1250,7 +1314,7 @@ class UtilHelper:
         minecraft.keyboardHandler.setClipboard(text)
         
     @staticmethod
-    def random_uuid():
+    def random_uuid() -> str:
         return UtilHelper.UUID.randomUUID().toString()
 
 class WindowHelper:

@@ -192,6 +192,12 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [get\_class\_name(obj) -\> str](#get_class_nameobj---str)
     - [get\_clipboard() -\> str](#get_clipboard---str)
     - [set\_clipboard(text) -\> None](#set_clipboardtext---none)
+    - [random\_uuid() -\> str](#random_uuid---str)
+  - [StatisticsHelper](#statisticshelper)
+    - [get\_stats() -\> List\[StatGroup\]](#get_stats---liststatgroup)
+      - [StatGroup:](#statgroup)
+      - [Stat:](#stat)
+    - [get\_stat\_value(stat: JavaObject) -\> int:](#get_stat_valuestat-javaobject---int)
   - [XaeroHelper](#xaerohelper)
     - [is\_mod\_loaded() -\> bool:](#is_mod_loaded---bool)
     - [get\_current\_waypoint\_set\_name() -\> str | None](#get_current_waypoint_set_name---str--none)
@@ -1091,6 +1097,39 @@ if item:
 
 ### get_clipboard() -> str
 ### set_clipboard(text) -> None
+### random_uuid() -> str
+
+---
+
+## StatisticsHelper
+
+> [!NOTE]
+> IN TODO to make better getter functions!!
+> currently only really usable through `get_stats`
+
+### get_stats() -> List[StatGroup]
+
+```python
+for group in StatisticsHelper.get_stats():
+  print(group.group_id, group.display_name)
+  for stat in group.stats:
+      print(stat.stat_id, stat.value, stat.display_name)
+```
+
+#### StatGroup:
+- group_id: str
+- display_name: str
+- stats: List[[Stat](#stat)]
+
+#### Stat:
+- stat_id: str
+- value: int
+- display_name: str
+
+### get_stat_value(stat: JavaObject) -> int:
+Returns the value of the stat
+Args:
+- `stat` (JavaObject): Accepts an `net.minecraft.stats.Stat` JavaObject
 
 ---
 

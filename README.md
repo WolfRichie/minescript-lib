@@ -10,7 +10,7 @@ from main import *
 ```
 See /examples
  - [Autofishing script](./examples/autofish.py)
- - [Rename all items in your inventory using the anvil (at your targeted block)](./examples/rename_all_items_in_an_anvil.py) (with experience / gamemode checks)
+ - [Rename all items in your inventory using the anvil (at your targeted block)](./examples/rename_all_items_in_anvil.py) (with experience / gamemode checks)
 
 
 For any suggestions or issues with the library please make an issue on this repository

@@ -137,6 +137,7 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [is\_any\_toast\_showing() -\> bool](#is_any_toast_showing---bool)
   - [WidgetScreenHelper](#widgetscreenhelper)
     - [get\_widgets() -\> List\[GuiWidget\] | None](#get_widgets---listguiwidget--none)
+    - [GuiWidget:](#guiwidget)
     - [get\_renderables() -\> List\[JavaObject\] | None](#get_renderables---listjavaobject--none)
     - [get\_widget\_by\_message(text: str, match\_case: bool = False) -\> GuiWidget | None](#get_widget_by_messagetext-str-match_case-bool--false---guiwidget--none)
     - [click\_widget(widget: GuiWidget | JavaObject) -\> bool](#click_widgetwidget-guiwidget--javaobject---bool)
@@ -177,7 +178,6 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [get\_current\_waypoint\_set\_name() -\> str | None](#get_current_waypoint_set_name---str--none)
     - [get\_current\_set\_waypoints() -\> List\[Waypoint\] | None](#get_current_set_waypoints---listwaypoint--none)
     - [Waypoint:](#waypoint)
-    - [GuiWidget:](#guiwidget)
     - [add\_waypoint\_to\_current\_set(name: str, x: float|int, y: float|int, z: float|int, initials: str) -\> bool | None](#add_waypoint_to_current_setname-str-x-floatint-y-floatint-z-floatint-initials-str---bool--none)
     - [remove\_waypoint\_from\_current\_set(waypoint: Waypoint | int) -\> bool:](#remove_waypoint_from_current_setwaypoint-waypoint--int---bool)
     - [get\_waypoint\_from\_current\_set(waypoint: Waypoint | int) -\> Waypoint | None:](#get_waypoint_from_current_setwaypoint-waypoint--int---waypoint--none)
@@ -869,6 +869,18 @@ for widget in widgets or []:
 # Widget Info - Message: 'Done', Pos: (173, 196), Size: 98x20, Active: True, Visible: True
 ```
 
+### GuiWidget:
+    __init__(self, x: int, y: int, width: int, height: int, message: str, active: bool, visible: bool, focused: bool, java_object: JavaObject)
+    x: int
+    y: int
+    width: int
+    height: int
+    message: str
+    active: bool
+    visible: bool
+    focused: bool
+    java_object: JavaObject
+
 ### get_renderables() -> List[JavaObject] | None
 Returns the list of raw renderable elements on the current screen.
 
@@ -1045,18 +1057,6 @@ Returns the current waypoint sets name, `gui.xaero_default` for the default set.
     z: int
     index: int
     set_name: str
-
-### GuiWidget:
-    __init__(self, x: int, y: int, width: int, height: int, message: str, active: bool, visible: bool, focused: bool, java_object: JavaObject)
-    x: int
-    y: int
-    width: int
-    height: int
-    message: str
-    active: bool
-    visible: bool
-    focused: bool
-    java_object: JavaObject
 
 ### add_waypoint_to_current_set(name: str, x: float|int, y: float|int, z: float|int, initials: str) -> bool | None
 

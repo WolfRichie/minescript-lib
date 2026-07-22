@@ -1,10 +1,136 @@
-# #!python
-# import * from java
-# import * from minescript
+#!python
+# from system.lib.java import *
 from system.pyj.minescript import *
 
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
 minescript = JavaClass("net.minescript.common.Minescript")
+
+class XaeroHelper:
+    BuiltInHudModules = None
+    
+    @staticmethod
+    def is_mod_loaded() -> bool:
+        if XaeroHelper.BuiltInHudModules is not None:
+            return True
+        
+        try:
+            # xaero_minimap_session = JavaClass("xaero.minimap.XaeroMinimap").instance.createSession() #xaero.common.XaeroMinimapSession
+            # XaeroHelper.IXaeroMinimap = xaero_minimap_session.getModMain()  #aero.minimap.XaeroMinimapFabric
+            XaeroHelper.BuiltInHudModules = JavaClass("xaero.hud.minimap.BuiltInHudModules")
+        except Exception as e:
+            return False
+        return True
+    
+    # @staticmethod
+    # def get_minimap():
+    #     if not XaeroHelper.is_mod_loaded():
+    #         return None
+    #     return XaeroHelper.IXaeroMinimap.getMinimap() #xaero.hud.minimap.Minimap
+    
+    @staticmethod
+    def get_current_minimap_session() -> JavaObject | None: #xaero.hud.minimap.module.MinimapSession
+        if not XaeroHelper.is_mod_loaded():
+            return None
+        return XaeroHelper.BuiltInHudModules.MINIMAP.getCurrentSession() #xaero.common.XaeroMinimapSession
+
+    @staticmethod
+    def get_current_world_manager() -> JavaObject | None: #xaero.hud.minimap.world.MinimapWorldManager
+        if not XaeroHelper.is_mod_loaded():
+            return None
+        return XaeroHelper.get_current_minimap_session().getWorldManager()
+    
+    @staticmethod
+    def get_current_world() -> JavaObject | None: #xaero.hud.minimap.world.MinimapWorld
+        if not XaeroHelper.is_mod_loaded():
+            return None
+        return XaeroHelper.get_current_world_manager().getCurrentWorld()
+    
+    @staticmethod
+    def get_current_waypoint_set() -> JavaObject | None: #xaero.hud.minimap.waypoint.set.WaypointSet
+        if not XaeroHelper.is_mod_loaded():
+            return None
+        
+        return XaeroHelper.get_current_world().getCurrentWaypointSet()
+    
+    @staticmethod
+    def get_current_waypoint_set_name() -> str | None:
+        if not XaeroHelper.is_mod_loaded():
+            return None
+        
+        return XaeroHelper.get_current_waypoint_set().getName()
+
+    @staticmethod
+    def get_current_set_waypoints() -> List[Waypoint] | None:
+        if not XaeroHelper.is_mod_loaded():
+            return None
+        
+        waypoints =  XaeroHelper.get_current_waypoint_set().getWaypoints()
+        
+        waypoint_list = []
+        for waypoint_i in range(waypoints.size()):
+            waypoint = waypoints.get(waypoint_i)
+            waypoint_list.append(Waypoint(
+                name=waypoint.getName(),
+                initials=waypoint.getInitials(),
+                x=waypoint.getX(),
+                y=waypoint.getY(),
+                z=waypoint.getZ(),
+                index = waypoint_i,
+                set_name = XaeroHelper.get_current_waypoint_set_name()
+            ))
+        return JavaArray(tuple(waypoint_list))
+    
+    @staticmethod
+    def add_waypoint_to_current_set(name: str, x: float|int, y: float|int, z: float|int, initials: str) -> bool | None:
+        if not XaeroHelper.is_mod_loaded():
+            return None
+
+        waypoint_set = XaeroHelper.get_current_waypoint_set()
+
+        WaypointClass = JavaClass("xaero.common.minimap.waypoints.Waypoint")
+        waypoint = WaypointClass(int(x), int(y), int(z), name, initials, 0)
+        waypoint_set.add(waypoint)
+        return True
+    
+    @staticmethod
+    def remove_waypoint_from_current_set(waypoint: Waypoint | int) -> bool:
+        if not XaeroHelper.is_mod_loaded():
+            return None
+
+        waypoint_set = XaeroHelper.get_current_waypoint_set()
+        if isinstance(waypoint, int):
+            waypoint_set.remove(waypoint)
+            return True
+
+        waypoint_set.remove(waypoint.index)
+        return True
+    
+    @staticmethod
+    def get_waypoint_from_current_set(waypoint: Waypoint | int) -> Waypoint | None:
+        if not XaeroHelper.is_mod_loaded():
+            return None
+
+        waypoint_set = XaeroHelper.get_current_waypoint_set()
+        if isinstance(waypoint, int):
+            return waypoint_set.get(waypoint)
+
+        return waypoint_set.get(waypoint.index)
+    
+    @staticmethod
+    def get_current_waypoint_set_count() -> int | None:
+        if not XaeroHelper.is_mod_loaded():
+            return None
+        return XaeroHelper.get_current_waypoint_set().size()
+
+class Waypoint:
+    def __init__(self, name: str, initials: str, x: float, y: float, z: float, index: int = 0, set_name: str = ""):
+        self.name = name
+        self.initials = initials
+        self.x = x
+        self.y = y
+        self.z = z
+        self.index = index
+        self.set_name = set_name
 
 class BookScreenHelper:
     @staticmethod
@@ -209,107 +335,11 @@ class ReflectionHelper:
         return method.invoke(instance, JavaArray(args))
         
 class EnchantmentInfo:
-    def __init__(
-        self,
-        enchantment_id: str,
-        name: str,
-        level: int,
-        costs: int,
-    ):
+    def __init__(self, enchantment_id: str, name: str, level: int, costs: int):
         self.id = enchantment_id
         self.name = name
         self.level = level
         self.costs = costs
-
-class ContainerLayout:
-    def __init__(self, container_name: str, layouts=None):
-        self.container_name = container_name
-        self.layouts = layouts if layouts is not None else {}
-
-    @property
-    def groups(self):
-        return self.layouts
-
-    @property
-    def size(self) -> int:
-        return sum(len(group_slots) for group_slots in self.layouts.values())
-
-    @property
-    def is_unknown(self) -> bool:
-        return False
-
-    def get_group(self, group_name: str):
-        return self.layouts.get(group_name, [])
-
-    def get_layouts(self):
-        return self.layouts
-
-class DefaultContainerLayout(ContainerLayout):
-    def __init__(self, container_name: str, container=None):
-        self.container_name = container_name
-        self.layouts = {"slots": self._resolve_slot_indexes(container)}
-
-    @property
-    def is_unknown(self) -> bool:
-        return True
-
-    def _resolve_slot_indexes(self, container):
-        if container is None:
-            return []
-
-        try:
-            slots = container.slots
-        except Exception:
-            return []
-
-        try:
-            slot_count = len(slots)
-        except Exception:
-            try:
-                slot_count = slots.size()
-            except Exception:
-                return []
-
-        return list(range(slot_count))
-
-class InventoryLayout(ContainerLayout):
-    def __init__(self, container_name: str, layouts=None):
-        self.container_name = container_name
-        self.layouts = layouts if layouts is not None else {
-            "crafting_grid": [1, 2, 3, 4],
-            "result": [0],
-            "inventory": list(range(9, 36)),
-        }
-
-    def get_inventory_slots(self):
-        return self.get_group("inventory")
-
-    def get_crafting_slots(self):
-        return self.get_group("crafting_grid")
-
-    def get_result_slot(self):
-        result_slots = self.get_group("result")
-        return result_slots[0] if result_slots else None
-
-
-class AnvilLayout(InventoryLayout):
-    def __init__(self, container_name: str):
-        self.container_name = container_name
-        self.layouts = {
-            "combine_grid": [0, 1],
-            "result": [2],
-            "inventory": list(range(3, 39)),
-        }
-
-
-class EnchantmentLayout(InventoryLayout):
-    def __init__(self, container_name: str, layouts=None):
-        self.container_name = container_name
-        self.layouts = {
-            "enchantment_grid": [0],
-            "lapis_grid": [1],
-            "inventory": list(range(2, 38)),
-        }
         
 class ContainerHelper:
     ClickType = JavaClass("net.minecraft.world.inventory.ClickType")
@@ -362,22 +392,6 @@ class ContainerHelper:
         if container is None:
             return ""
         return UtilHelper.get_class_name(container)
-
-    @staticmethod
-    def get_container_layout() -> InventoryLayout|AnvilLayout|EnchantmentLayout|DefaultContainerLayout:
-        container = ContainerHelper.get_container()
-        if container is None:
-            return None
-
-        container_name = ContainerHelper.get_container_class_name()
-        if container_name == "net.minecraft.world.inventory.InventoryMenu":
-            return InventoryLayout(container_name, None)
-        if container_name == "net.minecraft.world.inventory.AnvilMenu":
-            return AnvilLayout(container_name)
-        if container_name == "net.minecraft.world.inventory.EnchantmentMenu":
-            return EnchantmentLayout(container_name, None)
-
-        return DefaultContainerLayout(container_name, container)
     
     @staticmethod
     def raw_click(slot, button_or_slot=0, click_type=None) -> bool:
@@ -517,6 +531,7 @@ class ContainerHelper:
             RegistryHelper.Registries.ENCHANTMENT,
             enchantment_id,
         )
+
         if enchantment_holder is None:
             return None
         
@@ -791,6 +806,7 @@ class ClientHelper:
     InventoryScreen = JavaClass("net.minecraft.client.gui.screens.inventory.InventoryScreen")
     Component = JavaClass("net.minecraft.network.chat.Component")
     SystemToast = JavaClass("net.minecraft.client.gui.components.toasts.SystemToast")
+    AlertScreen = JavaClass("net.minecraft.client.gui.screens.AlertScreen")
 
     @staticmethod
     def set_current_screen(screen: JavaObject) -> None:
@@ -874,6 +890,18 @@ class ClientHelper:
         ReflectionHelper.set_private_field(system_toast_id, "displayTime", display_time)
         
         toast_manager.addToast(ClientHelper.SystemToast.multiline(minecraft, system_toast_id, _title, _desc))
+        
+    @staticmethod
+    def open_alert_screen(title_text: str, message_text: str, ok_button_text: str = "OK"):
+        def ok_pressed():
+            ClientHelper.close_current_screen()
+            managed_callback.cancel()
+        
+        managed_callback = ManagedCallback(ok_pressed)
+        title_literal = ClientHelper.Component.literal(title_text)
+        message_literal = ClientHelper.Component.literal(message_text)
+        ok_button_literal = ClientHelper.Component.literal(ok_button_text)
+        ClientHelper.set_current_screen(ClientHelper.AlertScreen(managed_callback, title_literal, message_literal, ok_button_literal, True))
         
     @staticmethod
     def is_any_toast_showing() -> bool:

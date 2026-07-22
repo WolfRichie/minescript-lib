@@ -1,8 +1,45 @@
 from java import *
 from code.Proxy import PyJinnProxy
+from main import ContainerLayout
+from main import ContainerLayout
 from minescript import ItemStack
 
+class Waypoint:
+    def __init__(self, name: str, initials: str, x: int, y: int, z: int, index: int = 0, set_name: str = ""): ...
+    name: str
+    initials: str
+    x: int
+    y: int
+    z: int
+    index: int
+    set_name: str
+        
+class XaeroHelper(PyJinnProxy):
+    @staticmethod
+    def is_mod_loaded() -> bool: ...
+    @staticmethod
+    def get_current_minimap_session() -> JavaObject | None: ...
+    @staticmethod
+    def get_current_world_manager() -> JavaObject | None: ...
+    @staticmethod
+    def get_current_world() -> JavaObject | None: ...
+    @staticmethod
+    def get_current_waypoint_set() -> JavaObject | None: ...
+    @staticmethod
+    def get_current_waypoint_set_name() -> str | None: ...
+    @staticmethod
+    def get_current_set_waypoints() -> List[Waypoint] | None:  ...
+    @staticmethod
+    def add_waypoint_to_current_set(name: str, x: float|int, y: float|int, z: float|int, initials: str) -> bool | None: ...
+    @staticmethod
+    def remove_waypoint_from_current_set(waypoint: Waypoint | int) -> bool: ...
+    @staticmethod
+    def get_waypoint_from_current_set(waypoint: Waypoint | int) -> Waypoint | None: ...
+    @staticmethod
+    def get_current_waypoint_set_count() -> int | None: ...
+    
 class BookScreenHelper(PyJinnProxy):
+
     @staticmethod
     def is_edit_book_screen() -> bool: ...
     @staticmethod
@@ -217,12 +254,10 @@ class ContainerHelper(PyJinnProxy):
 
   @staticmethod
   def get_inventory_free_slot() -> int | None: ...
-  
   @staticmethod
   def get_slot_screen_position(slot: int) -> Vec2 | None: ...
-
   @staticmethod
-  def get_container_layout() -> CraftingInventoryLayout|AnvilLayout|EnchantmentLayout|DefaultContainerLayout | None: ...
+  def get_container_layout() -> ContainerLayout | None: ...
 
 class FishingHelper(PyJinnProxy):
   @staticmethod

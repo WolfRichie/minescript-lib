@@ -126,6 +126,7 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [get\_current\_screen\_class\_name() -\> str](#get_current_screen_class_name---str)
     - [set\_current\_screen(screen) -\> None](#set_current_screenscreen---none)
     - [close\_current\_screen(with\_close\_container\_packet=True) -\> None](#close_current_screenwith_close_container_packettrue---none)
+    - [open\_alert\_screen(title\_text: str, message\_text: str, ok\_button\_text: str = "OK")](#open_alert_screentitle_text-str-message_text-str-ok_button_text-str--ok)
     - [open\_pause\_screen() -\> None](#open_pause_screen---none)
     - [open\_inventory\_screen() -\> None](#open_inventory_screen---none)
     - [disconnect(reason="Disconnected by Minescript") -\> None](#disconnectreasondisconnected-by-minescript---none)
@@ -159,6 +160,19 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject|None](#get_by_idregistry-javaobject-identifier-str---javaobjectnone)
     - [get\_registry\_path(registry\_name: str) -\> JavaObject|None](#get_registry_pathregistry_name-str---javaobjectnone)
     - [get\_holder\_by\_numeric\_id(numeric\_id: int) -\> JavaObject|None](#get_holder_by_numeric_idnumeric_id-int---javaobjectnone)
+  - [XaeroHelper](#xaerohelper)
+    - [is\_mod\_loaded() -\> bool:](#is_mod_loaded---bool)
+    - [get\_current\_waypoint\_set\_name() -\> str | None](#get_current_waypoint_set_name---str--none)
+    - [get\_current\_set\_waypoints() -\> List\[Waypoint\] | None](#get_current_set_waypoints---listwaypoint--none)
+    - [Waypoint:](#waypoint)
+    - [add\_waypoint\_to\_current\_set(name: str, x: float|int, y: float|int, z: float|int, initials: str) -\> bool | None](#add_waypoint_to_current_setname-str-x-floatint-y-floatint-z-floatint-initials-str---bool--none)
+    - [remove\_waypoint\_from\_current\_set(waypoint: Waypoint | int) -\> bool:](#remove_waypoint_from_current_setwaypoint-waypoint--int---bool)
+    - [get\_waypoint\_from\_current\_set(waypoint: Waypoint | int) -\> Waypoint | None:](#get_waypoint_from_current_setwaypoint-waypoint--int---waypoint--none)
+    - [get\_current\_waypoint\_set\_count() -\> int | None:](#get_current_waypoint_set_count---int--none)
+    - [get\_current\_minimap\_session() -\> JavaObject | None](#get_current_minimap_session---javaobject--none)
+    - [get\_current\_world\_manager() -\> JavaObject | None](#get_current_world_manager---javaobject--none)
+    - [get\_current\_world() -\> JavaObject | None:](#get_current_world---javaobject--none)
+    - [get\_current\_waypoint\_set() -\> JavaObject | None:](#get_current_waypoint_set---javaobject--none)
 
 ---
 
@@ -800,6 +814,10 @@ Args:
 ClientHelper.close_current_screen()
 ```
 
+### open_alert_screen(title_text: str, message_text: str, ok_button_text: str = "OK")
+Shows an alert screen
+![alert screen](./readme-resources/test_screen.png)
+
 ### open_pause_screen() -> None
 ### open_inventory_screen() -> None
 ### disconnect(reason="Disconnected by Minescript") -> None
@@ -912,9 +930,56 @@ RegistryHelper.get_registry_path(RegistryHelper.BuiltInRegistries.ITEM, item_ins
 
 ### get_holder_by_numeric_id(numeric_id: int) -> JavaObject|None
 
-    if result_item:
-        ContainerHelper.click_slot(result_slot, button=0)  # Pick up result
-        free_slot = ContainerHelper.get_inventory_free_slot()
-        if free_slot:
-            ContainerHelper.click_slot(free_slot, button=0)  # Place in inventory
-```
+---
+
+## XaeroHelper
+An helper for [xaero's minimap](https://www.curseforge.com/minecraft/mc-mods/xaeros-minimap) 
+
+Tested on version `1.21.11-26.4.2`
+
+> [!NOTE]
+> Mod must be installed if you wanna use the functions, if the mod is not installed ALL functions will return None (except `is_mod_loaded` will return true/false)
+
+### is_mod_loaded() -> bool:
+Whether Xaero's minimap is currently loaded as aaccessible mod
+
+### get_current_waypoint_set_name() -> str | None
+Returns the current waypoint sets name, `gui.xaero_default` for the default set.
+
+### get_current_set_waypoints() -> List[Waypoint] | None
+
+### Waypoint:
+    __init__(self, name: str, initials: str, x: int, y: int, z: int, index: int = 0, set_name: str = "")
+    name: str
+    initials: str
+    x: int
+    y: int
+    z: int
+    index: int
+    set_name: str
+
+### add_waypoint_to_current_set(name: str, x: float|int, y: float|int, z: float|int, initials: str) -> bool | None
+
+### remove_waypoint_from_current_set(waypoint: Waypoint | int) -> bool:
+Remove a waypoint either by it's [Waypoint](#waypoint) instance or by index
+
+### get_waypoint_from_current_set(waypoint: Waypoint | int) -> Waypoint | None:
+
+### get_current_waypoint_set_count() -> int | None:
+
+<details>
+<summary>Java object functions</summary>
+
+### get_current_minimap_session() -> JavaObject | None
+Returns `xaero.hud.minimap.module.MinimapSession`
+
+### get_current_world_manager() -> JavaObject | None
+Returns `xaero.hud.minimap.world.MinimapWorldManager`
+
+### get_current_world() -> JavaObject | None:
+Returns `xaero.hud.minimap.world.MinimapWorld`
+
+### get_current_waypoint_set() -> JavaObject | None:
+Returns `xaero.hud.minimap.waypoint.set.WaypointSet`
+
+</details>

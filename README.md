@@ -51,12 +51,15 @@ If you are encountering errors, please provide the latest.log file from `%appdat
   - [BookScreenHelper](#bookscreenhelper)
     - [is\_edit\_book\_screen() -\> bool](#is_edit_book_screen---bool)
     - [is\_view\_book\_screen() -\> bool](#is_view_book_screen---bool)
+    - [is\_sign\_book\_screen() -\> bool](#is_sign_book_screen---bool)
     - [is\_book\_screen() -\> bool](#is_book_screen---bool)
     - [get\_page\_count() -\> int | None](#get_page_count---int--none)
     - [is\_last\_page() -\> bool | None](#is_last_page---bool--none)
     - [get\_current\_page\_index() -\> int | None](#get_current_page_index---int--none)
     - [page\_forward() -\> None](#page_forward---none)
     - [page\_back() -\> None](#page_back---none)
+    - [sign\_editable\_book(title: str) -\> bool](#sign_editable_booktitle-str---bool)
+    - [save\_editable\_book() -\> bool](#save_editable_book---bool)
   - [BlocksHelper](#blockshelper)
     - [get\_block\_pos(x, y=None, z=None) -\> JavaObject](#get_block_posx-ynone-znone---javaobject)
     - [get\_block\_state(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_statex-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
@@ -121,14 +124,24 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [get\_time\_until\_lured() -\> int | None](#get_time_until_lured---int--none)
     - [get\_time\_until\_hooked() -\> int | None](#get_time_until_hooked---int--none)
     - [use\_rod() -\> bool](#use_rod---bool)
-  - [ClientHelper](#clienthelper)
+  - [ScreenHelper](#screenhelper)
     - [get\_current\_screen() -\> JavaObject | None](#get_current_screen---javaobject--none)
     - [get\_current\_screen\_class\_name() -\> str](#get_current_screen_class_name---str)
+    - [get\_container\_bounds() -\> ContainerBounds | None](#get_container_bounds---containerbounds--none)
     - [set\_current\_screen(screen) -\> None](#set_current_screenscreen---none)
     - [close\_current\_screen(with\_close\_container\_packet=True) -\> None](#close_current_screenwith_close_container_packettrue---none)
     - [open\_alert\_screen(title\_text: str, message\_text: str, ok\_button\_text: str = "OK")](#open_alert_screentitle_text-str-message_text-str-ok_button_text-str--ok)
     - [open\_pause\_screen() -\> None](#open_pause_screen---none)
     - [open\_inventory\_screen() -\> None](#open_inventory_screen---none)
+    - [show\_toast(title: str, desc: str, display\_time: float = 5000.0)](#show_toasttitle-str-desc-str-display_time-float--50000)
+    - [is\_any\_toast\_showing() -\> bool](#is_any_toast_showing---bool)
+  - [WidgetScreenHelper](#widgetscreenhelper)
+    - [get\_widgets() -\> List\[GuiWidget\] | None](#get_widgets---listguiwidget--none)
+    - [get\_renderables() -\> List\[JavaObject\] | None](#get_renderables---listjavaobject--none)
+    - [get\_widget\_by\_message(text: str, match\_case: bool = False) -\> GuiWidget | None](#get_widget_by_messagetext-str-match_case-bool--false---guiwidget--none)
+    - [click\_widget(widget: GuiWidget | JavaObject) -\> bool](#click_widgetwidget-guiwidget--javaobject---bool)
+    - [click\_at(x: float, y: float, button: int = 0) -\> bool](#click_atx-float-y-float-button-int--0---bool)
+  - [ClientHelper](#clienthelper)
     - [disconnect(reason="Disconnected by Minescript") -\> None](#disconnectreasondisconnected-by-minescript---none)
     - [get\_fps() -\> int](#get_fps---int)
     - [get\_camera\_position() -\> Vector3f](#get_camera_position---vector3f)
@@ -136,8 +149,6 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [get\_camera\_type() -\> str](#get_camera_type---str)
     - [get\_level\_data() -\> ClientLevelData](#get_level_data---clientleveldata)
       - [ClientLevelData](#clientleveldata)
-    - [show\_toast(title: str, desc: str, display\_time: float = 5000.0)](#show_toasttitle-str-desc-str-display_time-float--50000)
-    - [is\_any\_toast\_showing() -\> bool](#is_any_toast_showing---bool)
     - [narrate\_text(text: str)](#narrate_texttext-str)
   - [MappingsHelper](#mappingshelper)
     - [get\_runtime\_class\_name(pretty\_class\_name) -\> str](#get_runtime_class_namepretty_class_name---str)
@@ -151,6 +162,7 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [set\_private\_field(instance, pretty\_field\_name, value) -\> bool](#set_private_fieldinstance-pretty_field_name-value---bool)
     - [get\_declared\_method\_accessible(instance, pretty\_method\_name)](#get_declared_method_accessibleinstance-pretty_method_name)
     - [invoke\_private\_method(instance, pretty\_method\_name, \*args):](#invoke_private_methodinstance-pretty_method_name-args)
+    - [is\_instance\_of(instance: JavaObject, class\_name: str) -\> bool](#is_instance_ofinstance-javaobject-class_name-str---bool)
   - [UtilHelper](#utilhelper)
     - [get\_class\_name(obj) -\> str](#get_class_nameobj---str)
     - [get\_clipboard() -\> str](#get_clipboard---str)
@@ -165,6 +177,7 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [get\_current\_waypoint\_set\_name() -\> str | None](#get_current_waypoint_set_name---str--none)
     - [get\_current\_set\_waypoints() -\> List\[Waypoint\] | None](#get_current_set_waypoints---listwaypoint--none)
     - [Waypoint:](#waypoint)
+    - [GuiWidget:](#guiwidget)
     - [add\_waypoint\_to\_current\_set(name: str, x: float|int, y: float|int, z: float|int, initials: str) -\> bool | None](#add_waypoint_to_current_setname-str-x-floatint-y-floatint-z-floatint-initials-str---bool--none)
     - [remove\_waypoint\_from\_current\_set(waypoint: Waypoint | int) -\> bool:](#remove_waypoint_from_current_setwaypoint-waypoint--int---bool)
     - [get\_waypoint\_from\_current\_set(waypoint: Waypoint | int) -\> Waypoint | None:](#get_waypoint_from_current_setwaypoint-waypoint--int---waypoint--none)
@@ -231,11 +244,12 @@ This function is used by `get_slot_screen_position` to calculate the position of
 slot = container.getSlot(slot)
 
 # Calculate relative to the container's screen origin
-left_pos = ReflectionHelper.get_private_field(screen, "leftPos")
-top_pos = ReflectionHelper.get_private_field(screen, "topPos")
+bounds = ScreenHelper.get_container_bounds()
+if bounds is None:
+    return None
 
-gui_x = left_pos + slot.x + 8
-gui_y = top_pos + slot.y + 8
+gui_x = bounds.left + slot.x + 8
+gui_y = bounds.top + slot.y + 8
 
 return WindowHelper.get_screen_position(gui_x, gui_y)
 ```
@@ -272,9 +286,10 @@ print(MerchantHelper.get_offers_json())
 
 ### is_edit_book_screen() -> bool
 ### is_view_book_screen() -> bool
+### is_sign_book_screen() -> bool
 
 ### is_book_screen() -> bool
-Wrapper for is_edit_book_screen() || is_view_book_screen()
+Wrapper for is_edit_book_screen() || is_view_book_screen() || is_sign_book_screen()
 
 ### get_page_count() -> int | None
 
@@ -285,6 +300,11 @@ to get the current page "number" as shown on screen get_current_page_index + 1
 
 ### page_forward() -> None
 ### page_back() -> None
+
+### sign_editable_book(title: str) -> bool
+
+### save_editable_book() -> bool
+Saves the current edits to the book & quill and closes the screen (equivalent to clicking "Done").
 
 ---
 ## BlocksHelper
@@ -791,17 +811,20 @@ ticks = FishingHelper.get_time_until_hooked()
 
 ---
 
-## ClientHelper
+## ScreenHelper
 
 ### get_current_screen() -> JavaObject | None
 
 ### get_current_screen_class_name() -> str
+### get_container_bounds() -> ContainerBounds | None
+Returns the bounds (`left`, `top`, `width`, `height`) of the container background if the current screen is a container screen.
+
 ### set_current_screen(screen) -> None
 Open a screen.
 
 ```python
 screen = JavaClass("net.minecraft.client.gui.screens.PauseScreen")()
-ClientHelper.set_current_screen(screen)
+ScreenHelper.set_current_screen(screen)
 ```
 
 ### close_current_screen(with_close_container_packet=True) -> None
@@ -811,7 +834,7 @@ Args:
 - `with_close_container_packet` (bool): If `True`, sends close container packet to server (default)
 
 ```python
-ClientHelper.close_current_screen()
+ScreenHelper.close_current_screen()
 ```
 
 ### open_alert_screen(title_text: str, message_text: str, ok_button_text: str = "OK")
@@ -820,6 +843,69 @@ Shows an alert screen
 
 ### open_pause_screen() -> None
 ### open_inventory_screen() -> None
+
+### show_toast(title: str, desc: str, display_time: float = 5000.0)
+### is_any_toast_showing() -> bool
+
+---
+
+## WidgetScreenHelper
+
+### get_widgets() -> List[GuiWidget] | None
+Returns the list of widgets on the current screen wrapped in `GuiWidget` objects.
+
+```python
+widgets = WidgetScreenHelper.get_widgets()
+print("get_widgets count:", len(widgets) if widgets else 0)
+for widget in widgets or []:
+    print(f"Widget Info - Message: '{widget.message}', Pos: ({widget.x}, {widget.y}), Size: {widget.width}x{widget.height}, Active: {widget.active}, Visible: {widget.visible}")
+
+# ->
+# get_widgets count: 5
+# Widget Info - Message: '', Pos: (106, 28), Size: 122x134, Active: True, Visible: True
+# Widget Info - Message: 'Previous Page', Pos: (118, 159), Size: 23x13, Active: True, Visible: False
+# Widget Info - Message: 'Next Page', Pos: (191, 159), Size: 23x13, Active: True, Visible: True
+# Widget Info - Message: 'Sign', Pos: (71, 196), Size: 98x20, Active: True, Visible: True
+# Widget Info - Message: 'Done', Pos: (173, 196), Size: 98x20, Active: True, Visible: True
+```
+
+### get_renderables() -> List[JavaObject] | None
+Returns the list of raw renderable elements on the current screen.
+
+### get_widget_by_message(text: str, match_case: bool = False) -> GuiWidget | None
+Finds a widget whose message contains the specified text.
+
+```python
+ScreenHelper.open_alert_screen("hello", "world", "OK")
+done_btn = WidgetScreenHelper.get_widget_by_message("OK")
+if done_btn:
+    click_success = WidgetScreenHelper.click_widget(done_btn)
+```
+
+### click_widget(widget: GuiWidget | JavaObject) -> bool
+Simulates a mouse click at the center of the specified widget.
+
+### click_at(x: float, y: float, button: int = 0) -> bool
+Simulates a mouse click at the specified GUI coordinates on the current screen.
+
+```python
+# Click relative to container center
+bounds = ScreenHelper.get_container_bounds()
+if bounds:
+    # Click 10 pixels right and 20 pixels down from container origin
+    WidgetScreenHelper.click_at(bounds.left + 10, bounds.top + 20)
+```
+
+```python
+button = WidgetScreenHelper.get_widget_by_text("Done")
+if button:
+    WidgetScreenHelper.click_widget(button)
+```
+
+---
+
+## ClientHelper
+
 ### disconnect(reason="Disconnected by Minescript") -> None
 ### get_fps() -> int
 
@@ -841,8 +927,6 @@ Object containing level metadata:
 - `daytime` (int): Current day time (0-24000)
 - `game_time` (int): Total game time in ticks
 
-### show_toast(title: str, desc: str, display_time: float = 5000.0)
-### is_any_toast_showing() -> bool
 ### narrate_text(text: str)
 
 ---
@@ -884,7 +968,7 @@ pretty_name = MappingsHelper.get_pretty_class_name("net.minecraft.class_310")
 
 Invoking a instanc method without args
 ```
-current_screen = ClientHelper.get_current_screen()
+current_screen = ScreenHelper.get_current_screen()
 page_forward_method = ReflectionHelper.get_declared_method_accessible(current_screen, "pageForward")
 page_forward_method.invoke(current_screen, JavaArray(()))
 ```
@@ -893,9 +977,11 @@ page_forward_method.invoke(current_screen, JavaArray(()))
 
 Invoking a instance method without args
 ```
-current_screen = ClientHelper.get_current_screen()
+current_screen = ScreenHelper.get_current_screen()
 ReflectionHelper.invoke_private_method(current_screen, "pageForward")
 ```
+
+### is_instance_of(instance: JavaObject, class_name: str) -> bool
 
 ---
 
@@ -914,6 +1000,8 @@ if item:
 ### get_clipboard() -> str
 ### set_clipboard(text) -> None
 ### random_uuid() -> str
+
+---
 
 ## RegistryHelper
 
@@ -957,6 +1045,18 @@ Returns the current waypoint sets name, `gui.xaero_default` for the default set.
     z: int
     index: int
     set_name: str
+
+### GuiWidget:
+    __init__(self, x: int, y: int, width: int, height: int, message: str, active: bool, visible: bool, focused: bool, java_object: JavaObject)
+    x: int
+    y: int
+    width: int
+    height: int
+    message: str
+    active: bool
+    visible: bool
+    focused: bool
+    java_object: JavaObject
 
 ### add_waypoint_to_current_set(name: str, x: float|int, y: float|int, z: float|int, initials: str) -> bool | None
 

@@ -132,33 +132,52 @@ class Waypoint:
         self.index = index
         self.set_name = set_name
 
+class GuiWidget:
+    def __init__(self, x: int, y: int, width: int, height: int, message: str, active: bool, visible: bool, focused: bool, java_object: JavaObject):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.message = message
+        self.active = active
+        self.visible = visible
+        self.focused = focused
+        self.java_object = java_object
+
 class BookScreenHelper:
     @staticmethod
     def is_edit_book_screen() -> bool:
-        current_screen = ClientHelper.get_current_screen()
+        current_screen = ScreenHelper.get_current_screen()
         if current_screen is None:
             return False
         return UtilHelper.get_class_name(current_screen) == "net.minecraft.client.gui.screens.inventory.BookEditScreen"
     
     @staticmethod
     def is_view_book_screen() -> bool:
-        current_screen = ClientHelper.get_current_screen()
+        current_screen = ScreenHelper.get_current_screen()
         if current_screen is None:
             return False
         return UtilHelper.get_class_name(current_screen) == "net.minecraft.client.gui.screens.inventory.BookViewScreen"
     
     @staticmethod
+    def is_sign_book_screen() -> bool:
+        current_screen = ScreenHelper.get_current_screen()
+        if current_screen is None:
+            return False
+        return UtilHelper.get_class_name(current_screen) == "net.minecraft.client.gui.screens.inventory.BookSignScreen"
+    
+    @staticmethod
     def is_book_screen() -> bool:
-        return BookScreenHelper.is_edit_book_screen() or BookScreenHelper.is_view_book_screen()
+        return BookScreenHelper.is_edit_book_screen() or BookScreenHelper.is_view_book_screen() or BookScreenHelper.is_sign_book_screen()
     
     @staticmethod
     def _get_pages() -> JavaObject | None:
         if not BookScreenHelper.is_book_screen():
             return None
         
-        current_screen = ClientHelper.get_current_screen()
+        current_screen = ScreenHelper.get_current_screen()
         
-        if BookScreenHelper.is_edit_book_screen():
+        if BookScreenHelper.is_edit_book_screen() or BookScreenHelper.is_sign_book_screen():
             return ReflectionHelper.get_private_field(current_screen, "pages")
         elif BookScreenHelper.is_view_book_screen():
             book_access = ReflectionHelper.get_private_field(current_screen, "bookAccess")
@@ -173,10 +192,10 @@ class BookScreenHelper:
     
     @staticmethod
     def get_current_page_index() -> int | None:
-        if not BookScreenHelper.is_book_screen():
+        if not BookScreenHelper.is_book_screen() or BookScreenHelper.is_sign_book_screen():
             return None
         
-        current_screen = ClientHelper.get_current_screen()
+        current_screen = ScreenHelper.get_current_screen()
         return ReflectionHelper.get_private_field(current_screen, "currentPage")
     
     @staticmethod
@@ -194,7 +213,7 @@ class BookScreenHelper:
         if not BookScreenHelper.is_book_screen():
             return None
         
-        current_screen = ClientHelper.get_current_screen()
+        current_screen = ScreenHelper.get_current_screen()
         ReflectionHelper.invoke_private_method(current_screen, "pageForward")
 
     @staticmethod
@@ -202,9 +221,48 @@ class BookScreenHelper:
         if not BookScreenHelper.is_book_screen():
             return None
         
-        current_screen = ClientHelper.get_current_screen()
+        current_screen = ScreenHelper.get_current_screen()
         ReflectionHelper.invoke_private_method(current_screen, "pageBack")
+    
+    @staticmethod
+    def sign_editable_book(title: str) -> bool:
+        if not BookScreenHelper.is_edit_book_screen() and not BookScreenHelper.is_sign_book_screen():
+            return False
         
+        current_screen = ScreenHelper.get_current_screen()
+        sign_screen = None
+        
+        if BookScreenHelper.is_edit_book_screen():
+            # Get the sign screen instance from the edit screen
+            sign_screen = ReflectionHelper.get_private_field(current_screen, "signScreen")
+            ReflectionHelper.invoke_private_method(current_screen, "saveChanges")
+            ScreenHelper.set_current_screen(sign_screen)
+        else:
+            # We are already on the sign screen
+            sign_screen = current_screen
+            
+        if sign_screen is None:
+            return False
+            
+        # Set the title and finalize the book
+        title_box = ReflectionHelper.get_private_field(sign_screen, "titleBox")
+        if title_box is not None:
+            title_box.setValue(title)
+            ReflectionHelper.invoke_private_method(sign_screen, "saveChanges")
+            ScreenHelper.set_current_screen(None)
+            return True
+            
+        return False
+    
+    @staticmethod
+    def save_editable_book() -> bool:
+        if not BookScreenHelper.is_edit_book_screen():
+            return False
+        
+        current_screen = ScreenHelper.get_current_screen()
+        ReflectionHelper.invoke_private_method(current_screen, "saveChanges")
+        ScreenHelper.set_current_screen(None)
+        return True
 class Vec3:
     def __init__(self, x: float, y: float, z: float):
         self.x = x
@@ -246,6 +304,19 @@ class MappingsHelper:
 
 class ReflectionHelper:
     _method_cache = {}
+
+    @staticmethod
+    def is_instance_of(instance: JavaObject, class_name: str) -> bool:
+        if instance is None:
+            return False
+            
+        current_class = instance.getClass()
+        while current_class is not None:
+            if MappingsHelper.get_pretty_class_name(current_class.getName()) == class_name:
+                return True
+            current_class = current_class.getSuperclass()
+            
+        return False
 
     @staticmethod
     def _get_declared_field_accessible(instance, pretty_field_name):
@@ -351,7 +422,7 @@ class ContainerHelper:
     @staticmethod
     def get_slot_screen_position(slot: int) -> Vec2 | None:
         container = ContainerHelper.get_container()
-        screen = ClientHelper.get_current_screen()
+        screen = ScreenHelper.get_current_screen()
 
         if container is None or screen is None:
             return None
@@ -359,11 +430,12 @@ class ContainerHelper:
         slot = container.getSlot(slot)
 
         # Calculate relative to the container's screen origin
-        left_pos = ReflectionHelper.get_private_field(screen, "leftPos")
-        top_pos = ReflectionHelper.get_private_field(screen, "topPos")
+        bounds = ScreenHelper.get_container_bounds()
+        if bounds is None:
+            return None
 
-        gui_x = left_pos + slot.x + 8
-        gui_y = top_pos + slot.y + 8
+        gui_x = bounds.left + slot.x + 8
+        gui_y = bounds.top + slot.y + 8
 
         return WindowHelper.get_screen_position(gui_x, gui_y)
     
@@ -801,7 +873,14 @@ class MerchantHelper:
         container = ContainerHelper.get_container()
         return container.getTraderLevel()
 
-class ClientHelper:
+class ContainerBounds:
+    def __init__(self, left: int, top: int, width: int, height: int):
+        self.left = left
+        self.top = top
+        self.width = width
+        self.height = height
+
+class ScreenHelper:
     PauseScreen = JavaClass("net.minecraft.client.gui.screens.PauseScreen")
     InventoryScreen = JavaClass("net.minecraft.client.gui.screens.inventory.InventoryScreen")
     Component = JavaClass("net.minecraft.network.chat.Component")
@@ -823,6 +902,23 @@ class ClientHelper:
         return UtilHelper.get_class_name(minecraft.screen)
     
     @staticmethod
+    def get_container_bounds() -> ContainerBounds | None:
+        """For container screens, returns leftPos, topPos, imageWidth, imageHeight."""
+        screen = ScreenHelper.get_current_screen()
+        if screen is None:
+            return None
+        
+        try:
+            return ContainerBounds(
+                left=ReflectionHelper.get_private_field(screen, "leftPos"),
+                top=ReflectionHelper.get_private_field(screen, "topPos"),
+                width=ReflectionHelper.get_private_field(screen, "imageWidth"),
+                height=ReflectionHelper.get_private_field(screen, "imageHeight")
+            )
+        except:
+            return None
+    
+    @staticmethod
     def close_current_screen(with_close_container_packet: bool = True) -> None:
         if with_close_container_packet:
             minecraft.player.closeContainer()
@@ -831,11 +927,144 @@ class ClientHelper:
 
     @staticmethod
     def open_pause_screen() -> None:
-        ClientHelper.set_current_screen(ClientHelper.PauseScreen())
+        ScreenHelper.set_current_screen(ScreenHelper.PauseScreen())
 
     @staticmethod
     def open_inventory_screen() -> None:
-        ClientHelper.set_current_screen(ClientHelper.InventoryScreen(minecraft.player))
+        ScreenHelper.set_current_screen(ScreenHelper.InventoryScreen(minecraft.player))
+
+    @staticmethod
+    def show_toast(title: str, desc: str, display_time: float = 5000.0):
+        toast_manager = minecraft.getToastManager()
+        _title = ScreenHelper.Component.literal(title)
+        _desc = ScreenHelper.Component.literal(desc)
+        system_toast_id = ScreenHelper.SystemToast.SystemToastId()
+        
+        ReflectionHelper.set_private_field(system_toast_id, "displayTime", display_time)
+        
+        toast_manager.addToast(ScreenHelper.SystemToast.multiline(minecraft, system_toast_id, _title, _desc))
+    
+    @staticmethod
+    def open_alert_screen(title_text: str, message_text: str, ok_button_text: str = "OK"):
+        def ok_pressed():
+            ScreenHelper.close_current_screen()
+            managed_callback.cancel()
+        
+        managed_callback = ManagedCallback(ok_pressed)
+        title_literal = ScreenHelper.Component.literal(title_text)
+        message_literal = ScreenHelper.Component.literal(message_text)
+        ok_button_literal = ScreenHelper.Component.literal(ok_button_text)
+        ScreenHelper.set_current_screen(ScreenHelper.AlertScreen(managed_callback, title_literal, message_literal, ok_button_literal, True))
+        
+    @staticmethod
+    def is_any_toast_showing() -> bool:
+        toast_manager = minecraft.getToastManager()
+        return not toast_manager.visibleToasts.isEmpty()
+class WidgetScreenHelper:
+    @staticmethod
+    def _wrap_abstract_widget(java_object) -> GuiWidget | None:
+        if not ReflectionHelper.is_instance_of(java_object, "net.minecraft.client.gui.components.AbstractWidget"):
+            return None
+        
+        message = java_object.getMessage()
+        return GuiWidget(
+            x=java_object.getX(),
+            y=java_object.getY(),
+            width=java_object.getWidth(),
+            height=java_object.getHeight(),
+            message=message.getString() if message else "",
+            active=java_object.active,
+            visible=java_object.visible,
+            focused=java_object.isFocused(),
+            java_object=java_object
+        )
+
+    @staticmethod
+    def get_widgets() -> List[GuiWidget] | None:
+        screen = ScreenHelper.get_current_screen()
+        if screen is None:
+            return None
+        
+        children = ReflectionHelper.get_private_field(screen, "children")
+        if children is None:
+            return None
+            
+        widget_list = []
+        for i in range(children.size()):
+            wrapped = WidgetScreenHelper._wrap_abstract_widget(children.get(i))
+            if wrapped:
+                widget_list.append(wrapped)
+        return JavaArray(tuple(widget_list))
+
+    @staticmethod
+    def _create_mouse_event(x: float, y: float, button: int) -> JavaObject:
+        MouseButtonInfo = JavaClass("net.minecraft.client.input.MouseButtonInfo")
+        MouseButtonEvent = JavaClass("net.minecraft.client.input.MouseButtonEvent")
+        return MouseButtonEvent(float(x), float(y), MouseButtonInfo(button, 0))
+
+    @staticmethod
+    def click_widget(widget: GuiWidget | JavaObject) -> bool:
+        """Simulates a click on a widget."""
+        java_obj = widget.java_object if isinstance(widget, GuiWidget) else widget
+        if java_obj is None:
+            return False
+        
+        x = java_obj.getX() + (java_obj.getWidth() / 2)
+        y = java_obj.getY() + (java_obj.getHeight() / 2)
+        
+        return java_obj.mouseClicked(WidgetScreenHelper._create_mouse_event(x, y, 0), False)
+
+    @staticmethod
+    def click_at(x: float, y: float, button: int = 0) -> bool:
+        """Simulates a click at specific GUI coordinates."""
+        screen = ScreenHelper.get_current_screen()
+        if screen is None:
+            return False
+        
+        return screen.mouseClicked(WidgetScreenHelper._create_mouse_event(x, y, button), False)
+
+    @staticmethod
+    def get_renderables() -> List[GuiWidget | JavaObject] | None:
+        screen = ScreenHelper.get_current_screen()
+        if screen is None:
+            return None
+        
+        renderables = ReflectionHelper.get_private_field(screen, "renderables")
+        if renderables is None:
+            return None
+            
+        renderable_list = []
+        for i in range(renderables.size()):
+            r = renderables.get(i)
+            wrapped = WidgetScreenHelper._wrap_abstract_widget(r)
+            if wrapped:
+                renderable_list.append(wrapped)
+            else:
+                renderable_list.append(r)
+        return JavaArray(tuple(renderable_list))
+
+    @staticmethod
+    def get_widget_by_message(text: str, match_case: bool = False) -> GuiWidget | None:
+        widgets = WidgetScreenHelper.get_widgets()
+        if widgets is None:
+            return None
+        
+        if not match_case:
+            text = text.lower()
+            
+        for widget in widgets:
+            message_text = widget.message
+            if not match_case:
+                if text in message_text.lower():
+                    return widget
+            else:
+                if text in message_text:
+                    return widget
+        return None
+
+
+class ClientHelper:
+    Component = JavaClass("net.minecraft.network.chat.Component")
 
     @staticmethod
     def disconnect(str = "Disconnected by Minescript") -> None:
@@ -879,34 +1108,6 @@ class ClientHelper:
         camera = ClientHelper._get_camera()
         pos = camera.blockPosition()
         return (pos.getX(), pos.getY(), pos.getZ())
-
-    @staticmethod
-    def show_toast(title: str, desc: str, display_time: float = 5000.0):
-        toast_manager = minecraft.getToastManager()
-        _title = ClientHelper.Component.literal(title)
-        _desc = ClientHelper.Component.literal(desc)
-        system_toast_id = ClientHelper.SystemToast.SystemToastId()
-        
-        ReflectionHelper.set_private_field(system_toast_id, "displayTime", display_time)
-        
-        toast_manager.addToast(ClientHelper.SystemToast.multiline(minecraft, system_toast_id, _title, _desc))
-        
-    @staticmethod
-    def open_alert_screen(title_text: str, message_text: str, ok_button_text: str = "OK"):
-        def ok_pressed():
-            ClientHelper.close_current_screen()
-            managed_callback.cancel()
-        
-        managed_callback = ManagedCallback(ok_pressed)
-        title_literal = ClientHelper.Component.literal(title_text)
-        message_literal = ClientHelper.Component.literal(message_text)
-        ok_button_literal = ClientHelper.Component.literal(ok_button_text)
-        ClientHelper.set_current_screen(ClientHelper.AlertScreen(managed_callback, title_literal, message_literal, ok_button_literal, True))
-        
-    @staticmethod
-    def is_any_toast_showing() -> bool:
-        toast_manager = minecraft.getToastManager()
-        return not toast_manager.visibleToasts.isEmpty()
     
     @staticmethod
     def narrate_text(text: str):
@@ -1073,13 +1274,8 @@ class GLFWHelper:
     @staticmethod
     def send_mouse_button(button: int, press: bool):
         mouse_handler = minecraft.mouseHandler
-
         button_info = GLFWHelper.MouseButtonInfo(button, 0)
-
-        if (press):
-            action = GLFWHelper.GLFW.GLFW_PRESS
-        else:
-            action = GLFWHelper.GLFW.GLFW_RELEASE
+        action = GLFWHelper.GLFW.GLFW_PRESS if press else GLFWHelper.GLFW.GLFW_RELEASE
         
         ReflectionHelper.invoke_private_method(
             mouse_handler,
@@ -1087,18 +1283,7 @@ class GLFWHelper:
             WindowHelper.get_window_handle(),
             button_info,
             action
-        )
-        
-        # If release, send it twice FOR SOME FUCKING REASON
-        if not press:
-            ReflectionHelper.invoke_private_method(
-                mouse_handler,
-                "onButton",
-                WindowHelper.get_window_handle(),
-                button_info,
-                action
-            )
-        
+        )        
         
 class BlocksHelper:
     BlockPos = JavaClass("net.minecraft.core.BlockPos")

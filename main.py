@@ -4,7 +4,7 @@ from code.Proxy import PyJinnProxy, PyJinnProxyMeta
 PyJinnProxyMeta.bind_script("library.pyj")
 
 if TYPE_CHECKING:
-  from code.type_checking import XaeroHelper, BookScreenHelper, ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper
+  from code.type_checking import XaeroHelper, WidgetScreenHelper, ScreenHelper, BookScreenHelper, ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper
 else:
   class XaeroHelper( PyJinnProxy):
     pass
@@ -70,6 +70,12 @@ else:
       return DefaultContainerLayout(container_name, layouts={"slots":list(range(total_slots))})
 
   class FishingHelper(PyJinnProxy):
+    pass
+
+  class ScreenHelper(PyJinnProxy):
+    pass
+
+  class WidgetScreenHelper(PyJinnProxy):
     pass
 
   class ClientHelper(PyJinnProxy):

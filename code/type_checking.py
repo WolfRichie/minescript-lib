@@ -2,7 +2,7 @@ from java import *
 from code.Proxy import PyJinnProxy
 from main import ContainerLayout
 from main import ContainerLayout
-from minescript import ItemStack
+from minescript import ItemStack, Vector3f
 
 class Waypoint:
     def __init__(self, name: str, initials: str, x: int, y: int, z: int, index: int = 0, set_name: str = ""): ...
@@ -13,6 +13,18 @@ class Waypoint:
     z: int
     index: int
     set_name: str
+
+class GuiWidget:
+    def __init__(self, x: int, y: int, width: int, height: int, message: str, active: bool, visible: bool, focused: bool, java_object: JavaObject): ...
+    x: int
+    y: int
+    width: int
+    height: int
+    message: str
+    active: bool
+    visible: bool
+    focused: bool
+    java_object: JavaObject
         
 class XaeroHelper(PyJinnProxy):
     @staticmethod
@@ -45,6 +57,8 @@ class BookScreenHelper(PyJinnProxy):
     @staticmethod
     def is_view_book_screen() -> bool: ...
     @staticmethod
+    def is_sign_book_screen() -> bool: ...
+    @staticmethod
     def is_book_screen() -> bool: ...
     @staticmethod
     def get_page_count() -> int | None: ...
@@ -56,6 +70,10 @@ class BookScreenHelper(PyJinnProxy):
     def page_forward() -> None: ...
     @staticmethod
     def page_back() -> None: ...
+    @staticmethod
+    def sign_editable_book(title: str) -> bool: ...
+    @staticmethod
+    def save_editable_book() -> bool: ...
   
 class GLFWHelper(PyJinnProxy):
     @staticmethod
@@ -172,7 +190,8 @@ class ReflectionHelper(PyJinnProxy):
   def get_declared_method_accessible(instance, pretty_method_name): ...
   @staticmethod
   def invoke_private_method(instance, pretty_method_name, *args): ...
-  
+  @staticmethod
+  def is_instance_of(instance: JavaObject, class_name: str) -> bool: ...
 class ItemsHelper(PyJinnProxy):  
   @staticmethod
   def get_item_id(item: JavaObject | str | int) -> str | None: ...
@@ -285,7 +304,13 @@ class FishingHelper(PyJinnProxy):
   def use_rod() -> bool: ...
 
 
-class ClientHelper(PyJinnProxy):
+class ContainerBounds:
+  left: int
+  top: int
+  width: int
+  height: int
+
+class ScreenHelper(PyJinnProxy):
   @staticmethod
   def set_current_screen(screen: JavaObject) -> None: ...
 
@@ -294,6 +319,9 @@ class ClientHelper(PyJinnProxy):
 
   @staticmethod
   def get_current_screen_class_name() -> str: ...
+  
+  @staticmethod
+  def get_container_bounds() -> ContainerBounds | None: ...
 
   @staticmethod
   def close_current_screen(with_close_container_packet: bool = True) -> None: ...
@@ -305,6 +333,28 @@ class ClientHelper(PyJinnProxy):
   def open_inventory_screen() -> None: ...
 
   @staticmethod
+  def open_alert_screen(title_text: str, message_text: str, ok_button_text: str = "OK"): ...
+
+  @staticmethod
+  def show_toast(title: str, desc: str, display_time: float = 5000.0): ...
+  
+  @staticmethod
+  def is_any_toast_showing() -> bool: ...
+
+class WidgetScreenHelper(PyJinnProxy):
+  @staticmethod
+  def get_widgets() -> List[GuiWidget] | None: ...
+  @staticmethod
+  def click_widget(widget: GuiWidget | JavaObject) -> bool: ...
+  @staticmethod
+  def click_at(x: float, y: float, button: int = 0) -> bool: ...
+  @staticmethod
+  def get_renderables() -> List[GuiWidget | JavaObject] | None: ...
+  @staticmethod
+  def get_widget_by_message(text: str, match_case: bool = False) -> GuiWidget | None: ...
+
+class ClientHelper(PyJinnProxy):
+  @staticmethod
   def disconnect(str: str = "Disconnected by Minescript") -> None: ...
 
   @staticmethod
@@ -314,9 +364,9 @@ class ClientHelper(PyJinnProxy):
   def get_fps() -> int: ...
 
   @staticmethod
-  def get_camera_position() -> Vec3: ...
+  def get_camera_position() -> Vector3f: ...
   @staticmethod
-  def get_camera_block_position() -> Vec3: ...
+  def get_camera_block_position() -> Vector3f: ...
 
   @staticmethod
   def get_camera_type() -> str:
@@ -325,10 +375,6 @@ class ClientHelper(PyJinnProxy):
     """
     ...
     
-  @staticmethod
-  def show_toast(title: str, desc: str, display_time: float = 5000.0): ...
-  @staticmethod
-  def is_any_toast_showing() -> bool: ...
   @staticmethod
   def narrate_text(text: str): ...
 

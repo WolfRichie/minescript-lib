@@ -65,13 +65,15 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [sign\_editable\_book(title: str) -\> bool](#sign_editable_booktitle-str---bool)
     - [save\_editable\_book() -\> bool](#save_editable_book---bool)
   - [PlayerHelper](#playerhelper)
-    - [get\_food\_info() -\> FoodInfo](#get_food_info---foodinfo)
+    - [get\_food\_info() -\> FoodInfo | None](#get_food_info---foodinfo--none)
+      - [FoodInfo:](#foodinfo)
   - [RegistryHelper](#registryhelper)
     - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject | None](#get_by_idregistry-javaobject-identifier-str---javaobject--none)
     - [get\_id(registry: JavaObject, value: JavaObject) -\> str | None](#get_idregistry-javaobject-value-javaobject---str--none)
     - [get\_registry\_path(registry: JavaObject, value: JavaObject) -\> str | None](#get_registry_pathregistry-javaobject-value-javaobject---str--none)
     - [get\_all\_ids(registry: JavaObject) -\> List\[str\]](#get_all_idsregistry-javaobject---liststr)
     - [get\_registry(registry\_key: JavaObject) -\> JavaObject](#get_registryregistry_key-javaobject---javaobject)
+    - [get\_holder\_by\_numeric\_id(numeric\_id: int) -\> JavaObject | None](#get_holder_by_numeric_idnumeric_id-int---javaobject--none)
   - [BlocksHelper](#blockshelper)
     - [get\_block\_pos(x, y=None, z=None) -\> JavaObject](#get_block_posx-ynone-znone---javaobject)
     - [get\_block\_state(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_statex-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
@@ -183,14 +185,6 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [get\_class\_name(obj) -\> str](#get_class_nameobj---str)
     - [get\_clipboard() -\> str](#get_clipboard---str)
     - [set\_clipboard(text) -\> None](#set_clipboardtext---none)
-    - [random\_uuid() -\> str](#random_uuid---str)
-  - [PlayerHelper](#playerhelper-1)
-    - [get\_food\_info() -\> FoodInfo | None](#get_food_info---foodinfo--none)
-      - [FoodInfo:](#foodinfo)
-  - [RegistryHelper](#registryhelper-1)
-    - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject|None](#get_by_idregistry-javaobject-identifier-str---javaobjectnone)
-    - [get\_registry\_path(registry\_name: str) -\> JavaObject|None](#get_registry_pathregistry_name-str---javaobjectnone)
-    - [get\_holder\_by\_numeric\_id(numeric\_id: int) -\> JavaObject|None](#get_holder_by_numeric_idnumeric_id-int---javaobjectnone)
   - [XaeroHelper](#xaerohelper)
     - [is\_mod\_loaded() -\> bool:](#is_mod_loaded---bool)
     - [get\_current\_waypoint\_set\_name() -\> str | None](#get_current_waypoint_set_name---str--none)
@@ -336,11 +330,14 @@ Saves the current edits to the book & quill and closes the screen (equivalent to
 
 ## PlayerHelper
 
-### get_food_info() -> FoodInfo
-Returns a `FoodInfo` object with the following fields:
-- `foodLevel`: int
-- `saturationLevel`: float
-- `exhaustionLevel`: float
+### get_food_info() -> FoodInfo | None
+Returns the player's food, saturation, and exhaustion levels.
+
+#### FoodInfo:
+- food_level: int
+- saturation_level: float
+- exhaustion_level: float
+- def __init__(self, food_level: int, saturation_level: float, exhaustion_level: float)
 
 ---
 
@@ -360,6 +357,8 @@ Returns a list of all identifier strings in the given registry
 
 ### get_registry(registry_key: JavaObject) -> JavaObject
 Returns the registry object for the given registry key. e.g, `RegistryHelper.Registries.BLOCK`
+
+### get_holder_by_numeric_id(numeric_id: int) -> JavaObject | None
 
 ---
 ## BlocksHelper
@@ -1076,36 +1075,6 @@ if item:
 
 ### get_clipboard() -> str
 ### set_clipboard(text) -> None
-### random_uuid() -> str
-
----
-
-## PlayerHelper
-
-### get_food_info() -> FoodInfo | None
-Returns the player's food, saturation, and exhaustion levels.
-
-#### FoodInfo:
-- food_level: int
-- saturation_level: float
-- exhaustion_level: float
-- def __init__(self, food_level: int, saturation_level: float, exhaustion_level: float)
-
-
-## RegistryHelper
-
-### get_by_id(registry: JavaObject, identifier: str) -> JavaObject|None
-```
-RegistryHelper.get_by_id(RegistryHelper.BuiltInRegistries.ITEM, "diamond") # -> net.minecraft.world.item.Item
-```
-
-### get_registry_path(registry_name: str) -> JavaObject|None
-```
-item_instance = ...
-RegistryHelper.get_registry_path(RegistryHelper.BuiltInRegistries.ITEM, item_instance) # -> diamond_sword
-```
-
-### get_holder_by_numeric_id(numeric_id: int) -> JavaObject|None
 
 ---
 

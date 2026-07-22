@@ -8,7 +8,10 @@ e.g
 ```
 from main import *
 ```
-See /examples/ for a simple script
+See /examples
+ - [Autofishing script](./examples/autofish.py)
+ - [Rename all items in your inventory using the anvil (at your targeted block)](./examples/rename_all_items_in_an_anvil.py) (with experience / gamemode checks)
+
 
 For any suggestions or issues with the library please make an issue on this repository
 
@@ -66,6 +69,9 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [save\_editable\_book() -\> bool](#save_editable_book---bool)
   - [PlayerHelper](#playerhelper)
     - [get\_food\_info() -\> FoodInfo | None](#get_food_info---foodinfo--none)
+    - [get\_gamemode() -\> str | None](#get_gamemode---str--none)
+    - [get\_experience() -\> int | None](#get_experience---int--none)
+    - [get\_level() -\> int | None](#get_level---int--none-1)
       - [FoodInfo:](#foodinfo)
   - [RegistryHelper](#registryhelper)
     - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject | None](#get_by_idregistry-javaobject-identifier-str---javaobject--none)
@@ -141,6 +147,7 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [get\_time\_until\_hooked() -\> int | None](#get_time_until_hooked---int--none)
     - [use\_rod() -\> bool](#use_rod---bool)
   - [ScreenHelper](#screenhelper)
+    - [get\_anvil\_experience\_required() -\> int | None](#get_anvil_experience_required---int--none)
     - [get\_current\_screen() -\> JavaObject | None](#get_current_screen---javaobject--none)
     - [get\_current\_screen\_class\_name() -\> str](#get_current_screen_class_name---str)
     - [get\_container\_bounds() -\> ContainerBounds | None](#get_container_bounds---containerbounds--none)
@@ -332,6 +339,12 @@ Saves the current edits to the book & quill and closes the screen (equivalent to
 
 ### get_food_info() -> FoodInfo | None
 Returns the player's food, saturation, and exhaustion levels.
+
+### get_gamemode() -> str | None
+`adventure`, `survival`, `creative`, or `spectator`
+
+### get_experience() -> int | None
+### get_level() -> int | None
 
 #### FoodInfo:
 - food_level: int
@@ -876,6 +889,9 @@ ticks = FishingHelper.get_time_until_hooked()
 ---
 
 ## ScreenHelper
+
+### get_anvil_experience_required() -> int | None
+Returns the current anvil rename cost from the open anvil menu, or `None` if no anvil menu is open.
 
 ### get_current_screen() -> JavaObject | None
 

@@ -1,6 +1,6 @@
 from java import import_pyjinn_script, ScriptObject
 
-class PyJinnProxyMeta(type):
+class PyJinnProxy:
     script = None
 
     @classmethod
@@ -13,42 +13,27 @@ class PyJinnProxyMeta(type):
         cls.script = script
         return cls.script
 
-    def _ensure_cache(cls):
-        if "_pyj_class_cache" not in cls.__dict__:
-            type.__setattr__(cls, "_pyj_class_cache", None)
-        if "_pyj_member_cache" not in cls.__dict__:
-            type.__setattr__(cls, "_pyj_member_cache", {})
+    def __init__(self, class_name: str):
+        self._class_name = class_name
+        self._pyj_class_cache = None
 
-    def _pyj_class(cls):
-        cls._ensure_cache()
-        if PyJinnProxyMeta.script is None:
-            raise RuntimeError("PyJinn script is not set on PyJinnProxyMeta.script")
-        cached = cls.__dict__.get("_pyj_class_cache")
-        if cached is None:
-            cached = PyJinnProxyMeta.script.get(cls.__name__)
-            type.__setattr__(cls, "_pyj_class_cache", cached)
-        return cached
+    def _pyj_class(self):
+        if PyJinnProxy.script is None:
+            raise RuntimeError("PyJinn script is not set on PyJinnProxy.script")
+        
+        if self._pyj_class_cache is None:
+            self._pyj_class_cache = PyJinnProxy.script.get(self._class_name)
+        return self._pyj_class_cache
 
-    def __getattr__(cls, name: str):
-        cls._ensure_cache()
-        member_cache = cls.__dict__.get("_pyj_member_cache")
-        if name in member_cache:
-            return member_cache[name]
-
-        target = cls._pyj_class()
+    def __getattr__(self, name: str):
+        target = self._pyj_class()
         try:
             value = getattr(target, name)
         except Exception:
             value = target[name]
 
-        member_cache[name] = value
-        type.__setattr__(cls, name, value)
+        setattr(self, name, value)
         return value
 
-    def __call__(cls, *args, **kwargs):
-        target_class = cls._pyj_class()
-        return target_class(*args, **kwargs)
-
-
-class PyJinnProxy(metaclass=PyJinnProxyMeta):
-  pass
+    def __call__(self, *args, **kwargs):
+        return self._pyj_class()(*args, **kwargs)

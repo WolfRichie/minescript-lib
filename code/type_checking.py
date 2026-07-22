@@ -1,7 +1,7 @@
 from java import *
 from code.Proxy import PyJinnProxy
 from main import ContainerLayout
-from main import ContainerLayout
+
 from minescript import ItemStack, Vector3f
 
 class Waypoint:
@@ -333,6 +333,9 @@ class ScreenHelper(PyJinnProxy):
   def set_current_screen(screen: JavaObject) -> None: ...
 
   @staticmethod
+  def get_anvil_cost_required() -> int: ...
+
+  @staticmethod
   def get_current_screen() -> JavaObject | None: ...
 
   @staticmethod
@@ -423,6 +426,15 @@ class UtilHelper(PyJinnProxy):
 class PlayerHelper(PyJinnProxy):
   @staticmethod
   def get_food_info() -> FoodInfo | None: ...
+
+  @staticmethod
+  def get_gamemode() -> str: ...
+
+  @staticmethod
+  def get_experience() -> int: ...
+
+  @staticmethod
+  def get_level() -> int: ...
 
 class RegistryHelper(PyJinnProxy):
   BuiltInRegistries: JavaObject

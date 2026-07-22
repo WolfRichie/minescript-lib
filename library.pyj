@@ -977,6 +977,17 @@ class ScreenHelper:
     @staticmethod
     def set_current_screen(screen: JavaObject) -> None:
         minecraft.setScreen(screen)
+
+    @staticmethod
+    def get_anvil_cost_required() -> int | None:
+        container = ContainerHelper.get_container()
+        if container is None:
+            return None
+
+        if UtilHelper.get_class_name(container) != "net.minecraft.world.inventory.AnvilMenu":
+            return None
+
+        return container.getCost()
     
     @staticmethod
     def get_current_screen() -> JavaObject | None:
@@ -1484,9 +1495,6 @@ class BlocksHelper:
 class PlayerHelper:
     @staticmethod
     def get_food_info() -> FoodInfo | None:
-        if minecraft.player is None:
-            return None
-        
         food_data = minecraft.player.getFoodData()
         
         return FoodInfo(
@@ -1494,6 +1502,23 @@ class PlayerHelper:
             saturation_level=food_data.getSaturationLevel(),
             exhaustion_level=ReflectionHelper.get_private_field(food_data, "exhaustionLevel")
         )
+
+    @staticmethod
+    def get_gamemode() -> str | None:
+        player_info = minecraft.player.connection.getPlayerInfo(player_name())
+        if player_info is None:
+            return None
+
+        game_mode = player_info.getGameMode()
+        return game_mode.getName() if game_mode is not None else None
+
+    @staticmethod
+    def get_experience() -> int | None:
+        return minecraft.player.totalExperience
+
+    @staticmethod
+    def get_level() -> int | None:
+        return minecraft.player.experienceLevel
 
 class RegistryHelper:
     BuiltInRegistries = JavaClass("net.minecraft.core.registries.BuiltInRegistries")

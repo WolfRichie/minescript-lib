@@ -1,105 +1,80 @@
 from typing import TYPE_CHECKING
-from code.Proxy import PyJinnProxy, PyJinnProxyMeta
+from code.Proxy import PyJinnProxy
 
-PyJinnProxyMeta.bind_script("library.pyj")
+PyJinnProxy.bind_script("library.pyj")
 
 if TYPE_CHECKING:
   from code.type_checking import XaeroHelper, WidgetScreenHelper, ScreenHelper, BookScreenHelper, ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper, PlayerHelper, RegistryHelper
 else:
-  class XaeroHelper( PyJinnProxy):
-    pass
+  XaeroHelper = PyJinnProxy("XaeroHelper")
+  RegistryHelper = PyJinnProxy("RegistryHelper")
+  BookScreenHelper = PyJinnProxy("BookScreenHelper")
+  PlayerHelper = PyJinnProxy("PlayerHelper")
+  MappingsHelper = PyJinnProxy("MappingsHelper")
+  MerchantHelper = PyJinnProxy("MerchantHelper")
   
-  class RegistryHelper(PyJinnProxy):
-    pass
-
-  class BookScreenHelper(PyJinnProxy):
-    pass
+  ContainerHelper = PyJinnProxy("ContainerHelper")
   
-  class PlayerHelper(PyJinnProxy):
-    pass
+  # To avoid overwriting proxy dynamically at runtime we can just inject a method
+  def get_container_layout():
+    runtime_helper = ContainerHelper._pyj_class()
+    container = runtime_helper.get_container()
+
+    if container is None:
+      return None
+
+    total_slots = container.slots.size()
+
+    container_name = runtime_helper.get_container_class_name()
+    if container_name == CraftingInventoryLayout.INVENTORY_MENU_NAME:
+      return CraftingInventoryLayout(
+        container_name,
+        crafting_grid=[1, 2, 3, 4],
+        result=[0],
+        inventory_grid=list(range(9, 44+1)),
+      )
+    elif container_name == CraftingInventoryLayout.CRAFTER_MENU_NAME:
+      return CraftingInventoryLayout(
+        container_name,
+        crafting_grid=list(range(0, 8+1)),
+        result=[45],
+        inventory_grid=list(range(9, 44+1)),
+      )
+    elif container_name == CraftingInventoryLayout.CRAFTING_MENU_NAME:
+      return CraftingInventoryLayout(
+        container_name,
+        crafting_grid=list(range(1, 9+1)),
+        result=[0],
+        inventory_grid=list(range(10, 45+1)),
+      )
+    elif container_name == ChestLayout.CHEST_MENU_NAME:
+      if total_slots >= 45 and (total_slots - 36) % 9 == 0:
+          return ChestLayout(
+              container_name,
+              chest_slots=total_slots - 36
+          )
+    elif container_name == BrewingStandLayout.BREWING_STAND_MENU_NAME:
+      return BrewingStandLayout()
+    elif container_name == AnvilLayout.ANVIL_MENU_NAME:
+      return AnvilLayout()
+    elif container_name == EnchantmentLayout.ENCHANTMENT_MENU_NAME:
+      return EnchantmentLayout()
+    elif container_name == MerchantLayout.MERCHANT_MENU_NAME:
+      return MerchantLayout()
+    
+    return DefaultContainerLayout(container_name, layouts={"slots":list(range(total_slots))})
   
-  class MappingsHelper(PyJinnProxy):
-    pass
-  class MerchantHelper(PyJinnProxy):
-    pass
+  ContainerHelper.get_container_layout = get_container_layout
 
-  class ContainerHelper(PyJinnProxy):
-    @staticmethod
-    def get_container_layout():
-      runtime_helper = PyJinnProxyMeta._pyj_class(ContainerHelper)
-      container = runtime_helper.get_container()
-
-      if container is None:
-        return None
-
-      total_slots = container.slots.size()
-
-      # todo put static variables inside of CraftingInventoryLayout and ChestLayout too
-      container_name = runtime_helper.get_container_class_name()
-      if container_name == CraftingInventoryLayout.INVENTORY_MENU_NAME:
-        return CraftingInventoryLayout(
-          container_name,
-          crafting_grid=[1, 2, 3, 4],
-          result=[0],
-          inventory_grid=list(range(9, 44+1)),
-        )
-      elif container_name == CraftingInventoryLayout.CRAFTER_MENU_NAME:
-        return CraftingInventoryLayout(
-          container_name,
-          crafting_grid=list(range(0, 8+1)),
-          result=[45],
-          inventory_grid=list(range(9, 44+1)),
-        )
-      elif container_name == CraftingInventoryLayout.CRAFTING_MENU_NAME:
-        return CraftingInventoryLayout(
-          container_name,
-          crafting_grid=list(range(1, 9+1)),
-          result=[0],
-          inventory_grid=list(range(10, 45+1)),
-        )
-      elif container_name == ChestLayout.CHEST_MENU_NAME:
-        if total_slots >= 45 and (total_slots - 36) % 9 == 0:
-            return ChestLayout(
-                container_name,
-                chest_slots=total_slots - 36
-            )
-      elif container_name == BrewingStandLayout.BREWING_STAND_MENU_NAME:
-        return BrewingStandLayout()
-      elif container_name == AnvilLayout.ANVIL_MENU_NAME:
-        return AnvilLayout()
-      elif container_name == EnchantmentLayout.ENCHANTMENT_MENU_NAME:
-        return EnchantmentLayout()
-      elif container_name == MerchantLayout.MERCHANT_MENU_NAME:
-        return MerchantLayout()
-      
-      return DefaultContainerLayout(container_name, layouts={"slots":list(range(total_slots))})
-
-  class FishingHelper(PyJinnProxy):
-    pass
-
-  class ScreenHelper(PyJinnProxy):
-    pass
-
-  class WidgetScreenHelper(PyJinnProxy):
-    pass
-
-  class ClientHelper(PyJinnProxy):
-    pass
-
-  class UtilHelper(PyJinnProxy):
-    pass
-
-  class ItemsHelper(PyJinnProxy):
-    pass
-
-  class BlocksHelper(PyJinnProxy):
-    pass
-
-  class GLFWHelper(PyJinnProxy):
-    pass
-
-  class WindowHelper(PyJinnProxy):
-    pass
+  FishingHelper = PyJinnProxy("FishingHelper")
+  ScreenHelper = PyJinnProxy("ScreenHelper")
+  WidgetScreenHelper = PyJinnProxy("WidgetScreenHelper")
+  ClientHelper = PyJinnProxy("ClientHelper")
+  UtilHelper = PyJinnProxy("UtilHelper")
+  ItemsHelper = PyJinnProxy("ItemsHelper")
+  BlocksHelper = PyJinnProxy("BlocksHelper")
+  GLFWHelper = PyJinnProxy("GLFWHelper")
+  WindowHelper = PyJinnProxy("WindowHelper")
 
 class ContainerLayout:
   def __init__(self, container_name, layouts=None):

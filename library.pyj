@@ -132,6 +132,12 @@ class Waypoint:
         self.index = index
         self.set_name = set_name
 
+class FoodInfo:
+    def __init__(self, food_level: int, saturation_level: float, exhaustion_level: float):
+        self.food_level = food_level
+        self.saturation_level = saturation_level
+        self.exhaustion_level = exhaustion_level
+
 class GuiWidget:
     def __init__(self, x: int, y: int, width: int, height: int, message: str, active: bool, visible: bool, focused: bool, java_object: JavaObject):
         self.x = x
@@ -182,6 +188,88 @@ class BookScreenHelper:
         elif BookScreenHelper.is_view_book_screen():
             book_access = ReflectionHelper.get_private_field(current_screen, "bookAccess")
             return ReflectionHelper.get_private_field(book_access, "pages")
+            
+    @staticmethod
+    def get_book_content() -> List[str] | None:
+        if not BookScreenHelper.is_book_screen():
+            return None
+        
+        pages = BookScreenHelper._get_pages()
+        if pages is None:
+            return None
+        
+        content_list = []
+        is_view_screen = BookScreenHelper.is_view_book_screen()
+        
+        for i in range(pages.size()):
+            page = pages.get(i)
+            if is_view_screen:
+                content_list.append(page.getString())
+            else:
+                content_list.append(str(page))
+        
+        return JavaArray(tuple(content_list))
+    
+    @staticmethod
+    def _makeValidPageIndex(page_index: int) -> int:
+        if page_index > 100:
+            return 99
+        
+        if page_index < 0:
+            return 0
+            
+        return page_index
+
+    @staticmethod
+    def get_page_content(page_index: int) -> str | None:
+        if not BookScreenHelper.is_book_screen():
+            return None
+        
+        page_index = BookScreenHelper._makeValidPageIndex(page_index)
+        pages = BookScreenHelper._get_pages()
+        if pages is None or page_index >= pages.size():
+            return None
+        
+        page = pages.get(page_index)
+        if BookScreenHelper.is_view_book_screen():
+            return page.getString()
+        else:
+            return str(page)
+    
+    @staticmethod
+    def set_page_content_list(pages_content: List[str]) -> bool:
+        if not BookScreenHelper.is_edit_book_screen() and not BookScreenHelper.is_sign_book_screen():
+            return False
+
+        pages = BookScreenHelper._get_pages()
+        if pages is None:
+            return False
+        
+        pages.clear()
+        for i, text in enumerate(pages_content):
+            if i >= 100:
+                break
+            pages.add(text)
+        
+        BookScreenHelper.save_editable_book()
+        return True
+
+    @staticmethod
+    def set_page_content(page_index: int, content: str) -> bool:
+        if not BookScreenHelper.is_edit_book_screen() and not BookScreenHelper.is_sign_book_screen():
+            return False
+
+        pages = BookScreenHelper._get_pages()
+        if pages is None:
+            return False
+        
+        # If the page index doesn't exist, keep adding empty pages until it does
+        page_index = BookScreenHelper._makeValidPageIndex(page_index)
+        while pages.size() <= page_index:
+            pages.add("")
+        pages.set(page_index, content)
+        BookScreenHelper.save_editable_book()
+        return True
     
     @staticmethod
     def get_page_count() -> int | None:
@@ -238,13 +326,11 @@ class BookScreenHelper:
             ReflectionHelper.invoke_private_method(current_screen, "saveChanges")
             ScreenHelper.set_current_screen(sign_screen)
         else:
-            # We are already on the sign screen
             sign_screen = current_screen
             
         if sign_screen is None:
             return False
             
-        # Set the title and finalize the book
         title_box = ReflectionHelper.get_private_field(sign_screen, "titleBox")
         if title_box is not None:
             title_box.setValue(title)
@@ -263,6 +349,7 @@ class BookScreenHelper:
         ReflectionHelper.invoke_private_method(current_screen, "saveChanges")
         ScreenHelper.set_current_screen(None)
         return True
+
 class Vec3:
     def __init__(self, x: float, y: float, z: float):
         self.x = x
@@ -664,7 +751,7 @@ class ItemsHelper:
     def get_item_id(item: JavaObject | str | int) -> str | None:
         """Get the item ID (minecraft namespace identifier) for an item."""
         item_obj = ItemsHelper._resolve_to_item(item)
-        return RegistryHelper.get_registry_path(RegistryHelper.BuiltInRegistries.ITEM, item_obj)
+        return RegistryHelper.get_id(RegistryHelper.BuiltInRegistries.ITEM, item_obj)
 
     @staticmethod
     def get_numeric_id(item: JavaObject | str | int) -> int:
@@ -960,6 +1047,19 @@ class ScreenHelper:
     def is_any_toast_showing() -> bool:
         toast_manager = minecraft.getToastManager()
         return not toast_manager.visibleToasts.isEmpty()
+
+    @staticmethod
+    def set_anvil_screen_text(text: str) -> bool:
+        if ScreenHelper.get_current_screen_class_name() != "net.minecraft.client.gui.screens.inventory.AnvilScreen":
+            return False
+            
+        current_screen = ScreenHelper.get_current_screen()
+        name_field = ReflectionHelper.get_private_field(current_screen, "name")
+        if name_field is not None:
+            name_field.setValue(text)
+            return True
+        return False
+
 class WidgetScreenHelper:
     @staticmethod
     def _wrap_abstract_widget(java_object) -> GuiWidget | None:
@@ -1305,6 +1405,14 @@ class BlocksHelper:
         return block_state.getBlock()
 
     @staticmethod
+    def get_block_id(block: JavaObject) -> str | None:
+        return RegistryHelper.get_id(RegistryHelper.BuiltInRegistries.BLOCK, block)
+
+    @staticmethod
+    def get_block_state_id(block_state: JavaObject) -> str | None:
+        return BlocksHelper.get_block_id(block_state.getBlock())
+
+    @staticmethod
     def get_block_state_json(block_state: JavaObject) -> str:
         return _JsonHelper.dumps(RegistryHelper._encodeStart(BlocksHelper.BlockState, block_state))
     
@@ -1371,8 +1479,22 @@ class BlocksHelper:
             return None
         
         entity_type = display_entity.getType()
-        return RegistryHelper.get_registry_path(RegistryHelper.BuiltInRegistries.ENTITY_TYPE, entity_type)
-    
+        return RegistryHelper.get_id(RegistryHelper.BuiltInRegistries.ENTITY_TYPE, entity_type)
+
+class PlayerHelper:
+    @staticmethod
+    def get_food_info() -> FoodInfo | None:
+        if minecraft.player is None:
+            return None
+        
+        food_data = minecraft.player.getFoodData()
+        
+        return FoodInfo(
+            food_level=food_data.getFoodLevel(),
+            saturation_level=food_data.getSaturationLevel(),
+            exhaustion_level=ReflectionHelper.get_private_field(food_data, "exhaustionLevel")
+        )
+
 class RegistryHelper:
     BuiltInRegistries = JavaClass("net.minecraft.core.registries.BuiltInRegistries")
     RegistryOps = JavaClass("net.minecraft.resources.RegistryOps")
@@ -1397,6 +1519,14 @@ class RegistryHelper:
             return None
 
         return optional.get().value()
+        
+    @staticmethod
+    def get_id(registry: JavaObject, value: JavaObject) -> str | None:
+        identifier = registry.getKey(value)
+        if identifier is None:
+            return None
+        return identifier.toString()
+
     @staticmethod
     def get_registry_path(registry: JavaObject, value: JavaObject) -> str|None:
         identifier = registry.getKey(value)
@@ -1405,8 +1535,20 @@ class RegistryHelper:
         return identifier.getPath()
     
     @staticmethod
+    def get_all_ids(registry: JavaObject) -> List[str]:
+        keys = registry.keySet()
+        id_list = []
+        for key in keys:
+            id_list.append(key.toString())
+        return id_list
+
+    @staticmethod
+    def get_registry(registry_key: JavaObject) -> JavaObject:
+        return minecraft.level.registryAccess().lookupOrThrow(registry_key)
+
+    @staticmethod
     def get_holder_by_numeric_id(registry_key: JavaObject, numeric_id: int) -> JavaObject | None:
-        registry = minecraft.level.registryAccess().lookupOrThrow(registry_key)
+        registry = RegistryHelper.get_registry(registry_key)
         holders = registry.asHolderIdMap()
 
         return holders.byId(numeric_id)

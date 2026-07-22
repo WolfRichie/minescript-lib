@@ -4,12 +4,18 @@ from code.Proxy import PyJinnProxy, PyJinnProxyMeta
 PyJinnProxyMeta.bind_script("library.pyj")
 
 if TYPE_CHECKING:
-  from code.type_checking import XaeroHelper, WidgetScreenHelper, ScreenHelper, BookScreenHelper, ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper
+  from code.type_checking import XaeroHelper, WidgetScreenHelper, ScreenHelper, BookScreenHelper, ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper, PlayerHelper, RegistryHelper
 else:
   class XaeroHelper( PyJinnProxy):
     pass
   
+  class RegistryHelper(PyJinnProxy):
+    pass
+
   class BookScreenHelper(PyJinnProxy):
+    pass
+  
+  class PlayerHelper(PyJinnProxy):
     pass
   
   class MappingsHelper(PyJinnProxy):
@@ -27,45 +33,44 @@ else:
         return None
 
       total_slots = container.slots.size()
-      
-      # todo move ContainerNames into class if not changing
-      
+
+      # todo put static variables inside of CraftingInventoryLayout and ChestLayout too
       container_name = runtime_helper.get_container_class_name()
-      if container_name == "net.minecraft.world.inventory.InventoryMenu":
+      if container_name == CraftingInventoryLayout.INVENTORY_MENU_NAME:
         return CraftingInventoryLayout(
           container_name,
           crafting_grid=[1, 2, 3, 4],
           result=[0],
           inventory_grid=list(range(9, 44+1)),
         )
-      elif container_name == "net.minecraft.world.inventory.CrafterMenu":
+      elif container_name == CraftingInventoryLayout.CRAFTER_MENU_NAME:
         return CraftingInventoryLayout(
           container_name,
           crafting_grid=list(range(0, 8+1)),
           result=[45],
           inventory_grid=list(range(9, 44+1)),
         )
-      elif container_name == "net.minecraft.world.inventory.CraftingMenu":
+      elif container_name == CraftingInventoryLayout.CRAFTING_MENU_NAME:
         return CraftingInventoryLayout(
           container_name,
           crafting_grid=list(range(1, 9+1)),
           result=[0],
           inventory_grid=list(range(10, 45+1)),
         )
-      elif container_name == "net.minecraft.world.inventory.ChestMenu":
+      elif container_name == ChestLayout.CHEST_MENU_NAME:
         if total_slots >= 45 and (total_slots - 36) % 9 == 0:
             return ChestLayout(
                 container_name,
                 chest_slots=total_slots - 36
             )
-      elif container_name == "net.minecraft.world.inventory.BrewingStandMenu":
-        return BrewingStandLayout(container_name)
-      elif container_name == "net.minecraft.world.inventory.AnvilMenu":
-        return AnvilLayout(container_name)
-      elif container_name == "net.minecraft.world.inventory.EnchantmentMenu":
-        return EnchantmentLayout(container_name)
-      elif container_name == "net.minecraft.world.inventory.MerchantMenu":
-        return MerchantLayout(container_name)
+      elif container_name == BrewingStandLayout.BREWING_STAND_MENU_NAME:
+        return BrewingStandLayout()
+      elif container_name == AnvilLayout.ANVIL_MENU_NAME:
+        return AnvilLayout()
+      elif container_name == EnchantmentLayout.ENCHANTMENT_MENU_NAME:
+        return EnchantmentLayout()
+      elif container_name == MerchantLayout.MERCHANT_MENU_NAME:
+        return MerchantLayout()
       
       return DefaultContainerLayout(container_name, layouts={"slots":list(range(total_slots))})
 
@@ -128,6 +133,10 @@ class DefaultContainerLayout(ContainerLayout):
     return True
 
 class CraftingInventoryLayout(ContainerLayout):
+    INVENTORY_MENU_NAME = "net.minecraft.world.inventory.InventoryMenu"
+    CRAFTER_MENU_NAME = "net.minecraft.world.inventory.CrafterMenu"
+    CRAFTING_MENU_NAME = "net.minecraft.world.inventory.CraftingMenu"
+
     def __init__(
         self,
         container_name,
@@ -151,25 +160,27 @@ class CraftingInventoryLayout(ContainerLayout):
         return self.get_group("result")[0]
 
 class AnvilLayout(ContainerLayout):
-  def __init__(self, container_name):
-    super().__init__(container_name, {
+  ANVIL_MENU_NAME = "net.minecraft.world.inventory.AnvilMenu"
+  def __init__(self):
+    super().__init__(AnvilLayout.ANVIL_MENU_NAME, {
       "combine_grid": [0, 1],
       "result": [2],
       "inventory_grid": list(range(3, 38+1)),
     })
     
-    def get_combine_slots(self):
-      return self.get_group("combine_grid")
-    
-    def get_result_slot(self):
-      return self.get_group("result")[0]
-    
-    def get_inventory_slots(self):
-      return self.get_group("inventory_grid")
+  def get_combine_slots(self):
+    return self.get_group("combine_grid")
+  
+  def get_result_slot(self):
+    return self.get_group("result")[0]
+  
+  def get_inventory_slots(self):
+    return self.get_group("inventory_grid")
 
 class EnchantmentLayout(ContainerLayout):
-  def __init__(self, container_name):
-    super().__init__(container_name, {
+  ENCHANTMENT_MENU_NAME = "net.minecraft.world.inventory.EnchantmentMenu"
+  def __init__(self):
+    super().__init__(EnchantmentLayout.ENCHANTMENT_MENU_NAME, {
       "enchantment_grid": [0],
       "lapis_grid": [1],
       "inventory_grid": list(range(2, 37+1)),
@@ -186,6 +197,7 @@ class EnchantmentLayout(ContainerLayout):
   
   
 class ChestLayout(ContainerLayout):
+  CHEST_MENU_NAME = "net.minecraft.world.inventory.ChestMenu"
   def __init__(self, container_name, chest_slots):
       super().__init__(container_name, {
           "chest": list(range(chest_slots)),
@@ -199,8 +211,9 @@ class ChestLayout(ContainerLayout):
       return self.get_group("inventory_grid")
       
 class BrewingStandLayout(ContainerLayout):
-  def __init__(self, container_name):
-    super().__init__(container_name, {
+  BREWING_STAND_MENU_NAME = "net.minecraft.world.inventory.BrewingStandMenu"
+  def __init__(self):
+    super().__init__(BrewingStandLayout.BREWING_STAND_MENU_NAME, {
       "potions_grid": [0, 1, 2],
       "ingredient": [3],
       "blaze_powder": [4],
@@ -220,18 +233,19 @@ class BrewingStandLayout(ContainerLayout):
     return self.get_group("inventory_grid")
   
 class MerchantLayout(ContainerLayout):
-  def __init__(self, container_name):
-    super().__init__(container_name, {
+  MERCHANT_MENU_NAME = "net.minecraft.world.inventory.MerchantMenu"
+  def __init__(self):
+    super().__init__(MerchantLayout.MERCHANT_MENU_NAME, {
       "cost_sell_grid": [0, 1],
       "result": [2],
       "inventory_grid": list(range(3, 38+1)),
     })
     
-    def get_cost_sell_slots(self):
-      return self.get_group("cost_sell_grid")
-    
-    def get_result_slot(self):
-      return self.get_group("result")[0]
-    
-    def get_inventory_slots(self):
-      return self.get_group("inventory_grid")
+  def get_cost_sell_slots(self):
+    return self.get_group("cost_sell_grid")
+
+  def get_result_slot(self):
+    return self.get_group("result")[0]
+
+  def get_inventory_slots(self):
+    return self.get_group("inventory_grid")

@@ -53,6 +53,10 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [is\_view\_book\_screen() -\> bool](#is_view_book_screen---bool)
     - [is\_sign\_book\_screen() -\> bool](#is_sign_book_screen---bool)
     - [is\_book\_screen() -\> bool](#is_book_screen---bool)
+    - [get\_book\_content() -\> List\[str\] | None](#get_book_content---liststr--none)
+    - [get\_page\_content(page\_index: int) -\> str | None](#get_page_contentpage_index-int---str--none)
+    - [set\_page\_content\_list(pages\_content: List\[str\]) -\> bool](#set_page_content_listpages_content-liststr---bool)
+    - [set\_page\_content(page\_index: int, content: str) -\> bool](#set_page_contentpage_index-int-content-str---bool)
     - [get\_page\_count() -\> int | None](#get_page_count---int--none)
     - [is\_last\_page() -\> bool | None](#is_last_page---bool--none)
     - [get\_current\_page\_index() -\> int | None](#get_current_page_index---int--none)
@@ -60,10 +64,20 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [page\_back() -\> None](#page_back---none)
     - [sign\_editable\_book(title: str) -\> bool](#sign_editable_booktitle-str---bool)
     - [save\_editable\_book() -\> bool](#save_editable_book---bool)
+  - [PlayerHelper](#playerhelper)
+    - [get\_food\_info() -\> FoodInfo](#get_food_info---foodinfo)
+  - [RegistryHelper](#registryhelper)
+    - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject | None](#get_by_idregistry-javaobject-identifier-str---javaobject--none)
+    - [get\_id(registry: JavaObject, value: JavaObject) -\> str | None](#get_idregistry-javaobject-value-javaobject---str--none)
+    - [get\_registry\_path(registry: JavaObject, value: JavaObject) -\> str | None](#get_registry_pathregistry-javaobject-value-javaobject---str--none)
+    - [get\_all\_ids(registry: JavaObject) -\> List\[str\]](#get_all_idsregistry-javaobject---liststr)
+    - [get\_registry(registry\_key: JavaObject) -\> JavaObject](#get_registryregistry_key-javaobject---javaobject)
   - [BlocksHelper](#blockshelper)
     - [get\_block\_pos(x, y=None, z=None) -\> JavaObject](#get_block_posx-ynone-znone---javaobject)
     - [get\_block\_state(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_statex-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
     - [get\_block\_state\_block(block\_state: JavaObject) -\> JavaObject:](#get_block_state_blockblock_state-javaobject---javaobject)
+    - [get\_block\_id(block: JavaObject) -\> str | None:](#get_block_idblock-javaobject---str--none)
+    - [get\_block\_state\_id(block\_state: JavaObject) -\> str | None:](#get_block_state_idblock_state-javaobject---str--none)
     - [get\_block\_state\_json(block\_state: JavaObject) -\> JavaObject:](#get_block_state_jsonblock_state-javaobject---javaobject)
     - [get\_block\_entity(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_entityx-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
     - [is\_command\_block\_entity(block\_entity: JavaObject) -\> bool:](#is_command_block_entityblock_entity-javaobject---bool)
@@ -134,6 +148,7 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [open\_pause\_screen() -\> None](#open_pause_screen---none)
     - [open\_inventory\_screen() -\> None](#open_inventory_screen---none)
     - [show\_toast(title: str, desc: str, display\_time: float = 5000.0)](#show_toasttitle-str-desc-str-display_time-float--50000)
+    - [set\_anvil\_screen\_text(text: str) -\> bool](#set_anvil_screen_texttext-str---bool)
     - [is\_any\_toast\_showing() -\> bool](#is_any_toast_showing---bool)
   - [WidgetScreenHelper](#widgetscreenhelper)
     - [get\_widgets() -\> List\[GuiWidget\] | None](#get_widgets---listguiwidget--none)
@@ -169,7 +184,10 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [get\_clipboard() -\> str](#get_clipboard---str)
     - [set\_clipboard(text) -\> None](#set_clipboardtext---none)
     - [random\_uuid() -\> str](#random_uuid---str)
-  - [RegistryHelper](#registryhelper)
+  - [PlayerHelper](#playerhelper-1)
+    - [get\_food\_info() -\> FoodInfo | None](#get_food_info---foodinfo--none)
+      - [FoodInfo:](#foodinfo)
+  - [RegistryHelper](#registryhelper-1)
     - [get\_by\_id(registry: JavaObject, identifier: str) -\> JavaObject|None](#get_by_idregistry-javaobject-identifier-str---javaobjectnone)
     - [get\_registry\_path(registry\_name: str) -\> JavaObject|None](#get_registry_pathregistry_name-str---javaobjectnone)
     - [get\_holder\_by\_numeric\_id(numeric\_id: int) -\> JavaObject|None](#get_holder_by_numeric_idnumeric_id-int---javaobjectnone)
@@ -291,6 +309,14 @@ print(MerchantHelper.get_offers_json())
 ### is_book_screen() -> bool
 Wrapper for is_edit_book_screen() || is_view_book_screen() || is_sign_book_screen()
 
+### get_book_content() -> List[str] | None
+
+### get_page_content(page_index: int) -> str | None
+
+### set_page_content_list(pages_content: List[str]) -> bool
+### set_page_content(page_index: int, content: str) -> bool
+If the page index doesn't exist it will keep adding empty pages until it does.
+
 ### get_page_count() -> int | None
 
 ### is_last_page() -> bool | None
@@ -305,6 +331,35 @@ to get the current page "number" as shown on screen get_current_page_index + 1
 
 ### save_editable_book() -> bool
 Saves the current edits to the book & quill and closes the screen (equivalent to clicking "Done").
+
+---
+
+## PlayerHelper
+
+### get_food_info() -> FoodInfo
+Returns a `FoodInfo` object with the following fields:
+- `foodLevel`: int
+- `saturationLevel`: float
+- `exhaustionLevel`: float
+
+---
+
+## RegistryHelper
+
+### get_by_id(registry: JavaObject, identifier: str) -> JavaObject | None
+Gets an object from the specified registry by its identifier string (e.g, `minecraft:diamond`)
+
+### get_id(registry: JavaObject, value: JavaObject) -> str | None
+Gets the full identifier string (e.g, `minecraft:stone`) for a value in a registry
+
+### get_registry_path(registry: JavaObject, value: JavaObject) -> str | None
+Gets only the path part of the identifier (e.g, `stone`) for a value in a registry
+
+### get_all_ids(registry: JavaObject) -> List[str]
+Returns a list of all identifier strings in the given registry
+
+### get_registry(registry_key: JavaObject) -> JavaObject
+Returns the registry object for the given registry key. e.g, `RegistryHelper.Registries.BLOCK`
 
 ---
 ## BlocksHelper
@@ -340,7 +395,17 @@ Returnws the minecraft `net.minecraft.world.level.block.Block` from a blockstate
 
 Accepted formats:
 - `JavaObject` of ``net.minecraft.world.level.block.state.BlockState`
-  
+
+### get_block_id(block: JavaObject) -> str | None:
+s
+Accepted formats:
+- `block`: `net.minecraft.world.level.block.Block` JavaObject
+
+### get_block_state_id(block_state: JavaObject) -> str | None:
+
+Accepted formats:
+- `block_state`: `net.minecraft.world.level.block.state.BlockState` JavaObject
+
 ### get_block_state_json(block_state: JavaObject) -> JavaObject:
 
 Accepted formats:
@@ -407,8 +472,8 @@ Returns SEQUENCE or AUTO or REDSTONE
 
 Static helper class for working with items and item stacks. All methods accept item references in multiple formats:
 - `JavaObject`: Direct Item or ItemStack objects
-- `str`: Item ID (e.g., `"minecraft:diamond_sword"`, `"fishing_rod"`)
-- `int`: Numeric registry ID (e.g., `69`)
+- `str`: Item ID (e.g, `"minecraft:diamond_sword"`, `"fishing_rod"`)
+- `int`: Numeric registry ID (e.g, `69`)
 
 ### get_json(item) -> str
 Get the full serialized item stack as a JSON string
@@ -452,7 +517,7 @@ ItemsHelper.get_numeric_id("diamond_sword")  # -> 69
 Get the display name of an item or item stack.
 
 Args:
-- `use_custom_name` (bool): If `True`, returns the custom hover name (e.g., from an anvil). If `False`, returns the default display name.
+- `use_custom_name` (bool): If `True`, returns the custom hover name (e.g, from an anvil). If `False`, returns the default display name.
 
 ```python
 item = ContainerHelper.get_item_stack_by_inventory_slot(0)
@@ -843,8 +908,8 @@ Shows an alert screen
 
 ### open_pause_screen() -> None
 ### open_inventory_screen() -> None
-
 ### show_toast(title: str, desc: str, display_time: float = 5000.0)
+### set_anvil_screen_text(text: str) -> bool
 ### is_any_toast_showing() -> bool
 
 ---
@@ -870,16 +935,16 @@ for widget in widgets or []:
 ```
 
 ### GuiWidget:
-    __init__(self, x: int, y: int, width: int, height: int, message: str, active: bool, visible: bool, focused: bool, java_object: JavaObject)
-    x: int
-    y: int
-    width: int
-    height: int
-    message: str
-    active: bool
-    visible: bool
-    focused: bool
-    java_object: JavaObject
+- x: int
+- y: int
+- width: int
+- height: int
+- message: str
+- active: bool
+- visible: bool
+- focused: bool
+- java_object: JavaObject
+- __init__(self, x: int, y: int, width: int, height: int, message: str, active: bool, visible: bool, focused: bool, java_object: JavaObject)
 
 ### get_renderables() -> List[JavaObject] | None
 Returns the list of raw renderable elements on the current screen.
@@ -1015,6 +1080,18 @@ if item:
 
 ---
 
+## PlayerHelper
+
+### get_food_info() -> FoodInfo | None
+Returns the player's food, saturation, and exhaustion levels.
+
+#### FoodInfo:
+- food_level: int
+- saturation_level: float
+- exhaustion_level: float
+- def __init__(self, food_level: int, saturation_level: float, exhaustion_level: float)
+
+
 ## RegistryHelper
 
 ### get_by_id(registry: JavaObject, identifier: str) -> JavaObject|None
@@ -1049,14 +1126,14 @@ Returns the current waypoint sets name, `gui.xaero_default` for the default set.
 ### get_current_set_waypoints() -> List[Waypoint] | None
 
 ### Waypoint:
-    __init__(self, name: str, initials: str, x: int, y: int, z: int, index: int = 0, set_name: str = "")
-    name: str
-    initials: str
-    x: int
-    y: int
-    z: int
-    index: int
-    set_name: str
+- name: str
+- initials: str
+- x: int
+- y: int
+- z: int
+- index: int
+- set_name: str
+- __init__(self, name: str, initials: str, x: int, y: int, z: int, index: int = 0,- set_name: str = "")
 
 ### add_waypoint_to_current_set(name: str, x: float|int, y: float|int, z: float|int, initials: str) -> bool | None
 

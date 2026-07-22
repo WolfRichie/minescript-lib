@@ -8,6 +8,13 @@ minescript = JavaClass("net.minescript.common.Minescript")
 class XaeroHelper:
     BuiltInHudModules = None
     
+    Waypoint = JavaClass("xaero.common.minimap.waypoints.Waypoint")
+    
+    MINIMAP_SESSION_CLASS = "xaero.hud.minimap.module.MinimapSession"
+    MINIMAP_WORLD_MANAGER_CLASS = "xaero.hud.minimap.world.MinimapWorldManager"
+    MINIMAP_WORLD_CLASS = "xaero.hud.minimap.world.MinimapWorld"
+    WAYPOINT_SET_CLASS = "xaero.hud.minimap.waypoint.set.WaypointSet"
+
     @staticmethod
     def is_mod_loaded() -> bool:
         if XaeroHelper.BuiltInHudModules is not None:
@@ -28,25 +35,25 @@ class XaeroHelper:
     #     return XaeroHelper.IXaeroMinimap.getMinimap() #xaero.hud.minimap.Minimap
     
     @staticmethod
-    def get_current_minimap_session() -> JavaObject | None: #xaero.hud.minimap.module.MinimapSession
+    def get_current_minimap_session() -> JavaObject | None:
         if not XaeroHelper.is_mod_loaded():
             return None
-        return XaeroHelper.BuiltInHudModules.MINIMAP.getCurrentSession() #xaero.common.XaeroMinimapSession
+        return XaeroHelper.BuiltInHudModules.MINIMAP.getCurrentSession()
 
     @staticmethod
-    def get_current_world_manager() -> JavaObject | None: #xaero.hud.minimap.world.MinimapWorldManager
+    def get_current_world_manager() -> JavaObject | None:
         if not XaeroHelper.is_mod_loaded():
             return None
         return XaeroHelper.get_current_minimap_session().getWorldManager()
     
     @staticmethod
-    def get_current_world() -> JavaObject | None: #xaero.hud.minimap.world.MinimapWorld
+    def get_current_world() -> JavaObject | None:
         if not XaeroHelper.is_mod_loaded():
             return None
         return XaeroHelper.get_current_world_manager().getCurrentWorld()
     
     @staticmethod
-    def get_current_waypoint_set() -> JavaObject | None: #xaero.hud.minimap.waypoint.set.WaypointSet
+    def get_current_waypoint_set() -> JavaObject | None:
         if not XaeroHelper.is_mod_loaded():
             return None
         
@@ -87,8 +94,7 @@ class XaeroHelper:
 
         waypoint_set = XaeroHelper.get_current_waypoint_set()
 
-        WaypointClass = JavaClass("xaero.common.minimap.waypoints.Waypoint")
-        waypoint = WaypointClass(int(x), int(y), int(z), name, initials, 0)
+        waypoint = XaeroHelper.Waypoint(int(x), int(y), int(z), name, initials, 0)
         waypoint_set.add(waypoint)
         return True
     
@@ -151,26 +157,30 @@ class GuiWidget:
         self.java_object = java_object
 
 class BookScreenHelper:
+    BOOK_EDIT_SCREEN_CLASS = "net.minecraft.client.gui.screens.inventory.BookEditScreen"
+    BOOK_VIEW_SCREEN_CLASS = "net.minecraft.client.gui.screens.inventory.BookViewScreen"
+    BOOK_SIGN_SCREEN_CLASS = "net.minecraft.client.gui.screens.inventory.BookSignScreen"
+
     @staticmethod
     def is_edit_book_screen() -> bool:
         current_screen = ScreenHelper.get_current_screen()
         if current_screen is None:
             return False
-        return UtilHelper.get_class_name(current_screen) == "net.minecraft.client.gui.screens.inventory.BookEditScreen"
+        return UtilHelper.get_class_name(current_screen) == BookScreenHelper.BOOK_EDIT_SCREEN_CLASS
     
     @staticmethod
     def is_view_book_screen() -> bool:
         current_screen = ScreenHelper.get_current_screen()
         if current_screen is None:
             return False
-        return UtilHelper.get_class_name(current_screen) == "net.minecraft.client.gui.screens.inventory.BookViewScreen"
+        return UtilHelper.get_class_name(current_screen) == BookScreenHelper.BOOK_VIEW_SCREEN_CLASS
     
     @staticmethod
     def is_sign_book_screen() -> bool:
         current_screen = ScreenHelper.get_current_screen()
         if current_screen is None:
             return False
-        return UtilHelper.get_class_name(current_screen) == "net.minecraft.client.gui.screens.inventory.BookSignScreen"
+        return UtilHelper.get_class_name(current_screen) == BookScreenHelper.BOOK_SIGN_SCREEN_CLASS
     
     @staticmethod
     def is_book_screen() -> bool:
@@ -501,6 +511,7 @@ class EnchantmentInfo:
         
 class ContainerHelper:
     ClickType = JavaClass("net.minecraft.world.inventory.ClickType")
+    ENCHANTMENT_MENU_CLASS = "net.minecraft.world.inventory.EnchantmentMenu"
     
     @staticmethod
     def get_container() -> JavaObject | None:
@@ -665,7 +676,7 @@ class ContainerHelper:
 
     @staticmethod
     def enchantment_table_apply_enchant(enchantment_apply_type) -> bool:
-        if (ContainerHelper.get_container_class_name() != "net.minecraft.world.inventory.EnchantmentMenu"):
+        if ContainerHelper.get_container_class_name() != ContainerHelper.ENCHANTMENT_MENU_CLASS:
             return False
    
         button_id = ContainerHelper._resolve_enchantment_button_index(enchantment_apply_type)
@@ -676,7 +687,7 @@ class ContainerHelper:
     
     @staticmethod
     def enchantment_table_get_enchant_info(enchantment_apply_type) -> EnchantmentInfo|None:
-        if (ContainerHelper.get_container_class_name() != "net.minecraft.world.inventory.EnchantmentMenu"):
+        if ContainerHelper.get_container_class_name() != ContainerHelper.ENCHANTMENT_MENU_CLASS:
             return None
 
         index = ContainerHelper._resolve_enchantment_button_index(enchantment_apply_type)
@@ -714,7 +725,6 @@ class ItemsHelper:
 
     @staticmethod
     def _resolve_to_item_stack(item: JavaObject | str | int) -> JavaObject:
-        """Convert item_id (str), numeric_id (int), or JavaObject to ItemStack JavaObject."""
         # Handle int and str first (convert to Item)
         if isinstance(item, int):
             item_obj = ItemsHelper.Item.byId(item)
@@ -733,7 +743,6 @@ class ItemsHelper:
 
     @staticmethod
     def _resolve_to_item(item: JavaObject | str | int) -> JavaObject:
-        """Convert numeric_id (int), item_id (str), or JavaObject to Item JavaObject."""
         if isinstance(item, int):
             return ItemsHelper.Item.byId(item)
         elif isinstance(item, str):
@@ -749,19 +758,16 @@ class ItemsHelper:
 
     @staticmethod
     def get_item_id(item: JavaObject | str | int) -> str | None:
-        """Get the item ID (minecraft namespace identifier) for an item."""
         item_obj = ItemsHelper._resolve_to_item(item)
         return RegistryHelper.get_id(RegistryHelper.BuiltInRegistries.ITEM, item_obj)
 
     @staticmethod
     def get_numeric_id(item: JavaObject | str | int) -> int:
-        """Get the numeric registry ID for an item."""
         item_obj = ItemsHelper._resolve_to_item(item)
         return ItemsHelper.Item.getId(item_obj)
 
     @staticmethod
     def get_display_name(item: JavaObject | str | int, use_custom_name: bool = False) -> str | None:
-        """Get the display name of an item or itemstack."""
         stack = ItemsHelper._resolve_to_item_stack(item)
         if use_custom_name:
             return stack.getHoverName().getString()
@@ -769,24 +775,20 @@ class ItemsHelper:
 
     @staticmethod
     def get_count(item: JavaObject | str | int) -> int:
-        """Get the stack count. Returns 1 for single items, actual count for itemstacks."""
         stack = ItemsHelper._resolve_to_item_stack(item)
         return stack.getCount()
 
     @staticmethod
     def get_max_stack_size(item: JavaObject | str | int) -> int:
-        """Get the maximum stack size for an item."""
         stack = ItemsHelper._resolve_to_item_stack(item)
         return stack.getMaxStackSize()
 
     @staticmethod
     def get_item_stack_java_object(item: JavaObject | str | int) -> JavaObject:
-        """Get the ItemStack JavaObject."""
         return ItemsHelper._resolve_to_item_stack(item)
 
     @staticmethod
     def get_item_java_object(item: JavaObject | str | int) -> JavaObject:
-        """Get the Item JavaObject."""
         return ItemsHelper._resolve_to_item(item)
 
     @staticmethod
@@ -798,7 +800,7 @@ class ItemsHelper:
     
     @staticmethod
     def get_components(item: JavaObject | str | int) -> str:
-        components = _JsonHelper.get(ItemsHelper.get_json(item),"components",)
+        components = _JsonHelper.get(ItemsHelper.get_json(item),"components")
         return _JsonHelper.dumps(components)
 
 
@@ -810,12 +812,10 @@ class _JsonHelper:
 
     @staticmethod
     def loads(data: str):
-        """Parse a JSON string into a Gson JsonElement."""
         return json.loads(data)
     
     @staticmethod
     def parse(data: str):
-        """Parse a JSON string into a Gson JsonElement."""
         return _JsonHelper.JsonParser.parseString(data)
 
     @staticmethod
@@ -902,11 +902,12 @@ class FishingHelper:
 class MerchantHelper:
     MerchantOffers = JavaClass("net.minecraft.world.item.trading.MerchantOffers")
     ServerboundSelectTradePacket = JavaClass("net.minecraft.network.protocol.game.ServerboundSelectTradePacket")
+    MERCHANT_MENU_CLASS = "net.minecraft.world.inventory.MerchantMenu"
 
     @staticmethod
     def is_container_merchant() -> bool:
         container_name = ContainerHelper.get_container_class_name()
-        return container_name == "net.minecraft.world.inventory.MerchantMenu"
+        return container_name == MerchantHelper.MERCHANT_MENU_CLASS
     
     @staticmethod
     def get_offers_json():
@@ -974,6 +975,9 @@ class ScreenHelper:
     SystemToast = JavaClass("net.minecraft.client.gui.components.toasts.SystemToast")
     AlertScreen = JavaClass("net.minecraft.client.gui.screens.AlertScreen")
 
+    ANVIL_MENU_CLASS = "net.minecraft.world.inventory.AnvilMenu"
+    ANVIL_SCREEN_CLASS = "net.minecraft.client.gui.screens.inventory.AnvilScreen"
+
     @staticmethod
     def set_current_screen(screen: JavaObject) -> None:
         minecraft.setScreen(screen)
@@ -984,7 +988,7 @@ class ScreenHelper:
         if container is None:
             return None
 
-        if UtilHelper.get_class_name(container) != "net.minecraft.world.inventory.AnvilMenu":
+        if UtilHelper.get_class_name(container) != ScreenHelper.ANVIL_MENU_CLASS:
             return None
 
         return container.getCost()
@@ -1001,7 +1005,6 @@ class ScreenHelper:
     
     @staticmethod
     def get_container_bounds() -> ContainerBounds | None:
-        """For container screens, returns leftPos, topPos, imageWidth, imageHeight."""
         screen = ScreenHelper.get_current_screen()
         if screen is None:
             return None
@@ -1061,7 +1064,7 @@ class ScreenHelper:
 
     @staticmethod
     def set_anvil_screen_text(text: str) -> bool:
-        if ScreenHelper.get_current_screen_class_name() != "net.minecraft.client.gui.screens.inventory.AnvilScreen":
+        if ScreenHelper.get_current_screen_class_name() != ScreenHelper.ANVIL_SCREEN_CLASS:
             return False
             
         current_screen = ScreenHelper.get_current_screen()
@@ -1072,9 +1075,11 @@ class ScreenHelper:
         return False
 
 class WidgetScreenHelper:
+    ABSTRACT_WIDGET_CLASS = "net.minecraft.client.gui.components.AbstractWidget"
+    
     @staticmethod
     def _wrap_abstract_widget(java_object) -> GuiWidget | None:
-        if not ReflectionHelper.is_instance_of(java_object, "net.minecraft.client.gui.components.AbstractWidget"):
+        if not ReflectionHelper.is_instance_of(java_object, WidgetScreenHelper.ABSTRACT_WIDGET_CLASS):
             return None
         
         message = java_object.getMessage()
@@ -1109,13 +1114,10 @@ class WidgetScreenHelper:
 
     @staticmethod
     def _create_mouse_event(x: float, y: float, button: int) -> JavaObject:
-        MouseButtonInfo = JavaClass("net.minecraft.client.input.MouseButtonInfo")
-        MouseButtonEvent = JavaClass("net.minecraft.client.input.MouseButtonEvent")
-        return MouseButtonEvent(float(x), float(y), MouseButtonInfo(button, 0))
+        return GLFWHelper.MouseButtonEvent(float(x), float(y), GLFWHelper.MouseButtonInfo(button, 0))
 
     @staticmethod
     def click_widget(widget: GuiWidget | JavaObject) -> bool:
-        """Simulates a click on a widget."""
         java_obj = widget.java_object if isinstance(widget, GuiWidget) else widget
         if java_obj is None:
             return False
@@ -1127,7 +1129,6 @@ class WidgetScreenHelper:
 
     @staticmethod
     def click_at(x: float, y: float, button: int = 0) -> bool:
-        """Simulates a click at specific GUI coordinates."""
         screen = ScreenHelper.get_current_screen()
         if screen is None:
             return False
@@ -1178,8 +1179,8 @@ class ClientHelper:
     Component = JavaClass("net.minecraft.network.chat.Component")
 
     @staticmethod
-    def disconnect(str = "Disconnected by Minescript") -> None:
-        minecraft.level.disconnect(ClientHelper.Component.literal(str))
+    def disconnect(reason: str = "Disconnected by Minescript") -> None:
+        minecraft.level.disconnect(ClientHelper.Component.literal(reason))
 
     @staticmethod
     def get_level_data() -> ClientLevelData:
@@ -1209,7 +1210,6 @@ class ClientHelper:
     
     @staticmethod
     def get_camera_position() -> Vector3f:
-        """Get current camera position"""
         camera = ClientHelper._get_camera()
         pos = camera.position()
         return (pos.getX(), pos.getY(), pos.getZ())
@@ -1340,6 +1340,7 @@ class GLFWHelper:
     GLFW = JavaClass("org.lwjgl.glfw.GLFW")
     BufferUtils = JavaClass("org.lwjgl.BufferUtils")
     MouseButtonInfo = JavaClass("net.minecraft.client.input.MouseButtonInfo")
+    MouseButtonEvent = JavaClass("net.minecraft.client.input.MouseButtonEvent")
 
     @staticmethod
     def get_cursor_position() -> Vec2:

@@ -60,7 +60,7 @@ class StatisticsHelper:
         return stat_group if stat_group.stats else None
 
     @staticmethod
-    def test() -> List[StatGroup]: 
+    def get_stats() -> List[StatGroup]: 
         stat_groups = []
         for stat_type in StatisticsHelper._get_stat_type_registry():
             stat_group = StatisticsHelper._extract_stat_group(stat_type)
@@ -72,7 +72,7 @@ class StatisticsHelper:
 class XaeroHelper:
     BuiltInHudModules = None
     
-    Waypoint = JavaClass("xaero.common.minimap.waypoints.Waypoint")
+    Waypoint = None
     
     MINIMAP_SESSION_CLASS = "xaero.hud.minimap.module.MinimapSession"
     MINIMAP_WORLD_MANAGER_CLASS = "xaero.hud.minimap.world.MinimapWorldManager"
@@ -88,6 +88,7 @@ class XaeroHelper:
             # xaero_minimap_session = JavaClass("xaero.minimap.XaeroMinimap").instance.createSession() #xaero.common.XaeroMinimapSession
             # XaeroHelper.IXaeroMinimap = xaero_minimap_session.getModMain()  #aero.minimap.XaeroMinimapFabric
             XaeroHelper.BuiltInHudModules = JavaClass("xaero.hud.minimap.BuiltInHudModules")
+            XaeroHelper.Waypoint = JavaClass("xaero.common.minimap.waypoints.Waypoint")
         except Exception as e:
             return False
         return True
@@ -711,11 +712,11 @@ class ContainerHelper:
     
     @staticmethod
     def container_find_item_id(item_id: str) -> list[ItemStack]:
-        return ContainerHelper._has_item_id(container_get_items(), item_id)
+        return JavaArray(tuple(ContainerHelper._has_item_id(container_get_items(), item_id)))
     
     @staticmethod
     def inventory_find_item_id(item_id: str) -> list[ItemStack]:
-        return ContainerHelper._has_item_id(player_inventory(), item_id)
+        return JavaArray(tuple(ContainerHelper._has_item_id(player_inventory(), item_id)))
 
     @staticmethod
     def get_inventory_selected_hotbar_slot() -> int:
@@ -727,6 +728,7 @@ class ContainerHelper:
     
     @staticmethod
     def _resolve_enchantment_button_index(enchantment_apply_type: str) -> int | None:
+        enchantment_apply_type = enchantment_apply_type.lower()
         enchantment_buttons = {
             "bottom": 0,
             "middle": 1,
@@ -739,7 +741,7 @@ class ContainerHelper:
         return enchantment_buttons[enchantment_apply_type]
 
     @staticmethod
-    def enchantment_table_apply_enchant(enchantment_apply_type) -> bool:
+    def enchantment_table_apply_enchant(enchantment_apply_type) -> bool:        
         if ContainerHelper.get_container_class_name() != ContainerHelper.ENCHANTMENT_MENU_CLASS:
             return False
    
@@ -1111,9 +1113,9 @@ class ScreenHelper:
     
     @staticmethod
     def open_alert_screen(title_text: str, message_text: str, ok_button_text: str = "OK"):
+        print("fd")
         def ok_pressed():
             ScreenHelper.close_current_screen()
-            managed_callback.cancel()
         
         managed_callback = ManagedCallback(ok_pressed)
         title_literal = ScreenHelper.Component.literal(title_text)
@@ -1327,6 +1329,13 @@ class WindowHelper:
         return WindowHelper._get_window().handle()
     
     @staticmethod
+    def set_window_title(title: str):
+        GLFWHelper.GLFW.glfwSetWindowTitle(
+            WindowHelper.get_window_handle(),
+            title
+        )
+
+    @staticmethod
     def set_fullscreen(fullscreen: bool):
         ReflectionHelper.set_private_field(WindowHelper._get_window(), "fullscreen", fullscreen)
         
@@ -1405,7 +1414,8 @@ class GLFWHelper:
     BufferUtils = JavaClass("org.lwjgl.BufferUtils")
     MouseButtonInfo = JavaClass("net.minecraft.client.input.MouseButtonInfo")
     MouseButtonEvent = JavaClass("net.minecraft.client.input.MouseButtonEvent")
-
+    GLFWNativeWin = JavaClass("org.lwjgl.glfw.GLFWNativeWin32")
+    
     @staticmethod
     def get_cursor_position() -> Vec2:
         x = GLFWHelper.BufferUtils.createDoubleBuffer(1)

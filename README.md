@@ -32,6 +32,7 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [send\_mouse\_button(button: int, press: bool)](#send_mouse_buttonbutton-int-press-bool)
   - [WindowHelper](#windowhelper)
     - [get\_window\_handle() -\> JavaObject](#get_window_handle---javaobject)
+    - [set\_window\_title(title: str)](#set_window_titletitle-str)
     - [set\_fullscreen(fullscreen: bool)](#set_fullscreenfullscreen-bool)
     - [is\_window\_fullscreen() -\> bool](#is_window_fullscreen---bool)
     - [is\_window\_minimized() -\> bool](#is_window_minimized---bool)
@@ -114,6 +115,7 @@ If you are encountering errors, please provide the latest.log file from `%appdat
       - [DefaultContainerLayout](#defaultcontainerlayout)
       - [CraftingInventoryLayout](#craftinginventorylayout)
       - [ChestLayout](#chestlayout)
+      - [GrindstoneLayout](#grindstonelayout)
       - [AnvilLayout](#anvillayout)
       - [BrewingStandLayout](#brewingstandlayout)
       - [EnchantmentLayout](#enchantmentlayout)
@@ -245,6 +247,7 @@ GLFWHelper.send_mouse_button(GLFW_MOUSE_BUTTON_LEFT, True)
 ### get_window_handle() -> JavaObject
 Returns a `java.lang.Long` JavaObject
 
+### set_window_title(title: str)
 ### set_fullscreen(fullscreen: bool)
 ### is_window_fullscreen() -> bool
 ### is_window_minimized() -> bool
@@ -639,6 +642,22 @@ Layouts:
 - `get_inventory_slots()`: return the inventory_grid slot layout
 </details>
 
+#### GrindstoneLayout
+Returned for `net.minecraft.world.inventory.GrindstoneMenu`
+
+Layouts:
+- `repair_slots`: slots `[0-1]`
+- `result`: slot `[2]`
+- `inventory_grid`: slots `[3-38]`
+
+<details>
+<summary>Methods:</summary>
+
+- `get_repair_slots()`: return thec combine_grid slot layout
+- `get_result_slot()`: return the ingredient slot
+- `get_inventory_slots()`: return the inventory_grid slot layout
+</details>
+
 #### AnvilLayout
 Returned for `net.minecraft.world.inventory.AnvilMenu`
 
@@ -779,7 +798,7 @@ if item:
 Alias for `get_container_slot()`.
 
 ### container_find_item_id(item_id) -> list[JavaObject]
-Find all item stacks in container matching the given item ID.
+Find all item stacks in container matching the given item identifier.
 
 ```python
 diamonds = ContainerHelper.container_find_item_id("minecraft:diamond")
@@ -788,10 +807,10 @@ for stack in diamonds:
 ```
 
 ### inventory_find_item_id(item_id) -> list[ItemStack]
-Find all item stacks in inventory matching the given item ID.
+Find all item stacks in inventory matching the given full item identifier.
 
 ```python
-swords = ContainerHelper.inventory_find_item_id("diamond_sword")
+swords = ContainerHelper.inventory_find_item_id("minecraft:diamond_sword")
 ```
 
 ### get_inventory_free_slot() -> int | None

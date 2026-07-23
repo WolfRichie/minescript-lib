@@ -160,6 +160,7 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [open\_inventory\_screen() -\> None](#open_inventory_screen---none)
     - [show\_toast(title: str, desc: str, display\_time: float = 5000.0)](#show_toasttitle-str-desc-str-display_time-float--50000)
     - [set\_anvil\_screen\_text(text: str) -\> bool](#set_anvil_screen_texttext-str---bool)
+    - [get\_anvil\_screen\_text() -\> str | None](#get_anvil_screen_text---str--none)
     - [is\_any\_toast\_showing() -\> bool](#is_any_toast_showing---bool)
   - [WidgetScreenHelper](#widgetscreenhelper)
     - [get\_widgets() -\> List\[GuiWidget\] | None](#get_widgets---listguiwidget--none)
@@ -950,6 +951,7 @@ Shows an alert screen
 ### open_inventory_screen() -> None
 ### show_toast(title: str, desc: str, display_time: float = 5000.0)
 ### set_anvil_screen_text(text: str) -> bool
+### get_anvil_screen_text() -> str | None
 ### is_any_toast_showing() -> bool
 
 ---

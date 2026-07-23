@@ -1140,6 +1140,17 @@ class ScreenHelper:
             return True
         return False
 
+    @staticmethod
+    def get_anvil_screen_text() -> str | None:
+        if ScreenHelper.get_current_screen_class_name() != ScreenHelper.ANVIL_SCREEN_CLASS:
+            return None
+            
+        current_screen = ScreenHelper.get_current_screen()
+        name_field = ReflectionHelper.get_private_field(current_screen, "name")
+        if name_field is not None:
+            return name_field.getValue()
+        return None
+
 class WidgetScreenHelper:
     ABSTRACT_WIDGET_CLASS = "net.minecraft.client.gui.components.AbstractWidget"
     
@@ -1239,7 +1250,6 @@ class WidgetScreenHelper:
                 if text in message_text:
                     return widget
         return None
-
 
 class ClientHelper:
     Component = JavaClass("net.minecraft.network.chat.Component")

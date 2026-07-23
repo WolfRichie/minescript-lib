@@ -641,6 +641,9 @@ class ScreenHelper(PyJinnProxy):
   
   @staticmethod
   def set_anvil_screen_text(text: str) -> bool: ...
+  
+  @staticmethod
+  def get_anvil_screen_text() -> str | None: ...
 
   @staticmethod
   def is_any_toast_showing() -> bool: ...

@@ -17,9 +17,11 @@ For any suggestions or issues with the library please make an issue on this repo
 
 If you are encountering errors, please provide the latest.log file from `%appdata%/.minecraft/logs/latest.log` in the issue.
 
+All methods which return List[type] e.g `get_stats() -> List[StatGroup]` return lists in the form of JavaArray's, handle with care.
 ---
 - [Minescript Library](#minescript-library)
   - [Usage](#usage)
+  - [All methods which return List\[type\] e.g `get_stats() -> List[StatGroup]` return lists in the form of JavaArray's, handle with care.](#all-methods-which-return-listtype-eg-get_stats---liststatgroup-return-lists-in-the-form-of-javaarrays-handle-with-care)
   - [GLFWHelper](#glfwhelper)
     - [get\_cursor\_position() -\> Vec2](#get_cursor_position---vec2)
     - [get\_cursor\_gui\_position() -\> Vec2](#get_cursor_gui_position---vec2)
@@ -44,7 +46,20 @@ If you are encountering errors, please provide the latest.log file from `%appdat
     - [get\_gui\_scale() -\> float](#get_gui_scale---float)
     - [get\_coordinate\_scale(window\_to\_gui: bool = False) -\> Vec2](#get_coordinate_scalewindow_to_gui-bool--false---vec2)
     - [get\_screen\_position(gui\_x: float, gui\_y: float) -\> Vec2](#get_screen_positiongui_x-float-gui_y-float---vec2)
-    - [get\_gui\_position(window\_x: float, window\_y: float) -\> Vec2:](#get_gui_positionwindow_x-float-window_y-float---vec2)
+  - [ScoreboardHelper:](#scoreboardhelper)
+    - [get\_scoreboard() -\> JavaObject | None:](#get_scoreboard---javaobject--none)
+    - [get\_scoreboard\_objective(objective\_name: str) -\> JavaObject | None:](#get_scoreboard_objectiveobjective_name-str---javaobject--none)
+    - [remove\_objective(objective\_name: str) -\> bool | None](#remove_objectiveobjective_name-str---bool--none)
+    - [set\_scoreboard\_score(objective\_name: str, player\_name: str, score\_value: int) -\> ScoreboardScore | None](#set_scoreboard_scoreobjective_name-str-player_name-str-score_value-int---scoreboardscore--none)
+      - [ScoreboardScore:](#scoreboardscore)
+    - [get\_scoreboard\_scores(objective\_name: str) -\> list\[ScoreboardScore\]](#get_scoreboard_scoresobjective_name-str---listscoreboardscore)
+    - [add\_dummy\_objective(objective\_name: str, display\_name=None) -\> JavaObject | None:](#add_dummy_objectiveobjective_name-str-display_namenone---javaobject--none)
+    - [get\_display\_slot\_enum(key: str) -\> JavaObject](#get_display_slot_enumkey-str---javaobject)
+    - [get\_display\_slot\_objective(display\_slot\_enum: JavaObject) -\> JavaObject | None:](#get_display_slot_objectivedisplay_slot_enum-javaobject---javaobject--none)
+    - [set\_display\_slot\_objective(display\_slot: JavaObject, objective\_name: str|None) -\> bool | None](#set_display_slot_objectivedisplay_slot-javaobject-objective_name-strnone---bool--none)
+    - [clear\_display\_slot(display\_slot: JavaObject) -\> bool | None](#clear_display_slotdisplay_slot-javaobject---bool--none)
+    - [get\_sidebar() -\> Scoreboard | None](#get_sidebar---scoreboard--none)
+      - [Scoreboard:](#scoreboard)
   - [MerchantHelper](#merchanthelper)
     - [is\_container\_merchant() -\> bool](#is_container_merchant---bool)
     - [set\_selected\_trade\_index(index: int)](#set_selected_trade_indexindex-int)
@@ -283,9 +298,70 @@ gui_y = bounds.top + slot.y + 8
 return WindowHelper.get_screen_position(gui_x, gui_y)
 ```
 
-### get_gui_position(window_x: float, window_y: float) -> Vec2:
-Vec2 has x,y fields. 
-Inverse of `get_screen_position`
+---
+
+## ScoreboardHelper:
+
+### get_scoreboard() -> JavaObject | None:
+Returns an instance of `net.minecraft.world.scores.Scoreboard`
+
+### get_scoreboard_objective(objective_name: str) -> JavaObject | None:
+Returns an instance of `net.minecraft.world.scores.Objective`
+
+### remove_objective(objective_name: str) -> bool | None
+### set_scoreboard_score(objective_name: str, player_name: str, score_value: int) -> ScoreboardScore | None
+
+#### ScoreboardScore:
+  - objective_name: str
+  - player_name: str
+  - display_name: str
+  - score_value: int
+
+### get_scoreboard_scores(objective_name: str) -> list[ScoreboardScore]
+
+### add_dummy_objective(objective_name: str, display_name=None) -> JavaObject | None:
+
+Example
+```python
+OBJECTIVE = "my_score"
+PLAYER = "player_name_here"
+objective = ScoreboardHelper.add_dummy_objective(OBJECTIVE)
+score = ScoreboardHelper.set_scoreboard_score(
+    OBJECTIVE,
+    PLAYER,
+    42,
+)
+
+scores = ScoreboardHelper.get_scoreboard_scores(OBJECTIVE)
+for s in scores:
+    print(s)
+```
+
+### get_display_slot_enum(key: str) -> JavaObject
+Returns an instance of `net.minecraft.world.scores.DisplaySlot` to be passed to `get_display_slot_objective`
+One of these:
+`list` `sidebar` `below_name` `sidebar.team.black` `sidebar.team.dark_blue` `sidebar.team.dark_green` `sidebar.team.dark_aqua` `sidebar.team.dark_red` `sidebar.team.dark_purple` `sidebar.team.gold` `sidebar.team.gray` `sidebar.team.dark_gray` `sidebar.team.blue` `sidebar.team.green` `sidebar.team.aqua` `sidebar.team.red` `sidebar.team.light_purple` `sidebar.team.yellow` `sidebar.team.white`
+
+### get_display_slot_objective(display_slot_enum: JavaObject) -> JavaObject | None:
+
+Returns an instance of `net.minecraft.world.scores.Objective`
+
+Example
+```python
+sidebar_slot = ScoreboardHelper.get_display_slot_enum("SIDEBAR")
+objective = ScoreboardHelper.get_display_slot_objective(sidebar_slot)
+if sidebar_slot is not None:
+  print("Objective:", objective.getName())
+```
+
+### set_display_slot_objective(display_slot: JavaObject, objective_name: str|None) -> bool | None
+### clear_display_slot(display_slot: JavaObject) -> bool | None
+### get_sidebar() -> Scoreboard | None
+
+#### Scoreboard:
+  - objective_name: str
+  - display_name: str
+  - scores: list[\[ScoreboardScore\]](#scoreboardscore)
 
 ---
 

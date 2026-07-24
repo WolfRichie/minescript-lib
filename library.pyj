@@ -5,6 +5,195 @@ from system.pyj.minescript import *
 minecraft = JavaClass("net.minecraft.client.Minecraft").getInstance()
 minescript = JavaClass("net.minescript.common.Minescript")
 
+@dataclass(slots=True)
+class ScoreboardScore:
+    objective_name: str
+    player_name: str
+    display_name: str
+    score_value: int
+
+@dataclass(slots=True)
+class Scoreboard:
+    objective_name: str
+    display_name: str
+    scores: list[ScoreboardScore]
+
+class ScoreboardHelper:
+    ObjectiveCriteria = JavaClass("net.minecraft.world.scores.criteria.ObjectiveCriteria")
+    DisplaySlot = JavaClass("net.minecraft.world.scores.DisplaySlot")
+    ScoreHolder = JavaClass("net.minecraft.world.scores.ScoreHolder")
+
+    @staticmethod
+    def _resolve_with_scoreboard(objective_name: str):
+        scoreboard = ScoreboardHelper.get_scoreboard()
+        if scoreboard is None:
+            return None, None
+
+        objective = scoreboard.getObjective(objective_name)
+        if objective is None:
+            return scoreboard, None
+
+        return scoreboard, objective
+
+    @staticmethod
+    def get_scoreboard() -> JavaObject | None:
+        return minecraft.level.getScoreboard()
+
+    @staticmethod
+    def get_scoreboard_objective(objective_name: str) -> JavaObject | None:
+        _scoreboard, objective = ScoreboardHelper._resolve_with_scoreboard(objective_name)
+        return objective
+    
+    @staticmethod
+    def _get_score_holder(player_name: str) -> JavaObject:
+        return ScoreboardHelper.ScoreHolder.forNameOnly(player_name)
+
+    @staticmethod
+    def remove_objective(objective_name: str) -> bool | None:
+        scoreboard, objective = ScoreboardHelper._resolve_with_scoreboard(objective_name)
+        if objective is None:
+            return None
+        
+        scoreboard.removeObjective(objective)
+        return True
+
+    @staticmethod
+    def set_scoreboard_score(objective_name: str, player_name: str, score_value: int) -> ScoreboardScore | None:
+        scoreboard, objective = ScoreboardHelper._resolve_with_scoreboard(objective_name)
+        if objective is None:
+            return None
+        
+        score_holder = ScoreboardHelper.get_score_holder(player_name)
+        score = scoreboard.getOrCreatePlayerScore(score_holder, objective)
+        score.set(score_value)
+        return ScoreboardScore(objective_name, player_name, score_holder.getDisplayName(), score_value)
+
+    @staticmethod
+    def get_scoreboard_score(
+        objective_name: str,
+        player_name: str
+    ) -> ScoreboardScore | None:
+        scoreboard, objective = ScoreboardHelper._resolve_with_scoreboard(objective_name)
+        if objective is None:
+            return None
+
+        score_holder = ScoreboardHelper.get_score_holder(player_name)
+        score = scoreboard.getPlayerScoreInfo(score_holder, objective)
+        if score is None:
+            return None
+
+        return ScoreboardScore(
+            objective_name,
+            player_name,
+            player_name,
+            score.value()
+        )
+    
+    @staticmethod
+    def _get_scoreboard_scores(
+        objective_name: str
+    ) -> list[ScoreboardScore] | None:
+        scoreboard, objective = ScoreboardHelper._resolve_with_scoreboard(objective_name)
+        if objective is None:
+            return None
+
+        scores = []
+
+        for score in scoreboard.listPlayerScores(objective):
+            player_name_str = score.ownerName().getString()
+
+            team = scoreboard.getPlayersTeam(player_name_str)
+
+            if team is not None:
+                prefix = team.getPlayerPrefix()
+                suffix = team.getPlayerSuffix()
+
+                prefixStr = prefix.getString() if prefix else ""
+                suffixStr = suffix.getString() if suffix else ""
+
+                display_name = f"{prefixStr}{player_name_str}{suffixStr}"
+            else:
+                display_name = player_name_str
+
+            scores.append(
+                ScoreboardScore(
+                    objective_name,
+                    player_name_str,
+                    display_name,
+                    score.value()
+                )
+            )
+
+        return JavaArray(tuple(scores))
+    
+    @staticmethod
+    def get_scoreboard_scores(objective_name: str) -> list[ScoreboardScore] | None:
+        return JavaArray(tuple(ScoreboardHelper._get_scoreboard_scores(objective_name) or []))
+    
+    @staticmethod
+    def add_dummy_objective(objective_name: str, display_name=None) -> JavaObject | None:
+        scoreboard, objective = ScoreboardHelper._resolve_with_scoreboard(objective_name)
+
+        if objective is not None:
+            return None
+
+        if display_name is None:
+            display_name = ClientHelper.Component.literal(objective_name)
+
+        dummy = ScoreboardHelper.ObjectiveCriteria.DUMMY
+        scoreboard.addObjective(
+            objective_name,
+            dummy,
+            display_name,
+            dummy.getDefaultRenderType(),
+            False,
+            None
+        )
+
+        return scoreboard.getObjective(objective_name)
+    
+    @staticmethod
+    def get_display_slot_enum(key: str):
+        try:
+            return ScoreboardHelper.DisplaySlot.valueOf(key.upper())
+        except Exception:
+            return None
+        
+    @staticmethod
+    def get_display_objective(display_slot: JavaObject) -> JavaObject | None:
+        scoreboard = ScoreboardHelper.get_scoreboard()
+        return scoreboard.getDisplayObjective(display_slot)
+
+    @staticmethod
+    def set_display_slot_objective(display_slot: JavaObject, objective_name: str|None) -> bool | None:
+        scoreboard, objective = ScoreboardHelper._resolve_with_scoreboard(objective_name)
+        if objective is None:
+            return None
+
+        scoreboard.setDisplayObjective(display_slot, objective)
+        return True
+
+    @staticmethod
+    def clear_display_slot_objective(display_slot: JavaObject) -> bool | None:
+        if ScoreboardHelper.get_display_objective(display_slot) is None:
+            return False
+
+        ScoreboardHelper.set_display_slot_objective(display_slot, None)
+        return True
+
+    @staticmethod
+    def get_sidebar() -> Scoreboard | None:
+        scoreboard = ScoreboardHelper.get_scoreboard()
+        objective = scoreboard.getDisplayObjective(ScoreboardHelper.DisplaySlot.SIDEBAR)
+        if objective is None:
+            return None
+
+        return Scoreboard(
+            objective.getName(),
+            objective.getDisplayName().getString(),
+            ScoreboardHelper._get_scoreboard_scores(objective.getName())
+        )
+
 class StatGroup:
     def __init__(self, group_id: str, display_name: str):
         self.group_id = group_id

@@ -4,7 +4,7 @@ from code.Proxy import PyJinnProxy
 PyJinnProxy.bind_script("library.pyj")
 
 if TYPE_CHECKING:
-  from code.type_checking import StatisticsHelper, XaeroHelper, WidgetScreenHelper, ScreenHelper, BookScreenHelper, ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper, PlayerHelper, RegistryHelper
+  from code.type_checking import StatisticsHelper, ScoreboardHelper, XaeroHelper, WidgetScreenHelper, ScreenHelper, BookScreenHelper, ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper, PlayerHelper, RegistryHelper
 else:
   XaeroHelper = PyJinnProxy("XaeroHelper")
   RegistryHelper = PyJinnProxy("RegistryHelper")
@@ -12,14 +12,13 @@ else:
   PlayerHelper = PyJinnProxy("PlayerHelper")
   MappingsHelper = PyJinnProxy("MappingsHelper")
   MerchantHelper = PyJinnProxy("MerchantHelper")
-  
+  ScoreboardHelper = PyJinnProxy("ScoreboardHelper")
   ContainerHelper = PyJinnProxy("ContainerHelper")
   
   # To avoid overwriting proxy dynamically at runtime we can just inject a method
   def get_container_layout():
     runtime_helper = ContainerHelper._pyj_class()
     container = runtime_helper.get_container()
-
     if container is None:
       return None
 
@@ -61,7 +60,8 @@ else:
       return EnchantmentLayout()
     elif container_name == MerchantLayout.MERCHANT_MENU_NAME:
       return MerchantLayout()
-    
+    elif container_name == GrindstoneLayout.GRINDSTONE_MENU_NAME:
+      return GrindstoneLayout()
     return DefaultContainerLayout(container_name, layouts={"slots":list(range(total_slots))})
   
   ContainerHelper.get_container_layout = get_container_layout
@@ -100,6 +100,7 @@ class ContainerLayout:
   def get_layouts(self):
     return self.layouts
 
+
 class DefaultContainerLayout(ContainerLayout):
   def __init__(self, container_name, layouts):
     super().__init__(container_name, layouts)
@@ -107,6 +108,24 @@ class DefaultContainerLayout(ContainerLayout):
   @property
   def is_unknown(self) -> bool:
     return True
+  
+class GrindstoneLayout(ContainerLayout):
+  GRINDSTONE_MENU_NAME = "net.minecraft.world.inventory.GrindstoneMenu"
+  def __init__(self):
+    super().__init__(GrindstoneLayout.GRINDSTONE_MENU_NAME, {
+      "repair_slots": [0, 1],
+      "result": [2],
+      "inventory_grid": list(range(3, 38+1)),
+    })
+    
+  def get_repair_slots(self):
+    return self.get_group("repair_slots")
+
+  def get_result_slot(self):
+    return self.get_group("result")[0]
+
+  def get_inventory_slots(self):
+    return self.get_group("inventory_grid")
 
 class CraftingInventoryLayout(ContainerLayout):
     INVENTORY_MENU_NAME = "net.minecraft.world.inventory.InventoryMenu"

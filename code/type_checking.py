@@ -4,6 +4,74 @@ from main import ContainerLayout
 
 from minescript import ItemStack, Vector3f
 
+@dataclass(slots=True)
+class ScoreboardScore:
+    objective_name: str
+    player_name: str
+    display_name: str
+    score_value: int
+
+@dataclass(slots=True)
+class Scoreboard:
+    objective_name: str
+    display_name: str
+    scores: list[ScoreboardScore]
+
+class ScoreboardHelper(PyJinnProxy):
+    @staticmethod
+    def get_scoreboard() -> JavaObject | None: 
+      """
+      Returns an instance of `net.minecraft.world.scores.Scoreboard`
+      """
+      ...
+
+    @staticmethod
+    def get_scoreboard_objective(objective_name: str) -> JavaObject | None: 
+      """
+      Returns an instance of `net.minecraft.world.scores.Objective`
+      """
+      ...
+
+    @staticmethod
+    def remove_objective(objective_name: str) -> bool | None: ...
+
+    @staticmethod
+    def set_scoreboard_score(objective_name: str, player_name: str, score_value: int) -> ScoreboardScore | None: ...
+
+    @staticmethod
+    def get_scoreboard_score(objective_name: str, player_name: str) -> ScoreboardScore | None: ...
+
+    @staticmethod
+    def get_scoreboard_scores(objective_name: str) -> list[ScoreboardScore]: ...
+
+    @staticmethod
+    def add_dummy_objective(objective_name: str, display_name=None) -> JavaObject | None: ...
+
+    @staticmethod
+    def get_display_slot_enum(key: str) -> JavaObject | None: 
+      """
+      Returns an instance of `net.minecraft.world.scores.DisplaySlot` to be passed to `get_display_slot_objective`
+    Args:
+      key (`str`): One of these: `list` `sidebar` `below_name` `sidebar.team.black` `sidebar.team.dark_blue` `sidebar.team.dark_green` `sidebar.team.dark_aqua` `sidebar.team.dark_red` `sidebar.team.dark_purple` `sidebar.team.gold` `sidebar.team.gray` `sidebar.team.dark_gray` `sidebar.team.blue` `sidebar.team.green` `sidebar.team.aqua` `sidebar.team.red` `sidebar.team.light_purple` `sidebar.team.yellow` `sidebar.team.white`
+    """
+    ...
+    
+    @staticmethod
+    def get_display_slot_objective(display_slot_enum: JavaObject) -> JavaObject | None: 
+      """
+      Returns an instance of `net.minecraft.world.scores.Objective`
+      """
+      ...
+  
+    @staticmethod
+    def set_display_slot_objective(display_slot: JavaObject, objective_name: str|None) -> bool | None: ...
+
+    @staticmethod
+    def clear_display_slot(display_slot: JavaObject) -> bool | None: ...
+
+    @staticmethod
+    def get_sidebar() -> Scoreboard | None: ...
+
 class Stat:
     def __init__(self, stat_id: str, value: int, display_name: str): ...
     stat_id: str
@@ -81,7 +149,6 @@ class XaeroHelper(PyJinnProxy):
     def get_current_waypoint_set_count() -> int | None: ...
     
 class BookScreenHelper(PyJinnProxy):
-
     @staticmethod
     def is_edit_book_screen() -> bool: ...
     @staticmethod

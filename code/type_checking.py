@@ -570,6 +570,12 @@ class ContainerHelper(PyJinnProxy):
     ...
 
   @staticmethod
+  def throw(slot: int, entire_stack: bool = False) -> bool:
+    """
+    Throw an item from a slot. If `entire_stack` is `True`, throws the entire stack.
+    """
+    ...
+  @staticmethod
   def shift_click_slot(slot: int) -> bool:
     """
     Shift-click a slot (quick move).
@@ -580,8 +586,12 @@ class ContainerHelper(PyJinnProxy):
   def click_swap_with_hotbar(slot: int, hotbar_slot: int) -> bool: ...
 
   @staticmethod
-  def pickup_swap_container(slot_a: int, slot_b: int) -> bool: ...
-
+  def pickup_swap_container(source_slot: int, destination_slot: int) -> bool: ...
+  """
+  Picks up the stack from the source slot once, then left-click the
+  destination slot to place the items, and finally return
+  the remainder to the source slot. (if it has any)
+  """
   @staticmethod
   def get_inventory_selected_hotbar_slot() -> int:
     """

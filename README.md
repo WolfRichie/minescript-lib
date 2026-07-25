@@ -27,7 +27,7 @@ All methods which return List[type] e.g `get_stats() -> List[StatGroup]` return 
     - [get\_cursor\_gui\_position() -\> Vec2](#get_cursor_gui_position---vec2)
     - [set\_cursor\_position(x: float, y: float)](#set_cursor_positionx-float-y-float)
     - [show\_cursor()](#show_cursor)
-    - [hide\_cursor(x: float, y: float)](#hide_cursorx-float-y-float)
+    - [hide\_cursor()](#hide_cursor)
     - [disable\_cursor()](#disable_cursor)
     - [is\_cursor\_hidden\_or\_disabled() -\> bool](#is_cursor_hidden_or_disabled---bool)
     - [is\_mouse\_button\_pressed(button: int) -\> bool](#is_mouse_button_pressedbutton-int---bool)
@@ -132,6 +132,7 @@ All methods which return List[type] e.g `get_stats() -> List[StatGroup]` return 
       - [ChestLayout](#chestlayout)
       - [GrindstoneLayout](#grindstonelayout)
       - [AnvilLayout](#anvillayout)
+      - [BeaconLayout](#beaconlayout)
       - [BrewingStandLayout](#brewingstandlayout)
       - [EnchantmentLayout](#enchantmentlayout)
       - [MerchantLayout](#merchantlayout)
@@ -151,9 +152,10 @@ All methods which return List[type] e.g `get_stats() -> List[StatGroup]` return 
     - [get\_inventory\_selected\_hotbar\_slot() -\> int](#get_inventory_selected_hotbar_slot---int)
     - [raw\_click(slot, button\_or\_slot=0, click\_type=None) -\> bool](#raw_clickslot-button_or_slot0-click_typenone---bool)
     - [click\_slot(slot, button=0) -\> bool](#click_slotslot-button0---bool)
+    - [throw(slot: int, entire\_stack: bool = False) -\> bool](#throwslot-int-entire_stack-bool--false---bool)
     - [shift\_click\_slot(slot) -\> bool](#shift_click_slotslot---bool)
     - [click\_swap\_with\_hotbar(slot, hotbar\_slot) -\> bool](#click_swap_with_hotbarslot-hotbar_slot---bool)
-    - [pickup\_swap\_container(slot\_a, slot\_b) -\> bool](#pickup_swap_containerslot_a-slot_b---bool)
+    - [pickup\_swap\_container(source\_slot, destination\_slot) -\> bool](#pickup_swap_containersource_slot-destination_slot---bool)
   - [FishingHelper](#fishinghelper)
     - [is\_holding\_rod() -\> bool](#is_holding_rod---bool)
     - [is\_casted() -\> bool](#is_casted---bool)
@@ -211,6 +213,8 @@ All methods which return List[type] e.g `get_stats() -> List[StatGroup]` return 
     - [get\_clipboard() -\> str](#get_clipboard---str)
     - [set\_clipboard(text) -\> None](#set_clipboardtext---none)
     - [random\_uuid() -\> str](#random_uuid---str)
+    - [read\_global\_variable(var\_name: str) -\> Any | None](#read_global_variablevar_name-str---any--none)
+    - [set\_global\_variable(var\_name: str, value: Any) -\> None](#set_global_variablevar_name-str-value-any---none)
   - [StatisticsHelper](#statisticshelper)
     - [get\_stats() -\> List\[StatGroup\]](#get_stats---liststatgroup)
       - [StatGroup:](#statgroup)
@@ -242,7 +246,7 @@ Vec2 has x,y fields
 
 ### set_cursor_position(x: float, y: float)
 ### show_cursor()
-### hide_cursor(x: float, y: float)
+### hide_cursor()
 ### disable_cursor()
 ### is_cursor_hidden_or_disabled() -> bool
 ### is_mouse_button_pressed(button: int) -> bool
@@ -348,7 +352,7 @@ Returns an instance of `net.minecraft.world.scores.Objective`
 
 Example
 ```python
-sidebar_slot = ScoreboardHelper.get_display_slot_enum("SIDEBAR")
+sidebar_slot = ScoreboardHelper.get_display_slot_enum("SIDEBAR") # or sidebar
 objective = ScoreboardHelper.get_display_slot_objective(sidebar_slot)
 if sidebar_slot is not None:
   print("Objective:", objective.getName())
@@ -470,7 +474,7 @@ Accepted formats:
 
 - `x, y, z`: Individual numeric coordinates (float or int)
 
-All float values are automatically converted to integers, they are simply allowed for compatability purposes
+All float values are automatically converted to integers, they are simply allowed for compatibility purposes
 
 ```
 targeted_block_pos = minescript.player_get_targeted_block()
@@ -481,7 +485,7 @@ if targeted_block_pos is not None:
 
 ### get_block_state(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -> JavaObject:
 
-Returnws the minecraft `net.minecraft.world.level.block.state.BlockState` Java object from a position or coordinates.
+Returns the minecraft `net.minecraft.world.level.block.state.BlockState` Java object from a position or coordinates.
 
 Accepted formats:
 - `x, y, z`: Individual numeric coordinates (float or int)
@@ -489,7 +493,7 @@ Accepted formats:
 
 ### get_block_state_block(block_state: JavaObject) -> JavaObject:
 
-Returnws the minecraft `net.minecraft.world.level.block.Block` from a blockstate
+Returns the minecraft `net.minecraft.world.level.block.Block` from a blockstate
 
 Accepted formats:
 - `JavaObject` of ``net.minecraft.world.level.block.state.BlockState`
@@ -519,7 +523,7 @@ if targeted_block_pos is not None:
 
 ### get_block_entity(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -> JavaObject:
 
-Returnws the minecraft `net.minecraft.world.level.block.entity.BlockEntity` Java object from a position or coordinates.
+Returns the minecraft `net.minecraft.world.level.block.entity.BlockEntity` Java object from a position or coordinates.
 
 Accepted formats:
 - `x, y, z`: Individual numeric coordinates (float or int)
@@ -537,7 +541,7 @@ if targeted_block_pos is not None:
     # Or simply
     block_entity = BlocksHelper.get_block_entity(x, y, z)
 
-    if block_entity is not null:
+    if block_entity is not None:
         print(UtilHelper.get_class_name(block_entity)) -> net.minecraft.world.level.block.entity.CommandBlockEntity      
 ```
 
@@ -566,11 +570,11 @@ Returns SEQUENCE or AUTO or REDSTONE
 ## ItemsHelper
 
 > [!NOTE] 
-> NOTE YOU CANT PASS minescript.ItemStack instances, these ARE DATA OBJECTS
+> NOTE YOU CANT PASS minescript.ItemStack instances, These are lightweight data objects, not Java ItemStack instances which are required (or item id's are required)
 
 Static helper class for working with items and item stacks. All methods accept item references in multiple formats:
 - `JavaObject`: Direct Item or ItemStack objects
-- `str`: Item ID (e.g, `"minecraft:diamond_sword"`, `"fishing_rod"`)
+- `str`: Item ID (e.g, `"minecraft:diamond_sword"`)
 - `int`: Numeric registry ID (e.g, `69`)
 
 ### get_json(item) -> str
@@ -659,7 +663,7 @@ if pos:
 Return a python layout object for the currently open container.
 
 ```python
-ayout = ContainerHelper.get_container_layout()
+layout = ContainerHelper.get_container_layout()
 print("Container Layout:", type(layout), layout.__dict__) 
 # ->
 # Container Layout: <class 'main.AnvilLayout'> {'container_name': 'net.minecraft.world.inventory.AnvilMenu', 'layouts': {'combine_grid': [0, 1], 'result': [2], 'inventory': [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38]}}
@@ -751,11 +755,25 @@ Layouts:
 - `get_inventory_slots()`: return the inventory_grid slot layout
 </details>
 
+#### BeaconLayout
+Returned for `net.minecraft.world.inventory.BeaconMenu`
+
+Layouts:
+- `payment_slot`: slots `[0]`
+- `inventory_grid`: slot `[1-35]`
+
+<details>
+<summary>Methods:</summary>
+
+- `get_payment_slot()`: return the payment_slot slot
+- `get_inventory_slots()`: return the inventory_grid slot layout
+</details>
+
 #### BrewingStandLayout
 Returned for `net.minecraft.world.inventory.BrewingStandMenu`
 
 Layouts:
-- `potions_grid`: slots `[0-1, 2]`
+- `potions_grid`: slots `[0, 1, 2]`
 - `ingredient`: slot `[3]`
 - `blaze_powder`: slots `[4]`
 - `inventory_grid`: slots `[5-40]`
@@ -763,7 +781,7 @@ Layouts:
 <details>
 <summary>Methods:</summary>
 
-- `get_potion_slots()`: return thec potions_grid slot layout
+- `get_potion_slots()`: return the potions_grid slot layout
 - `get_ingredient_slot()`: return the ingredient slot
 - `get_blaze_powder_slot()`: return the blaze powder slot
 - `get_inventory_slots()`: return the inventory_grid slot layout
@@ -925,14 +943,18 @@ if ContainerHelper.click_slot(15, button=0):
     print("Clicked slot 15")
 ```
 
+### throw(slot: int, entire_stack: bool = False) -> bool
+Throw an item from a slot. If `entire_stack` is `True`, throws the entire stack.
+
 ### shift_click_slot(slot) -> bool
 Shift-click a slot (quick move).
 
-
-
 ### click_swap_with_hotbar(slot, hotbar_slot) -> bool
-### pickup_swap_container(slot_a, slot_b) -> bool
-
+### pickup_swap_container(source_slot, destination_slot) -> bool
+Picks up the stack from the source slot once, then left-click the
+destination slot to place the items, and finally return
+the remainder to the source slot. (if it has any)
+        
 ---
 
 ## FishingHelper
@@ -1091,12 +1113,6 @@ if bounds:
     WidgetScreenHelper.click_at(bounds.left + 10, bounds.top + 20)
 ```
 
-```python
-button = WidgetScreenHelper.get_widget_by_text("Done")
-if button:
-    WidgetScreenHelper.click_widget(button)
-```
-
 ---
 
 ## ClientHelper
@@ -1195,6 +1211,9 @@ if item:
 ### get_clipboard() -> str
 ### set_clipboard(text) -> None
 ### random_uuid() -> str
+### read_global_variable(var_name: str) -> Any | None
+### set_global_variable(var_name: str, value: Any) -> None
+Stores a variable in a undocumented dict that’s a game-level global shared across all Pyjinn scripts.
 
 ---
 

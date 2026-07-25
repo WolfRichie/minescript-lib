@@ -850,6 +850,11 @@ class ContainerHelper:
         return ContainerHelper.raw_click(slot, button, ContainerHelper.ClickType.PICKUP)
 
     @staticmethod
+    def throw(slot, entire_stack: bool = False) -> bool:
+        button = 1 if entire_stack else 0
+        return ContainerHelper.raw_click(slot, button, ContainerHelper.ClickType.THROW)
+
+    @staticmethod
     def shift_click_slot(slot) -> bool:
         return ContainerHelper.raw_click(slot, 0, ContainerHelper.ClickType.QUICK_MOVE)
 
@@ -858,15 +863,15 @@ class ContainerHelper:
         return ContainerHelper.raw_click(slot, hotbar_slot, ContainerHelper.ClickType.SWAP)
 
     @staticmethod
-    def pickup_swap_container(slot_a, slot_b) -> bool:
-        # Pick up the stack from the source slot once, then right-click the
+    def pickup_swap_container(source_slot, destination_slot) -> bool:
+        # Pick up the stack from the source slot once, then left-click the
         # destination slot to place the items, and finally return
         # the remainder to the source slot. (if it has any)
-        if not ContainerHelper.raw_click(slot_a, 0, ContainerHelper.ClickType.PICKUP):
+        if not ContainerHelper.raw_click(source_slot, 0, ContainerHelper.ClickType.PICKUP):
             return False
-        if not ContainerHelper.raw_click(slot_b, 0, ContainerHelper.ClickType.PICKUP):
+        if not ContainerHelper.raw_click(destination_slot, 0, ContainerHelper.ClickType.PICKUP):
             return False
-        return ContainerHelper.raw_click(slot_a, 0, ContainerHelper.ClickType.PICKUP)
+        return ContainerHelper.raw_click(source_slot, 0, ContainerHelper.ClickType.PICKUP)
 
     @staticmethod
     def _get_item_by_slot(items: List[ItemStack], slot: int) -> ItemStack | None:
@@ -972,11 +977,14 @@ class ContainerHelper:
         ) 
 
 class ItemsHelper:
-    Item = JavaClass("net.minecraft.world.item.Item")
+    ITEM_CLASS_NAME = "net.minecraft.world.item.Item"
+    ITEM_STACK_CLASS_NAME = "net.minecraft.world.item.ItemStack"
+    
+    Item = JavaClass("net.minecraft.world.item.Item") # can't replace with ITEM_CLASS_NAME will error
     Items = JavaClass("net.minecraft.world.item.Items")
     Identifier = JavaClass("net.minecraft.resources.Identifier")
     DataComponents = JavaClass("net.minecraft.core.component.DataComponents")
-    ItemStackClass = JavaClass("net.minecraft.world.item.ItemStack")
+    ItemStackClass = JavaClass("net.minecraft.world.item.ItemStack") # can't replace with ITEM_STACK_CLASS_NAME will error
 
     @staticmethod
     def _resolve_to_item_stack(item: JavaObject | str | int) -> JavaObject:
@@ -989,9 +997,9 @@ class ItemsHelper:
             return item_obj.getDefaultInstance()
         
         class_name = UtilHelper.get_class_name(item)
-        if class_name == "net.minecraft.world.item.Item":
+        if class_name == ItemsHelper.ITEM_CLASS_NAME:
             return item.getDefaultInstance()
-        elif class_name == "net.minecraft.world.item.ItemStack":
+        elif class_name == ItemsHelper.ITEM_STACK_CLASS_NAME:
             return item
         else:
             raise TypeError(f"Expected Item or ItemStack, got {class_name}")
@@ -1004,9 +1012,9 @@ class ItemsHelper:
             return RegistryHelper.get_by_id(RegistryHelper.BuiltInRegistries.ITEM,item)
         
         class_name = UtilHelper.get_class_name(item)
-        if class_name == "net.minecraft.world.item.Item":
+        if class_name == ItemsHelper.ITEM_CLASS_NAME:
             return item
-        elif class_name == "net.minecraft.world.item.ItemStack":
+        elif class_name == ItemsHelper.ITEM_STACK_CLASS_NAME:
             return item.getItem()
         else:
             raise TypeError(f"Expected Item or ItemStack, got {class_name}")
@@ -1518,6 +1526,14 @@ class UtilHelper:
     def random_uuid() -> str:
         return UtilHelper.UUID.randomUUID().toString()
 
+    @staticmethod
+    def read_global_variable(var_name: str) -> Any | None:
+        return __script__.vars["game"].get(var_name, None)
+    
+    @staticmethod
+    def set_global_variable(var_name: str, value: Any) -> None:
+        __script__.vars["game"][var_name] = value
+    
 class WindowHelper:
     @staticmethod
     def _get_window():
@@ -1671,7 +1687,9 @@ class GLFWHelper:
         )        
         
 class BlocksHelper:
-    BlockPos = JavaClass("net.minecraft.core.BlockPos")
+    BLOCK_POS_CLASS_NAME = "net.minecraft.core.BlockPos"
+    
+    BlockPos = JavaClass("net.minecraft.core.BlockPos") # cant replace with BLOCK_POS_CLASS_NAME will error
     BlockState = JavaClass("net.minecraft.world.level.block.state.BlockState")
     BlockEntity = JavaClass("net.minecraft.world.level.block.entity.BlockEntity")
     
@@ -1681,7 +1699,7 @@ class BlocksHelper:
     
     @staticmethod
     def get_block_state(x: int|float|JavaObject, y: int|float|None = None, z: int|float|None = None) -> JavaObject:
-        if UtilHelper.get_class_name(x) == "net.minecraft.core.BlockPos":
+        if UtilHelper.get_class_name(x) == BlocksHelper.BLOCK_POS_CLASS_NAME:
             return minecraft.level.getBlockState(x)
         return minecraft.level.getBlockState(BlocksHelper.get_block_pos(x, y, z))
     
@@ -1703,7 +1721,7 @@ class BlocksHelper:
     
     @staticmethod
     def get_block_entity(x: int|float|JavaObject, y: int|float|None = None, z: int|float|None = None) -> JavaObject:
-        if UtilHelper.get_class_name(x) == "net.minecraft.core.BlockPos":
+        if UtilHelper.get_class_name(x) == BlocksHelper.BLOCK_POS_CLASS_NAME:
             return minecraft.level.getBlockEntity(x)
         return minecraft.level.getBlockEntity(BlocksHelper.get_block_pos(x, y, z))
     

@@ -62,6 +62,8 @@ else:
       return MerchantLayout()
     elif container_name == GrindstoneLayout.GRINDSTONE_MENU_NAME:
       return GrindstoneLayout()
+    elif container_name == BeaconLayout.BEACON_MENU_NAME:
+      return BeaconLayout()
     return DefaultContainerLayout(container_name, layouts={"slots":list(range(total_slots))})
   
   ContainerHelper.get_container_layout = get_container_layout
@@ -204,7 +206,22 @@ class ChestLayout(ContainerLayout):
     
   def get_inventory_slots(self):
       return self.get_group("inventory_grid")
-      
+  
+  
+class BeaconLayout(ContainerLayout):
+  BEACON_MENU_NAME = "net.minecraft.world.inventory.BeaconMenu"
+  def __init__(self):
+    super().__init__(BeaconLayout.BEACON_MENU_NAME, {
+      "payment_slot": [0],
+      "inventory_grid": list(range(1, 35+1)),
+    })
+  
+  def get_payment_slot(self):
+    return self.get_group("payment_slot")[0]
+  
+  def get_inventory_slots(self):
+    return self.get_group("inventory_grid")
+  
 class BrewingStandLayout(ContainerLayout):
   BREWING_STAND_MENU_NAME = "net.minecraft.world.inventory.BrewingStandMenu"
   def __init__(self):

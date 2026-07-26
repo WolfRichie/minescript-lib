@@ -23,6 +23,10 @@ All methods which return List[type] e.g `get_stats() -> List[StatGroup]` return 
   - [Usage](#usage)
   - [All methods which return List\[type\] e.g `get_stats() -> List[StatGroup]` return lists in the form of JavaArray's, handle with care.](#all-methods-which-return-listtype-eg-get_stats---liststatgroup-return-lists-in-the-form-of-javaarrays-handle-with-care)
   - [GLFWHelper](#glfwhelper)
+    - [GLFWHelper.start\_capture\_input()](#glfwhelperstart_capture_input)
+    - [get\_captured\_input() -\> str](#get_captured_input---str)
+  - [is\_key\_pressed(key: int) -\> bool:](#is_key_pressedkey-int---bool)
+  - [get\_key\_name(key, scancode = 0) -\> str:](#get_key_namekey-scancode--0---str)
     - [get\_cursor\_position() -\> Vec2](#get_cursor_position---vec2)
     - [get\_cursor\_gui\_position() -\> Vec2](#get_cursor_gui_position---vec2)
     - [set\_cursor\_position(x: float, y: float)](#set_cursor_positionx-float-y-float)
@@ -237,6 +241,22 @@ All methods which return List[type] e.g `get_stats() -> List[StatGroup]` return 
 ---
 
 ## GLFWHelper
+
+### GLFWHelper.start_capture_input()
+
+Example
+```py
+GLFWHelper.start_capture_input()
+time.sleep(5)  # Wait for 5 seconds to capture input
+print("Captured Input:", GLFWHelper.get_captured_input())
+```
+
+### get_captured_input() -> str
+
+## is_key_pressed(key: int) -> bool:
+See [keycodes](https://www.glfw.org/docs/latest/group__keys.html)
+
+## get_key_name(key, scancode = 0) -> str:
 
 ### get_cursor_position() -> Vec2
 Vec2 has x,y fields

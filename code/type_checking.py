@@ -198,6 +198,14 @@ class BookScreenHelper(PyJinnProxy):
   
 class GLFWHelper(PyJinnProxy):
     @staticmethod
+    def is_key_pressed(key: int) -> bool: ...
+    @staticmethod
+    def get_key_name(key, scancode = 0) -> str: ...
+    @staticmethod
+    def start_capture_input(): ...
+    @staticmethod
+    def get_captured_input() -> str: ...
+    @staticmethod
     def get_cursor_gui_position() -> Vec2:
       """
       Vec2 has x,y fields

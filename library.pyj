@@ -1309,16 +1309,21 @@ class ScreenHelper:
         toast_manager.addToast(ScreenHelper.SystemToast.multiline(minecraft, system_toast_id, _title, _desc))
     
     @staticmethod
+    def _open_alert_screen(title_text: str, message_text: str, ok_button_text: str = "OK", callback = None):
+            def ok_pressed():
+                if callback:
+                    callback()
+                ScreenHelper.close_current_screen()
+            
+            managed_callback = ManagedCallback(ok_pressed)
+            title_literal = ScreenHelper.Component.literal(title_text)
+            message_literal = ScreenHelper.Component.literal(message_text)
+            ok_button_literal = ScreenHelper.Component.literal(ok_button_text)
+            ScreenHelper.set_current_screen(ScreenHelper.AlertScreen(managed_callback, title_literal, message_literal, ok_button_literal, True))
+            
+    @staticmethod
     def open_alert_screen(title_text: str, message_text: str, ok_button_text: str = "OK"):
-        print("fd")
-        def ok_pressed():
-            ScreenHelper.close_current_screen()
-        
-        managed_callback = ManagedCallback(ok_pressed)
-        title_literal = ScreenHelper.Component.literal(title_text)
-        message_literal = ScreenHelper.Component.literal(message_text)
-        ok_button_literal = ScreenHelper.Component.literal(ok_button_text)
-        ScreenHelper.set_current_screen(ScreenHelper.AlertScreen(managed_callback, title_literal, message_literal, ok_button_literal, True))
+        ScreenHelper._open_alert_screen(title_text, message_text, ok_button_text, None)
         
     @staticmethod
     def is_any_toast_showing() -> bool:
@@ -1623,6 +1628,7 @@ class WindowHelper:
             window_x * scale.x,
             window_y * scale.y
         )
+        
 
 class GLFWHelper:
     GLFW = JavaClass("org.lwjgl.glfw.GLFW")
@@ -1630,6 +1636,108 @@ class GLFWHelper:
     MouseButtonInfo = JavaClass("net.minecraft.client.input.MouseButtonInfo")
     MouseButtonEvent = JavaClass("net.minecraft.client.input.MouseButtonEvent")
     GLFWNativeWin = JavaClass("org.lwjgl.glfw.GLFWNativeWin32")
+    
+    
+    @staticmethod
+    def is_key_pressed(key: int) -> bool:
+        return GLFWHelper.GLFW.glfwGetKey(WindowHelper.get_window_handle(), key) == GLFWHelper.GLFW.GLFW_PRESS
+        
+    @staticmethod
+    def get_key_name(key, scancode = 0) -> str:
+        return GLFWHelper.GLFW.glfwGetKeyName(key, scancode)
+        
+    _keys_pressed = []
+    _last_pressed = set()
+    _capture_input_tick_id = 0
+    _result = None
+    
+    @staticmethod
+    def start_capture_input():
+        GLFWHelper._keys_pressed = []
+        GLFWHelper._last_pressed = set()
+        GLFWHelper._result = None
+
+        def submit_pressed(event=None):
+            GLFWHelper._result = GLFWHelper._finish_capture()
+
+        ScreenHelper._open_alert_screen(
+            "Capturing Input",
+            "All key presses will be captured until Submit is pressed",
+            "Submit",
+            submit_pressed
+        )
+
+        def _capture_input_tick(event=None):
+            current = set()
+            
+            PRINTABLE_KEY_RANGES = [
+                (GLFWHelper.GLFW.GLFW_KEY_SPACE, GLFWHelper.GLFW.GLFW_KEY_SLASH),          # space ! " ' , - . /
+                (GLFWHelper.GLFW.GLFW_KEY_0, GLFWHelper.GLFW.GLFW_KEY_9),                  # numbers
+                (GLFWHelper.GLFW.GLFW_KEY_SEMICOLON, GLFWHelper.GLFW.GLFW_KEY_EQUAL),      # ; =
+                (GLFWHelper.GLFW.GLFW_KEY_A, GLFWHelper.GLFW.GLFW_KEY_Z),                  # letters
+                (GLFWHelper.GLFW.GLFW_KEY_LEFT_BRACKET, GLFWHelper.GLFW.GLFW_KEY_GRAVE_ACCENT), # [ \ ] `
+            ]
+
+            for start, end in PRINTABLE_KEY_RANGES:
+                for key in range(start, end + 1):
+                    if GLFWHelper.is_key_pressed(key):
+                        current.add(key)
+                        # print(f"Key pressed: {key} ({GLFWHelper.get_key_name(key)})")
+                        if key not in GLFWHelper._last_pressed:
+                            name = GLFWHelper.get_key_name(key)
+
+                            if name:
+                                shift = (
+                                    GLFWHelper.is_key_pressed(GLFWHelper.GLFW.GLFW_KEY_LEFT_SHIFT)
+                                    or
+                                    GLFWHelper.is_key_pressed(GLFWHelper.GLFW.GLFW_KEY_RIGHT_SHIFT)
+                                )
+
+                                GLFWHelper._keys_pressed.append(
+                                    name.upper() if shift else name
+                                )
+
+            # Backspace
+            if GLFWHelper.is_key_pressed(GLFWHelper.GLFW.GLFW_KEY_BACKSPACE):
+                current.add(GLFWHelper.GLFW.GLFW_KEY_BACKSPACE)
+
+                if GLFWHelper.GLFW.GLFW_KEY_BACKSPACE not in GLFWHelper._last_pressed:
+                    if GLFWHelper._keys_pressed:
+                        GLFWHelper._keys_pressed.pop()
+
+            # Space (needs to be handled separately because GLFW returns None for the key name)
+            if GLFWHelper.is_key_pressed(GLFWHelper.GLFW.GLFW_KEY_SPACE):
+                current.add(GLFWHelper.GLFW.GLFW_KEY_SPACE)
+
+                if GLFWHelper.GLFW.GLFW_KEY_SPACE not in GLFWHelper._last_pressed:
+                    GLFWHelper._keys_pressed.append(" ")
+
+            GLFWHelper._last_pressed = current
+
+        GLFWHelper._capture_input_tick_id = add_event_listener(
+            "tick",
+            _capture_input_tick
+        )
+
+
+    @staticmethod
+    def _finish_capture():
+        if GLFWHelper._capture_input_tick_id:
+            remove_event_listener(GLFWHelper._capture_input_tick_id)
+            GLFWHelper._capture_input_tick_id = 0
+
+        ScreenHelper.close_current_screen()
+
+        text = "".join(GLFWHelper._keys_pressed)
+
+        GLFWHelper._keys_pressed = []
+        GLFWHelper._last_pressed = set()
+
+        return text
+
+    @staticmethod
+    def get_captured_input():
+        return GLFWHelper._result
     
     @staticmethod
     def get_cursor_position() -> Vec2:

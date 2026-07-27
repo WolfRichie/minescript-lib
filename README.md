@@ -3,14 +3,29 @@
 Developed in `Minecraft 1.21.11` using `minescript 5.0b11` with `Fabric API 0.141.4`
 
 ## Usage
-Place the `/code/` (and its contents) `main.py` and `library.py` inside of the minescript folder, then you can simply import the containers from main which you need and use it.
+Place the `/code/` (and its contents) `main.py` and `library.pyj` inside of the minescript folder, then you can simply import the containers from main which you need and use it.
 e.g
 ```
 from main import *
 ```
+
 See /examples
  - [Autofishing script](./examples/autofish.py)
  - [Rename all items in your inventory using the anvil (at your targeted block)](./examples/rename_all_items_in_anvil.py) (with experience / gamemode checks)
+
+> [!NOTE]
+> If you wish to use the library.pyj inside pyjinn create another copy of library and rename it into `library.py` instead of `library.pyj`.
+> Now inside of your `test_pyj_script.pyj` you can impoort library directly:
+```
+from library import *
+```
+
+See /examples
+(READ NOTE)
+ - [Give random item every 5 seconds](./examples/give_random_item_every_30sec.pyj)
+
+I've added an example of a script which does so below (You will still need to do the copy and rename)
+
 
 
 For any suggestions or issues with the library please make an issue on this repository
@@ -224,6 +239,16 @@ All methods which return List[type] e.g `get_stats() -> List[StatGroup]` return 
       - [StatGroup:](#statgroup)
       - [Stat:](#stat)
     - [get\_stat\_value(stat: JavaObject) -\> int:](#get_stat_valuestat-javaobject---int)
+  - [RandomHelper](#randomhelper)
+    - [set\_seed(seed: int)](#set_seedseed-int)
+    - [next\_boolean() -\> bool](#next_boolean---bool)
+    - [next\_bytes(byte\_array) -\> Any](#next_bytesbyte_array---any)
+    - [next\_double() -\> float](#next_double---float)
+    - [next\_float() -\> float](#next_float---float)
+    - [next\_gaussian() -\> float](#next_gaussian---float)
+    - [next\_long() -\> int](#next_long---int)
+    - [next\_int(lower\_bound=0, upper\_bound=1) -\> int](#next_intlower_bound0-upper_bound1---int)
+    - [choice(iterable) -\> Any | None](#choiceiterable---any--none)
   - [XaeroHelper](#xaerohelper)
     - [is\_mod\_loaded() -\> bool:](#is_mod_loaded---bool)
     - [get\_current\_waypoint\_set\_name() -\> str | None](#get_current_waypoint_set_name---str--none)
@@ -1266,6 +1291,33 @@ for group in StatisticsHelper.get_stats():
 Returns the value of the stat
 Args:
 - `stat` (JavaObject): Accepts an `net.minecraft.stats.Stat` JavaObject
+
+---
+
+## RandomHelper
+Wrapper around `java.util.Random`
+
+### set_seed(seed: int)
+### next_boolean() -> bool
+
+### next_bytes(byte_array) -> Any
+Fills `byte_array` using `java.util.Random.nextBytes` and returns the same array.
+
+### next_double() -> float
+### next_float() -> float
+### next_gaussian() -> float
+### next_long() -> int
+
+### next_int(lower_bound=0, upper_bound=1) -> int
+Returns an integer from inclusive `lower_bound` to exclusive`upper_bound` .
+
+### choice(iterable) -> Any | None
+Returns a random element from `iterable`, or a random key when passed a `dict`. Returns `None` for empty collections.
+
+```python
+item_ids = RegistryHelper.get_all_ids(RegistryHelper.BuiltInRegistries.ITEM)
+random_item = Random.choice(item_ids)
+```
 
 ---
 

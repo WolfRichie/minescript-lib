@@ -258,6 +258,56 @@ class StatisticsHelper:
                 
         return JavaArray(tuple(stat_groups))
 
+class RandomHelper:
+    Random = JavaClass("java.util.Random")()
+    
+    @staticmethod
+    def set_seed(seed):
+        RandomHelper.Random.setSeed(seed)
+
+    @staticmethod
+    def next_boolean():
+        return RandomHelper.Random.nextBoolean()
+
+    @staticmethod
+    def next_bytes(byte_array):
+        RandomHelper.Random.nextBytes(byte_array)
+        return byte_array
+
+    @staticmethod
+    def next_double():
+        return RandomHelper.Random.nextDouble()
+
+    @staticmethod
+    def next_float():
+        return RandomHelper.Random.nextFloat()
+
+    @staticmethod
+    def next_gaussian():
+        return RandomHelper.Random.nextGaussian()
+
+    @staticmethod
+    def next_long():
+        return RandomHelper.Random.nextLong()
+
+    @staticmethod
+    def next_int(lower_bound=0, upper_bound=1):
+        if upper_bound <= lower_bound:
+            raise ValueError("upper_bound must be greater than lower_bound")
+        return RandomHelper.Random.nextInt(upper_bound-lower_bound) + lower_bound
+
+    @staticmethod
+    def choice(iterable) -> Any|None:
+        if isinstance(iterable, dict):
+            choices = list(iterable.keys())
+        else:
+            choices = list(iterable)
+
+        if len(choices) == 0:
+            return None
+
+        return choices[RandomHelper.next_int(0, len(choices))]
+
 class XaeroHelper:
     BuiltInHudModules = None
     

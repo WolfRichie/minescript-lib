@@ -1,0 +1,22 @@
+from library import *
+
+"""
+Create another copy of library
+Rename it into `library.py` instead of `library.pyj`.
+Now you can run this script which:
+Gives a random item every 5 seconds
+"""
+
+def get_random_item_from_registry():
+    item_ids = RegistryHelper.get_all_ids(RegistryHelper.BuiltInRegistries.ITEM)
+    random_item = RandomHelper.choice(item_ids)
+    return random_item
+
+def give_random_item_every_30sec():
+    item_id = get_random_item_from_registry()
+    count = RandomHelper.next_int(1, 64)
+    execute(f"give @s {item_id} {count}")
+    ScreenHelper.show_toast("Effect", "Give random item", 1500)
+    set_timeout(give_random_item_every_30sec, 5000)
+
+give_random_item_every_30sec()

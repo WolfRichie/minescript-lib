@@ -220,7 +220,13 @@ class GLFWHelper(PyJinnProxy):
     @staticmethod
     def is_key_pressed(key: int) -> bool: ...
     @staticmethod
-    def get_key_name(key, scancode = 0) -> str: ...
+    def get_keyboard_modifiers() -> int: 
+      """
+      Returns the bitmask for whether Shift, CTRL, Alt, and Super are pressed
+      """
+      ...
+    @staticmethod
+    def get_key_name(key) -> str: ...
     @staticmethod
     def start_capture_input(): ...
     @staticmethod
@@ -249,6 +255,15 @@ class GLFWHelper(PyJinnProxy):
     def is_cursor_hidden_or_disabled() -> bool: ...
     @staticmethod
     def is_mouse_button_pressed(button: int) -> bool: ...
+    @staticmethod
+    def send_key_button(key: int, press: bool):
+      """
+      Send a keyboard button press or release event
+      See [keycodes](https://www.glfw.org/docs/latest/group__keys.html)
+      
+      (Your current keyboards modifiers are also used, e.g if you're holding CTRL alongside sending this key press, this function will take that into account)
+      """
+      ...
     @staticmethod
     def send_mouse_button(button: int, press: bool):
       """

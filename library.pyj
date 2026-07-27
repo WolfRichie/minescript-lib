@@ -1685,15 +1685,31 @@ class GLFWHelper:
     BufferUtils = JavaClass("org.lwjgl.BufferUtils")
     MouseButtonInfo = JavaClass("net.minecraft.client.input.MouseButtonInfo")
     MouseButtonEvent = JavaClass("net.minecraft.client.input.MouseButtonEvent")
+    KeyEvent = JavaClass("net.minecraft.client.input.KeyEvent")
     GLFWNativeWin = JavaClass("org.lwjgl.glfw.GLFWNativeWin32")
-    
     
     @staticmethod
     def is_key_pressed(key: int) -> bool:
         return GLFWHelper.GLFW.glfwGetKey(WindowHelper.get_window_handle(), key) == GLFWHelper.GLFW.GLFW_PRESS
+
+    @staticmethod
+    def get_keyboard_modifiers() -> int:
+        modifiers = 0
+
+        if GLFWHelper.is_key_pressed(GLFWHelper.GLFW.GLFW_KEY_LEFT_SHIFT) or GLFWHelper.is_key_pressed(GLFWHelper.GLFW.GLFW_KEY_RIGHT_SHIFT):
+            modifiers = modifiers | GLFWHelper.GLFW.GLFW_MOD_SHIFT
+        if GLFWHelper.is_key_pressed(GLFWHelper.GLFW.GLFW_KEY_LEFT_CONTROL) or GLFWHelper.is_key_pressed(GLFWHelper.GLFW.GLFW_KEY_RIGHT_CONTROL):
+            modifiers = modifiers | GLFWHelper.GLFW.GLFW_MOD_CONTROL
+        if GLFWHelper.is_key_pressed(GLFWHelper.GLFW.GLFW_KEY_LEFT_ALT) or GLFWHelper.is_key_pressed(GLFWHelper.GLFW.GLFW_KEY_RIGHT_ALT):
+            modifiers = modifiers | GLFWHelper.GLFW.GLFW_MOD_ALT
+        if GLFWHelper.is_key_pressed(GLFWHelper.GLFW.GLFW_KEY_LEFT_SUPER) or GLFWHelper.is_key_pressed(GLFWHelper.GLFW.GLFW_KEY_RIGHT_SUPER):
+            modifiers = modifiers | GLFWHelper.GLFW.GLFW_MOD_SUPER
+
+        return modifiers
         
     @staticmethod
-    def get_key_name(key, scancode = 0) -> str:
+    def get_key_name(key) -> str:
+        scancode = GLFWHelper.GLFW.glfwGetKeyScancode(key)
         return GLFWHelper.GLFW.glfwGetKeyName(key, scancode)
         
     _keys_pressed = []
@@ -1829,6 +1845,22 @@ class GLFWHelper:
     @staticmethod
     def is_mouse_button_pressed(button: int) -> bool:
         return GLFWHelper.GLFW.glfwGetMouseButton(WindowHelper.get_window_handle(), button) == GLFWHelper.GLFW.GLFW_PRESS
+
+    @staticmethod
+    def send_key_button(key: int, press: bool):
+        keyboard_handler = minecraft.keyboardHandler
+        
+        scancode = GLFWHelper.GLFW.glfwGetKeyScancode(key)
+        key_event = GLFWHelper.KeyEvent(key, scancode, GLFWHelper.get_keyboard_modifiers())
+        action = GLFWHelper.GLFW.GLFW_PRESS if press else GLFWHelper.GLFW.GLFW_RELEASE
+
+        ReflectionHelper.invoke_private_method(
+            keyboard_handler,
+            "keyPress",
+            WindowHelper.get_window_handle(),
+            action,
+            key_event
+        )
 
     @staticmethod
     def send_mouse_button(button: int, press: bool):

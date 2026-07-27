@@ -41,7 +41,7 @@ All methods which return List[type] e.g `get_stats() -> List[StatGroup]` return 
     - [start\_capture\_input()](#start_capture_input)
     - [get\_captured\_input() -\> str](#get_captured_input---str)
     - [is\_key\_pressed(key: int) -\> bool:](#is_key_pressedkey-int---bool)
-    - [get\_key\_name(key, scancode = 0) -\> str:](#get_key_namekey-scancode--0---str)
+    - [get\_key\_name(key) -\> str:](#get_key_namekey---str)
     - [get\_cursor\_position() -\> Vec2](#get_cursor_position---vec2)
     - [get\_cursor\_gui\_position() -\> Vec2](#get_cursor_gui_position---vec2)
     - [set\_cursor\_position(x: float, y: float)](#set_cursor_positionx-float-y-float)
@@ -50,7 +50,9 @@ All methods which return List[type] e.g `get_stats() -> List[StatGroup]` return 
     - [disable\_cursor()](#disable_cursor)
     - [is\_cursor\_hidden\_or\_disabled() -\> bool](#is_cursor_hidden_or_disabled---bool)
     - [is\_mouse\_button\_pressed(button: int) -\> bool](#is_mouse_button_pressedbutton-int---bool)
+    - [send\_key\_button(key: int, press: bool)](#send_key_buttonkey-int-press-bool)
     - [send\_mouse\_button(button: int, press: bool)](#send_mouse_buttonbutton-int-press-bool)
+    - [get\_keyboard\_modifiers() -\> int](#get_keyboard_modifiers---int)
   - [WindowHelper](#windowhelper)
     - [get\_window\_handle() -\> JavaObject](#get_window_handle---javaobject)
     - [set\_window\_title(title: str)](#set_window_titletitle-str)
@@ -268,6 +270,7 @@ All methods which return List[type] e.g `get_stats() -> List[StatGroup]` return 
 ## GLFWHelper
 
 ### start_capture_input()
+Show a screen on which all keyboard input is captured until submit is pressed. call `get_captured_input` to get the final result
 
 Example
 ```py
@@ -281,7 +284,7 @@ print("Captured Input:", GLFWHelper.get_captured_input())
 ### is_key_pressed(key: int) -> bool:
 See [keycodes](https://www.glfw.org/docs/latest/group__keys.html)
 
-### get_key_name(key, scancode = 0) -> str:
+### get_key_name(key) -> str:
 
 ### get_cursor_position() -> Vec2
 Vec2 has x,y fields
@@ -296,14 +299,30 @@ Vec2 has x,y fields
 ### is_cursor_hidden_or_disabled() -> bool
 ### is_mouse_button_pressed(button: int) -> bool
 
+### send_key_button(key: int, press: bool)
+Send a keyboard button press or release event
+(Your current keyboards modifiers are also used, e.g if you're holding CTRL alongside sending this key press, this function will take that into account)
+
+See [keycodes](https://www.glfw.org/docs/latest/group__keys.html)
+
+```py
+GLFW_KEY_F3 = 292
+GLFWHelper.send_key_button(GLFW_KEY_F3, True)
+GLFWHelper.send_key_button(GLFW_KEY_F3, False)
+```
+
 ### send_mouse_button(button: int, press: bool)
 Click the current position on the screen, (or release if press is set to false)
+BUGGY
 
 ```py
 GLFW_MOUSE_BUTTON_LEFT = 0
 GLFWHelper.set_cursor_position(439.0, 425.0) # some position you retrieved earlier with get_cursor_position
 GLFWHelper.send_mouse_button(GLFW_MOUSE_BUTTON_LEFT, True)
 ```
+
+### get_keyboard_modifiers() -> int
+Returns the bitmask for holding Shift, CTRL, Alt, and Super.
 
 ---
 

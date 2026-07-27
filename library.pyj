@@ -1974,6 +1974,7 @@ class RegistryHelper:
     BuiltInRegistries = JavaClass("net.minecraft.core.registries.BuiltInRegistries")
     RegistryOps = JavaClass("net.minecraft.resources.RegistryOps")
     Registries = JavaClass("net.minecraft.core.registries.Registries")
+    RESOURCE_KEY_CLASS_NAME = "net.minecraft.resources.ResourceKey"
 
     @staticmethod
     def _encodeStart(clazz, instsance: JavaObject) -> str:
@@ -2011,6 +2012,14 @@ class RegistryHelper:
     
     @staticmethod
     def get_all_ids(registry: JavaObject) -> List[str]:
+        if ReflectionHelper.is_instance_of(registry, RegistryHelper.RESOURCE_KEY_CLASS_NAME):
+            registry = RegistryHelper.get_registry(registry)
+            keys = registry.listElementIds().toList()
+            id_list = []
+            for key in keys:
+                id_list.append(key.identifier().toString())
+            return id_list
+
         keys = registry.keySet()
         id_list = []
         for key in keys:

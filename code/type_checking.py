@@ -861,25 +861,35 @@ class RegistryHelper(PyJinnProxy):
   @staticmethod
   def get_by_id(registry: JavaObject, identifier: str) -> JavaObject | None:
     """
-    Gets an object from the specified registry by its identifier string (e.g, `minecraft:diamond`)
+    Gets an object from the specified registry by its identifier string (e.g, `minecraft:diamond`).
+
+    Supports `RegistryHelper.BuiltInRegistries.*` registry objects.
     """
     ...
   @staticmethod
   def get_id(registry: JavaObject, value: JavaObject) -> str | None:
     """
-    Gets the full identifier string (e.g, `minecraft:stone`) for a value in a registry
+    Gets the full identifier string (e.g, `minecraft:stone`) for a value in a registry.
+
+    Supports `RegistryHelper.BuiltInRegistries.*` registry objects.
     """
     ...
   @staticmethod
   def get_registry_path(registry: JavaObject, value: JavaObject) -> str | None:
     """
-    Gets only the path part of the identifier (e.g, `stone`) for a value in a registry
+    Gets only the path part of the identifier (e.g, `stone`) for a value in a registry.
+
+    Supports `RegistryHelper.BuiltInRegistries.*` registry objects.
     """
     ...
   @staticmethod
   def get_all_ids(registry: JavaObject) -> List[str]:
     """
-    Returns a list of all identifier strings in the given registry
+    Returns a list of all identifier strings in the given registry.
+
+    Supports:
+    - `RegistryHelper.BuiltInRegistries.*` registry objects
+    - `RegistryHelper.Registries.*` resource keys
     """
     ...
   @staticmethod

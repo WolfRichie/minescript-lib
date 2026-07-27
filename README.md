@@ -492,16 +492,29 @@ Returns the player's food, saturation, and exhaustion levels.
 ## RegistryHelper
 
 ### get_by_id(registry: JavaObject, identifier: str) -> JavaObject | None
-Gets an object from the specified registry by its identifier string (e.g, `minecraft:diamond`)
+Gets an object from the specified registry by its identifier string (e.g, `minecraft:diamond`).
+
+Supported inputs:
+- `RegistryHelper.BuiltInRegistries.*` registry objects, e.g. `RegistryHelper.BuiltInRegistries.ITEM`
 
 ### get_id(registry: JavaObject, value: JavaObject) -> str | None
-Gets the full identifier string (e.g, `minecraft:stone`) for a value in a registry
+Gets the full identifier string (e.g, `minecraft:stone`) for a value in a registry.
+
+Supported inputs:
+- `RegistryHelper.BuiltInRegistries.*` registry objects, e.g. `RegistryHelper.BuiltInRegistries.BLOCK`
 
 ### get_registry_path(registry: JavaObject, value: JavaObject) -> str | None
-Gets only the path part of the identifier (e.g, `stone`) for a value in a registry
+Gets only the path part of the identifier (e.g, `stone`) for a value in a registry.
+
+Supported inputs:
+- `RegistryHelper.BuiltInRegistries.*` registry objects, e.g. `RegistryHelper.BuiltInRegistries.BLOCK`
 
 ### get_all_ids(registry: JavaObject) -> List[str]
-Returns a list of all identifier strings in the given registry
+Returns a list of all identifier strings in the given registry.
+
+Supported inputs:
+- `RegistryHelper.BuiltInRegistries.*` registry objects, e.g. `RegistryHelper.BuiltInRegistries.ITEM`
+- `RegistryHelper.Registries.*` resource keys, e.g. `RegistryHelper.Registries.ENCHANTMENT`
 
 ### get_registry(registry_key: JavaObject) -> JavaObject
 Returns the registry object for the given registry key. e.g, `RegistryHelper.Registries.BLOCK`

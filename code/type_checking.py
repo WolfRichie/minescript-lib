@@ -824,7 +824,8 @@ class ClientHelper(PyJinnProxy):
     
   @staticmethod
   def narrate_text(text: str): ...
-
+  @staticmethod
+  def clear_chat(): ...
 
 class ClientLevelData(PyJinnProxy):
   hardcore: bool

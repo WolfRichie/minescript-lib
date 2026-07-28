@@ -1551,6 +1551,10 @@ class ClientHelper:
     @staticmethod
     def narrate_text(text: str):
         minecraft.getNarrator().saySystemNow(text)
+        
+    @staticmethod
+    def clear_chat(history: bool = False):
+        minecraft.gui.getChat().clearMessages(history)
 
 class ClientLevelData:
     def __init__(self, hardcore: bool, is_flat: bool, game_time: int, day_time: int, raining: bool, difficulty: str, difficulty_locked: bool):

@@ -32,11 +32,11 @@ For any suggestions or issues with the library please make an issue on this repo
 
 If you are encountering errors, please provide the latest.log file from `%appdata%/.minecraft/logs/latest.log` in the issue.
 
-All methods which return List[type] e.g `get_stats() -> List[StatGroup]` return lists in the form of JavaArray's, handle with care.
+All methods which return `List[type]` e.g `get_stats() -> List[StatGroup]` return lists in the form of a `JavaArray`, handle with care.
+
 ---
 - [Minescript Library](#minescript-library)
   - [Usage](#usage)
-  - [All methods which return List\[type\] e.g `get_stats() -> List[StatGroup]` return lists in the form of JavaArray's, handle with care.](#all-methods-which-return-listtype-eg-get_stats---liststatgroup-return-lists-in-the-form-of-javaarrays-handle-with-care)
   - [GLFWHelper](#glfwhelper)
     - [start\_capture\_input()](#start_capture_input)
     - [get\_captured\_input() -\> str](#get_captured_input---str)
@@ -216,6 +216,7 @@ All methods which return List[type] e.g `get_stats() -> List[StatGroup]` return 
     - [get\_level\_data() -\> ClientLevelData](#get_level_data---clientleveldata)
       - [ClientLevelData](#clientleveldata)
     - [narrate\_text(text: str)](#narrate_texttext-str)
+    - [clear\_chat(history: bool = False)](#clear_chathistory-bool--false)
   - [MappingsHelper](#mappingshelper)
     - [get\_runtime\_class\_name(pretty\_class\_name) -\> str](#get_runtime_class_namepretty_class_name---str)
     - [get\_pretty\_class\_name(runtime\_class\_name) -\> str](#get_pretty_class_nameruntime_class_name---str)
@@ -322,7 +323,7 @@ GLFWHelper.send_mouse_button(GLFW_MOUSE_BUTTON_LEFT, True)
 ```
 
 ### get_keyboard_modifiers() -> int
-Returns the bitmask for holding Shift, CTRL, Alt, and Super.
+Returns the bitmask for whether Shift, CTRL, Alt, and Super are presseds
 
 ---
 
@@ -1216,6 +1217,8 @@ Object containing level metadata:
 - `game_time` (int): Total game time in ticks
 
 ### narrate_text(text: str)
+
+### clear_chat(history: bool = False)
 
 ---
 

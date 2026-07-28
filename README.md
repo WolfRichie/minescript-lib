@@ -15,7 +15,7 @@ See /examples
 
 > [!NOTE]
 > If you wish to use the library.pyj inside pyjinn create another copy of library and rename it into `library.py` instead of `library.pyj`.
-> Now inside of your `test_pyj_script.pyj` you can impoort library directly:
+> Now inside of your `test_pyj_script.pyj` you can import library directly:
 ```
 from library import *
 ```
@@ -32,7 +32,7 @@ For any suggestions or issues with the library please make an issue on this repo
 
 If you are encountering errors, please provide the latest.log file from `%appdata%/.minecraft/logs/latest.log` in the issue.
 
-All methods which return `List[type]` e.g `get_stats() -> List[StatGroup]` return lists in the form of a `JavaArray`, handle with care.
+All methods which return `List[type]` e.g `get_stats() -> List[StatGroup]` return lists in the form of a `JavaArray`, so handle them with caution/care.
 
 ---
 - [Minescript Library](#minescript-library)
@@ -41,6 +41,7 @@ All methods which return `List[type]` e.g `get_stats() -> List[StatGroup]` retur
     - [start\_capture\_input()](#start_capture_input)
     - [get\_captured\_input() -\> str](#get_captured_input---str)
     - [is\_key\_pressed(key: int) -\> bool:](#is_key_pressedkey-int---bool)
+    - [get\_keyboard\_modifiers() -\> int](#get_keyboard_modifiers---int)
     - [get\_key\_name(key) -\> str:](#get_key_namekey---str)
     - [get\_cursor\_position() -\> Vec2](#get_cursor_position---vec2)
     - [get\_cursor\_gui\_position() -\> Vec2](#get_cursor_gui_position---vec2)
@@ -52,7 +53,7 @@ All methods which return `List[type]` e.g `get_stats() -> List[StatGroup]` retur
     - [is\_mouse\_button\_pressed(button: int) -\> bool](#is_mouse_button_pressedbutton-int---bool)
     - [send\_key\_button(key: int, press: bool)](#send_key_buttonkey-int-press-bool)
     - [send\_mouse\_button(button: int, press: bool)](#send_mouse_buttonbutton-int-press-bool)
-    - [get\_keyboard\_modifiers() -\> int](#get_keyboard_modifiers---int)
+    - [send\_mouse\_scroll(x\_offset: float, y\_offset: float)](#send_mouse_scrollx_offset-float-y_offset-float)
   - [WindowHelper](#windowhelper)
     - [get\_window\_handle() -\> JavaObject](#get_window_handle---javaobject)
     - [set\_window\_title(title: str)](#set_window_titletitle-str)
@@ -127,12 +128,8 @@ All methods which return `List[type]` e.g `get_stats() -> List[StatGroup]` retur
     - [get\_block\_entity(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_entityx-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
     - [is\_command\_block\_entity(block\_entity: JavaObject) -\> bool:](#is_command_block_entityblock_entity-javaobject---bool)
     - [set\_command\_block\_entity\_command(command\_block\_entity: JavaObject, command: str) -\> bool](#set_command_block_entity_commandcommand_block_entity-javaobject-command-str---bool)
-    - [get\_command\_block\_entity\_command(command\_block\_entity: JavaObject) -\> str | None](#get_command_block_entity_commandcommand_block_entity-javaobject---str--none)
-    - [get\_command\_block\_entity\_last\_output(command\_block\_entity: JavaObject) -\> str | None](#get_command_block_entity_last_outputcommand_block_entity-javaobject---str--none)
-    - [get\_command\_block\_entity\_mode(command\_block\_entity: JavaObject) -\> str | None](#get_command_block_entity_modecommand_block_entity-javaobject---str--none)
-    - [is\_command\_block\_entity\_conditions\_met(command\_block\_entity: JavaObject) -\> bool | Non](#is_command_block_entity_conditions_metcommand_block_entity-javaobject---bool--non)
-    - [is\_command\_block\_entity\_powered(command\_block\_entity: JavaObject) -\> bool | None](#is_command_block_entity_poweredcommand_block_entity-javaobject---bool--none)
-    - [is\_command\_block\_entity\_automatic(command\_block\_entity: JavaObject) -\> bool | None](#is_command_block_entity_automaticcommand_block_entity-javaobject---bool--none)
+    - [get\_command\_block\_entity\_info(command\_block\_entity: JavaObject) -\> CommandBlockEntityInfo | None](#get_command_block_entity_infocommand_block_entity-javaobject---commandblockentityinfo--none)
+      - [CommandBlockEntityInfo](#commandblockentityinfo)
     - [get\_spawner\_block\_entity\_display\_entity\_id(jukebox\_block\_entity: spawner\_block\_entity) -\> str | None](#get_spawner_block_entity_display_entity_idjukebox_block_entity-spawner_block_entity---str--none)
   - [ItemsHelper](#itemshelper)
     - [get\_json(item) -\> str](#get_jsonitem---str)
@@ -186,6 +183,7 @@ All methods which return `List[type]` e.g `get_stats() -> List[StatGroup]` retur
     - [get\_time\_until\_lured() -\> int | None](#get_time_until_lured---int--none)
     - [get\_time\_until\_hooked() -\> int | None](#get_time_until_hooked---int--none)
     - [use\_rod() -\> bool](#use_rod---bool)
+    - [stop\_using\_rod() -\> bool](#stop_using_rod---bool)
   - [ScreenHelper](#screenhelper)
     - [get\_anvil\_experience\_required() -\> int | None](#get_anvil_experience_required---int--none)
     - [get\_current\_screen() -\> JavaObject | None](#get_current_screen---javaobject--none)
@@ -217,6 +215,7 @@ All methods which return `List[type]` e.g `get_stats() -> List[StatGroup]` retur
       - [ClientLevelData](#clientleveldata)
     - [narrate\_text(text: str)](#narrate_texttext-str)
     - [clear\_chat(history: bool = False)](#clear_chathistory-bool--false)
+    - [reload\_chunks()](#reload_chunks)
   - [MappingsHelper](#mappingshelper)
     - [get\_runtime\_class\_name(pretty\_class\_name) -\> str](#get_runtime_class_namepretty_class_name---str)
     - [get\_pretty\_class\_name(runtime\_class\_name) -\> str](#get_pretty_class_nameruntime_class_name---str)
@@ -285,6 +284,9 @@ print("Captured Input:", GLFWHelper.get_captured_input())
 ### is_key_pressed(key: int) -> bool:
 See [keycodes](https://www.glfw.org/docs/latest/group__keys.html)
 
+### get_keyboard_modifiers() -> int
+Returns the bitmask for whether Shift, CTRL, Alt, and Super are pressed
+
 ### get_key_name(key) -> str:
 
 ### get_cursor_position() -> Vec2
@@ -314,7 +316,7 @@ GLFWHelper.send_key_button(GLFW_KEY_F3, False)
 
 ### send_mouse_button(button: int, press: bool)
 Click the current position on the screen, (or release if press is set to false)
-BUGGY
+BUGGY (use time.sleep if you can in conjunction to actually wait for the cursor to move, since set_cursor_position might not be instant)
 
 ```py
 GLFW_MOUSE_BUTTON_LEFT = 0
@@ -322,8 +324,7 @@ GLFWHelper.set_cursor_position(439.0, 425.0) # some position you retrieved earli
 GLFWHelper.send_mouse_button(GLFW_MOUSE_BUTTON_LEFT, True)
 ```
 
-### get_keyboard_modifiers() -> int
-Returns the bitmask for whether Shift, CTRL, Alt, and Super are presseds
+### send_mouse_scroll(x_offset: float, y_offset: float)
 
 ---
 
@@ -625,30 +626,34 @@ if targeted_block_pos is not None:
 
 ### is_command_block_entity(block_entity: JavaObject) -> bool:
 ### set_command_block_entity_command(command_block_entity: JavaObject, command: str) -> bool
-### get_command_block_entity_command(command_block_entity: JavaObject) -> str | None
+
+### get_command_block_entity_info(command_block_entity: JavaObject) -> CommandBlockEntityInfo | None
+
+#### CommandBlockEntityInfo
+ - command: str | None
+ - last_output: str | None
+ - mode: str | None
+ - conditions_met: bool | None
+ - powered: bool | None
+ - automatic: bool | None
 
 ```
 block_entity = ... # See previous example
 if UtilHelper.get_class_name(command_block_entity) == "net.minecraft.world.level.block.entity.
-    print(BlocksHelper.get_command_block_entity_command(block_entity)) # -> setblock ~ ~10 ~ minecraft:redstone_block
-    print(BlocksHelper.get_command_block_entity_last_output(block_entity)) # -> [@: Changed the block at 163, 94, 125]
+  info = BlocksHelper.get_command_block_entity_info(block_entity)
+  print(info.command) # -> setblock ~ ~10 ~ minecraft:redstone_block
+  print(info.last_output) # -> [@: Changed the block at 163, 94, 125]
 ```
 
-### get_command_block_entity_last_output(command_block_entity: JavaObject) -> str | None
-### get_command_block_entity_mode(command_block_entity: JavaObject) -> str | None
 
 Returns SEQUENCE or AUTO or REDSTONE
 (Sequence being the CHAIN Command Block)
-
-### is_command_block_entity_conditions_met(command_block_entity: JavaObject) -> bool | Non
-### is_command_block_entity_powered(command_block_entity: JavaObject) -> bool | None
-### is_command_block_entity_automatic(command_block_entity: JavaObject) -> bool | None
 ### get_spawner_block_entity_display_entity_id(jukebox_block_entity: spawner_block_entity) -> str | None
 
 ## ItemsHelper
 
 > [!NOTE] 
-> NOTE YOU CANT PASS minescript.ItemStack instances, These are lightweight data objects, not Java ItemStack instances which are required (or item id's are required)
+> NOTE YOU CANNOT PASS minescript.ItemStack instances, These are lightweight data objects, not Java ItemStack instances which are required (or item id's are required)
 
 Static helper class for working with items and item stacks. All methods accept item references in multiple formats:
 - `JavaObject`: Direct Item or ItemStack objects
@@ -1087,6 +1092,12 @@ ticks = FishingHelper.get_time_until_hooked()
 ```
 
 ### use_rod() -> bool
+Presses the right mouse button (or any other bind for use)
+Returns `False` if the player is not holding a fishing rod.
+
+### stop_using_rod() -> bool
+Stops using the fishing rod (releases the right mouse button).
+Returns `False` if the player is not holding a fishing rod.
 
 ---
 
@@ -1219,6 +1230,7 @@ Object containing level metadata:
 ### narrate_text(text: str)
 
 ### clear_chat(history: bool = False)
+### reload_chunks()
 
 ---
 
@@ -1257,7 +1269,7 @@ pretty_name = MappingsHelper.get_pretty_class_name("net.minecraft.class_310")
 > Use `invoke_private_method` instead
 
 
-Invoking a instanc method without args
+Invoking a instance method without args
 ```
 current_screen = ScreenHelper.get_current_screen()
 page_forward_method = ReflectionHelper.get_declared_method_accessible(current_screen, "pageForward")
@@ -1293,7 +1305,7 @@ if item:
 ### random_uuid() -> str
 ### read_global_variable(var_name: str) -> Any | None
 ### set_global_variable(var_name: str, value: Any) -> None
-Stores a variable in a undocumented dict that’s a game-level global shared across all Pyjinn scripts.
+Stores a variable in an undocumented dict that’s a game-level global shared across all Pyjinn scripts.
 
 ---
 
@@ -1301,7 +1313,7 @@ Stores a variable in a undocumented dict that’s a game-level global shared acr
 
 > [!NOTE]
 > IN TODO to make better getter functions!!
-> currently only really usable through `get_stats`
+> currently only usable through `get_stats`, in the future get_stat(...) will be aded.
 
 ### get_stats() -> List[StatGroup]
 
@@ -1357,18 +1369,18 @@ random_item = Random.choice(item_ids)
 ---
 
 ## XaeroHelper
-An helper for [xaero's minimap](https://www.curseforge.com/minecraft/mc-mods/xaeros-minimap) 
+A helper for [xaero's minimap](https://www.curseforge.com/minecraft/mc-mods/xaeros-minimap) 
 
 Tested on version `1.21.11-26.4.2`
 
 > [!NOTE]
-> Mod must be installed if you wanna use the functions, if the mod is not installed ALL functions will return None (except `is_mod_loaded` will return true/false)
+> Mod must be installed if you want to use the functions, if the mod is not installed ALL functions will return None (except `is_mod_loaded` will return true/false)
 
 ### is_mod_loaded() -> bool:
-Whether Xaero's minimap is currently loaded as aaccessible mod
+Whether Xaero's minimap is currently loaded as accessible mod
 
 ### get_current_waypoint_set_name() -> str | None
-Returns the current waypoint sets name, `gui.xaero_default` for the default set.
+Returns the current waypoint set’s name, `gui.xaero_default` for the default set.
 
 ### get_current_set_waypoints() -> List[Waypoint] | None
 

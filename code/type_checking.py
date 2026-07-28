@@ -270,6 +270,10 @@ class GLFWHelper(PyJinnProxy):
       Click the current position on the screen, (or release if press is set to false)
       """
       ...
+      
+    @staticmethod
+    def send_mouse_scroll(x_offset: float, y_offset: float):
+      ...
   
 class WindowHelper(PyJinnProxy):
     @staticmethod
@@ -325,11 +329,21 @@ class WindowHelper(PyJinnProxy):
       """
       ...
 
+@dataclass(slots=True)
 class EnchantmentInfo:
-    id: int
-    name: str
-    level: int
-    costs: int
+  id: str
+  name: str
+  level: int
+  costs: int
+    
+@dataclass(slots=True)
+class CommandBlockEntityInfo:
+  command: str | None
+  last_output: str | None
+  mode: str | None
+  conditions_met: bool | None
+  powered: bool | None
+  automatic: bool | None
 
 class BlocksHelper(PyJinnProxy):
   @staticmethod
@@ -399,22 +413,7 @@ class BlocksHelper(PyJinnProxy):
   @staticmethod
   def set_command_block_entity_command(command_block_entity: JavaObject, command: str) -> bool: ...
   @staticmethod
-  def get_command_block_entity_command(command_block_entity: JavaObject) -> str | None: ...
-  @staticmethod
-  def get_command_block_entity_last_output(command_block_entity: JavaObject) -> str | None: ...
-  @staticmethod
-  def get_command_block_entity_mode(command_block_entity: JavaObject) -> str | None:
-    """
-    Returns SEQUENCE or AUTO or REDSTONE
-    (Sequence being the CHAIN Command Block)
-    """
-    ...
-  @staticmethod
-  def is_command_block_entity_conditions_met(command_block_entity: JavaObject) -> bool | None: ...
-  @staticmethod
-  def is_command_block_entity_powered(command_block_entity: JavaObject) -> bool | None: ...
-  @staticmethod
-  def is_command_block_entity_automatic(command_block_entity: JavaObject) -> bool | None: ...
+  def get_command_block_entity_info(command_block_entity: JavaObject) -> CommandBlockEntityInfo | None: ...
   @staticmethod
   def get_jukebox_block_entity_item(jukebox_block_entity: JavaObject) -> JavaObject | None: ...
   @staticmethod
@@ -701,7 +700,13 @@ class FishingHelper(PyJinnProxy):
 
   @staticmethod
   def use_rod() -> bool: ...
-
+  @staticmethod
+  def stop_using_rod() -> bool:
+    """
+    Stops using the fishing rod (releases the right mouse button).
+    Returns `False` if the player is not holding a fishing rod.
+    """
+    ...
 
 class ContainerBounds:
   left: int
@@ -826,6 +831,8 @@ class ClientHelper(PyJinnProxy):
   def narrate_text(text: str): ...
   @staticmethod
   def clear_chat(): ...
+  @staticmethod
+  def reload_chunks(): ...
 
 class ClientLevelData(PyJinnProxy):
   hardcore: bool

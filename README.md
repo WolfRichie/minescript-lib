@@ -767,8 +767,6 @@ print("Container Layout:", type(layout), layout.__dict__)
 
 ```
 
-Use this to get container items excluding the inventory slots for supported layouts.
-
 **See the supported containers below**
 
 <details>

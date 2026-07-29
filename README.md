@@ -143,9 +143,11 @@ All methods which return `List[type]` e.g `get_stats() -> List[StatGroup]` retur
     - [get\_item\_java\_object(item) -\> JavaObject](#get_item_java_objectitem---javaobject)
   - [ContainerHelper](#containerhelper)
     - [get\_slot\_screen\_position(slot: int) -\> Vec2 | None](#get_slot_screen_positionslot-int---vec2--none)
+    - [container\_get\_items\_excluding\_inventory() -\> list\[ItemStack\]](#container_get_items_excluding_inventory---listitemstack)
     - [get\_container\_layout() | None](#get_container_layout--none)
       - [ContainerLayout](#containerlayout)
       - [DefaultContainerLayout](#defaultcontainerlayout)
+      - [InventoryLayout](#inventorylayout)
       - [CraftingInventoryLayout](#craftinginventorylayout)
       - [ChestLayout](#chestlayout)
       - [GrindstoneLayout](#grindstonelayout)
@@ -390,6 +392,7 @@ Returns an instance of `net.minecraft.world.scores.Objective`
 ### get_scoreboard_scores(objective_name: str) -> list[ScoreboardScore]
 
 ### add_dummy_objective(objective_name: str, display_name=None) -> JavaObject | None:
+requires permissions
 
 Example
 ```python
@@ -425,7 +428,11 @@ if sidebar_slot is not None:
 ```
 
 ### set_display_slot_objective(display_slot: JavaObject, objective_name: str|None) -> bool | None
+requires permissions
+
 ### clear_display_slot(display_slot: JavaObject) -> bool | None
+requires permissions
+
 ### get_sidebar() -> Scoreboard | None
 
 #### Scoreboard:
@@ -742,6 +749,13 @@ if pos:
     GLFWHelper.set_cursor_position(pos.x, pos.y)
 ```
 
+### container_get_items_excluding_inventory() -> list[ItemStack]
+Returns the current container items excluding inventory slots when the active containers layout is supported by get_container_layout. Otherwise, falls back to container_get_items().
+
+```python
+items = ContainerHelper.container_get_items_excluding_inventory()
+```
+
 ### get_container_layout() | None
 Return a python layout object for the currently open container.
 
@@ -752,6 +766,9 @@ print("Container Layout:", type(layout), layout.__dict__)
 # Container Layout: <class 'main.AnvilLayout'> {'container_name': 'net.minecraft.world.inventory.AnvilMenu', 'layouts': {'combine_grid': [0, 1], 'result': [2], 'inventory': [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38]}}
 
 ```
+
+Use this to get container items excluding the inventory slots for supported layouts.
+
 **See the supported containers below**
 
 <details>
@@ -777,6 +794,15 @@ Properties:
 Example of a unsupported container
 `{'container_name': 'net.minecraft.world.inventory.HopperMenu', 'layouts': {'slots': [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40]}}`
 
+#### InventoryLayout
+Shared base class for layouts that expose an `inventory_grid`.
+
+<details>
+<summary>Methods:</summary>
+
+- `get_inventory_slots()`: return the inventory_grid slot layout
+</details>
+
 #### CraftingInventoryLayout
 Returned for `net.minecraft.world.inventory.InventoryMenu` and `net.minecraft.world.inventory.CrafterMenu` and `net.minecraft.world.inventory.CraftingMenu`
 Layouts:
@@ -787,13 +813,13 @@ Layouts:
 <details>
 <summary>Methods:</summary>
 
-- `get_inventory_slots()`: return the inventory_grid slot layout
 - `get_crafting_slots()`: return the crafting-grid slot layout
 - `get_result_slot()`: return the result slot index
+- Inherits `get_inventory_slots()` from `InventoryLayout`
 </details>
 
 #### ChestLayout
-Returned for `net.minecraft.world.inventory.ChestMenu` (any chest like menu)
+Returned for `net.minecraft.world.inventory.ChestMenu` (any chest like menu, including shulkers)
 
 Layouts:
 - `chest`: slot `[0-25]` for single chests/boat_chests/minecart_chests, `[0-53]` for double chests
@@ -803,7 +829,7 @@ Layouts:
 <summary>Methods:</summary>
 
 - `get_combine_slots()`: return thec chest slot layout
-- `get_inventory_slots()`: return the inventory_grid slot layout
+- Inherits `get_inventory_slots()` from `InventoryLayout`
 </details>
 
 #### GrindstoneLayout
@@ -819,7 +845,7 @@ Layouts:
 
 - `get_repair_slots()`: return thec combine_grid slot layout
 - `get_result_slot()`: return the ingredient slot
-- `get_inventory_slots()`: return the inventory_grid slot layout
+- Inherits `get_inventory_slots()` from `InventoryLayout`
 </details>
 
 #### AnvilLayout
@@ -835,7 +861,7 @@ Layouts:
 
 - `get_combine_slots()`: return thec combine_grid slot layout
 - `get_result_slot()`: return the ingredient slot
-- `get_inventory_slots()`: return the inventory_grid slot layout
+- Inherits `get_inventory_slots()` from `InventoryLayout`
 </details>
 
 #### BeaconLayout
@@ -849,7 +875,7 @@ Layouts:
 <summary>Methods:</summary>
 
 - `get_payment_slot()`: return the payment_slot slot
-- `get_inventory_slots()`: return the inventory_grid slot layout
+- Inherits `get_inventory_slots()` from `InventoryLayout`
 </details>
 
 #### BrewingStandLayout
@@ -867,7 +893,7 @@ Layouts:
 - `get_potion_slots()`: return the potions_grid slot layout
 - `get_ingredient_slot()`: return the ingredient slot
 - `get_blaze_powder_slot()`: return the blaze powder slot
-- `get_inventory_slots()`: return the inventory_grid slot layout
+- Inherits `get_inventory_slots()` from `InventoryLayout`
 </details>
 
 #### EnchantmentLayout
@@ -883,7 +909,7 @@ Layouts:
 
 - `get_enchantment_slot()`: return the enchantment grid slot
 - `get_lapis_slot()`: return the lapis grid slot
-- `get_inventory_slots()`: return the inventory_grid slot layout
+- Inherits `get_inventory_slots()` from `InventoryLayout`
 </details>
 
 #### MerchantLayout
@@ -899,7 +925,7 @@ Layouts:
 
 - `get_cost_sell_slots()`: return thec cost_sell_grid slot layout
 - `get_result_slot()`: return the ingredient slot
-- `get_inventory_slots()`: return the inventory_grid slot layout
+- Inherits `get_inventory_slots()` from `InventoryLayout`
 </details>
 
 </details>

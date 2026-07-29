@@ -660,6 +660,13 @@ class ContainerHelper(PyJinnProxy):
     """
     ...
 
+  @staticmethod
+  def container_get_items_excluding_inventory() -> list[ItemStack]:
+    """
+    Return all container items except the ones in the inventory grid for supported layouts.
+    """
+    ...
+
 class FishingHelper(PyJinnProxy):
   @staticmethod
   def is_holding_rod() -> bool:

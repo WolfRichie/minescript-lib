@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING
 from code.Proxy import PyJinnProxy
+from minescript import container_get_items
 
 PyJinnProxy.bind_script("library.pyj")
 
@@ -46,7 +47,8 @@ else:
         result=[0],
         inventory_grid=list(range(10, 45+1)),
       )
-    elif container_name == ChestLayout.CHEST_MENU_NAME:
+    elif (container_name == ChestLayout.CHEST_MENU_NAME or 
+          container_name == ChestLayout.SHULKER_BOX_MENU_NAME):
       if total_slots >= 45 and (total_slots - 36) % 9 == 0:
           return ChestLayout(
               container_name,
@@ -67,6 +69,19 @@ else:
     return DefaultContainerLayout(container_name, layouts={"slots":list(range(total_slots))})
   
   ContainerHelper.get_container_layout = get_container_layout
+
+  def container_get_items_excluding_inventory():
+    container_layout = ContainerHelper.get_container_layout()
+    if container_layout is None:
+        return []
+    
+    if isinstance(container_layout, InventoryLayout):
+        inventory_grid = container_layout.get_inventory_slots()
+        items = container_get_items()
+        return [item for item in items if item.slot not in inventory_grid]
+    return container_get_items()
+  
+  ContainerHelper.container_get_items_excluding_inventory = container_get_items_excluding_inventory
 
   FishingHelper = PyJinnProxy("FishingHelper")
   ScreenHelper = PyJinnProxy("ScreenHelper")
@@ -110,8 +125,13 @@ class DefaultContainerLayout(ContainerLayout):
   @property
   def is_unknown(self) -> bool:
     return True
+
+
+class InventoryLayout(ContainerLayout):
+  def get_inventory_slots(self):
+    return self.get_group("inventory_grid")
   
-class GrindstoneLayout(ContainerLayout):
+class GrindstoneLayout(InventoryLayout):
   GRINDSTONE_MENU_NAME = "net.minecraft.world.inventory.GrindstoneMenu"
   def __init__(self):
     super().__init__(GrindstoneLayout.GRINDSTONE_MENU_NAME, {
@@ -126,10 +146,7 @@ class GrindstoneLayout(ContainerLayout):
   def get_result_slot(self):
     return self.get_group("result")[0]
 
-  def get_inventory_slots(self):
-    return self.get_group("inventory_grid")
-
-class CraftingInventoryLayout(ContainerLayout):
+class CraftingInventoryLayout(InventoryLayout):
     INVENTORY_MENU_NAME = "net.minecraft.world.inventory.InventoryMenu"
     CRAFTER_MENU_NAME = "net.minecraft.world.inventory.CrafterMenu"
     CRAFTING_MENU_NAME = "net.minecraft.world.inventory.CraftingMenu"
@@ -156,7 +173,7 @@ class CraftingInventoryLayout(ContainerLayout):
     def get_result_slot(self):
         return self.get_group("result")[0]
 
-class AnvilLayout(ContainerLayout):
+class AnvilLayout(InventoryLayout):
   ANVIL_MENU_NAME = "net.minecraft.world.inventory.AnvilMenu"
   def __init__(self):
     super().__init__(AnvilLayout.ANVIL_MENU_NAME, {
@@ -170,11 +187,8 @@ class AnvilLayout(ContainerLayout):
   
   def get_result_slot(self):
     return self.get_group("result")[0]
-  
-  def get_inventory_slots(self):
-    return self.get_group("inventory_grid")
 
-class EnchantmentLayout(ContainerLayout):
+class EnchantmentLayout(InventoryLayout):
   ENCHANTMENT_MENU_NAME = "net.minecraft.world.inventory.EnchantmentMenu"
   def __init__(self):
     super().__init__(EnchantmentLayout.ENCHANTMENT_MENU_NAME, {
@@ -189,12 +203,10 @@ class EnchantmentLayout(ContainerLayout):
   def get_enchantment_slot(self):
     return self.get_group("enchantment_grid")[0]
   
-  def get_inventory_slots(self):
-    return self.get_group("inventory_grid")
   
-  
-class ChestLayout(ContainerLayout):
+class ChestLayout(InventoryLayout):
   CHEST_MENU_NAME = "net.minecraft.world.inventory.ChestMenu"
+  SHULKER_BOX_MENU_NAME = "net.minecraft.world.inventory.ShulkerBoxMenu"
   def __init__(self, container_name, chest_slots):
       super().__init__(container_name, {
           "chest": list(range(chest_slots)),
@@ -203,12 +215,9 @@ class ChestLayout(ContainerLayout):
       
   def get_chest_slots(self):
       return self.get_group("chest")
-    
-  def get_inventory_slots(self):
-      return self.get_group("inventory_grid")
   
   
-class BeaconLayout(ContainerLayout):
+class BeaconLayout(InventoryLayout):
   BEACON_MENU_NAME = "net.minecraft.world.inventory.BeaconMenu"
   def __init__(self):
     super().__init__(BeaconLayout.BEACON_MENU_NAME, {
@@ -219,10 +228,7 @@ class BeaconLayout(ContainerLayout):
   def get_payment_slot(self):
     return self.get_group("payment_slot")[0]
   
-  def get_inventory_slots(self):
-    return self.get_group("inventory_grid")
-  
-class BrewingStandLayout(ContainerLayout):
+class BrewingStandLayout(InventoryLayout):
   BREWING_STAND_MENU_NAME = "net.minecraft.world.inventory.BrewingStandMenu"
   def __init__(self):
     super().__init__(BrewingStandLayout.BREWING_STAND_MENU_NAME, {
@@ -241,10 +247,7 @@ class BrewingStandLayout(ContainerLayout):
   def get_blaze_powder_slot(self):
     return self.get_group("blaze_powder")[0]
   
-  def get_inventory_slots(self):
-    return self.get_group("inventory_grid")
-  
-class MerchantLayout(ContainerLayout):
+class MerchantLayout(InventoryLayout):
   MERCHANT_MENU_NAME = "net.minecraft.world.inventory.MerchantMenu"
   def __init__(self):
     super().__init__(MerchantLayout.MERCHANT_MENU_NAME, {
@@ -258,6 +261,3 @@ class MerchantLayout(ContainerLayout):
 
   def get_result_slot(self):
     return self.get_group("result")[0]
-
-  def get_inventory_slots(self):
-    return self.get_group("inventory_grid")

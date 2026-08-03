@@ -131,6 +131,9 @@ All methods which return `List[type]` e.g `get_stats() -> List[StatGroup]` retur
     - [get\_command\_block\_entity\_info(command\_block\_entity: JavaObject) -\> CommandBlockEntityInfo | None](#get_command_block_entity_infocommand_block_entity-javaobject---commandblockentityinfo--none)
       - [CommandBlockEntityInfo](#commandblockentityinfo)
     - [get\_spawner\_block\_entity\_display\_entity\_id(jukebox\_block\_entity: spawner\_block\_entity) -\> str | None](#get_spawner_block_entity_display_entity_idjukebox_block_entity-spawner_block_entity---str--none)
+  - [EntityHelper](#entityhelper)
+    - [get\_targeted\_entity(distance: int = 20) -\> JavaObject | None: ...](#get_targeted_entitydistance-int--20---javaobject--none-)
+    - [get\_entity\_by\_uuid(uuid: str) -\> JavaObject | None: ...](#get_entity_by_uuiduuid-str---javaobject--none-)
   - [ItemsHelper](#itemshelper)
     - [get\_json(item) -\> str](#get_jsonitem---str)
     - [get\_components(item) -\> str](#get_componentsitem---str)
@@ -187,18 +190,22 @@ All methods which return `List[type]` e.g `get_stats() -> List[StatGroup]` retur
     - [use\_rod() -\> bool](#use_rod---bool)
     - [stop\_using\_rod() -\> bool](#stop_using_rod---bool)
   - [ScreenHelper](#screenhelper)
-    - [get\_anvil\_experience\_required() -\> int | None](#get_anvil_experience_required---int--none)
     - [get\_current\_screen() -\> JavaObject | None](#get_current_screen---javaobject--none)
     - [get\_current\_screen\_class\_name() -\> str](#get_current_screen_class_name---str)
     - [get\_container\_bounds() -\> ContainerBounds | None](#get_container_bounds---containerbounds--none)
+    - [is\_death\_screen() -\> bool](#is_death_screen---bool)
+    - [get\_death\_reason() -\> str | None](#get_death_reason---str--none)
+    - [click\_respawn() -\> bool](#click_respawn---bool)
+    - [is\_anvil\_screen() -\> bool](#is_anvil_screen---bool)
+    - [set\_anvil\_screen\_text(text: str) -\> bool](#set_anvil_screen_texttext-str---bool)
+    - [get\_anvil\_screen\_text() -\> str | None](#get_anvil_screen_text---str--none)
+    - [get\_anvil\_experience\_required() -\> int | None](#get_anvil_experience_required---int--none)
     - [set\_current\_screen(screen) -\> None](#set_current_screenscreen---none)
     - [close\_current\_screen(with\_close\_container\_packet=True) -\> None](#close_current_screenwith_close_container_packettrue---none)
     - [open\_alert\_screen(title\_text: str, message\_text: str, ok\_button\_text: str = "OK")](#open_alert_screentitle_text-str-message_text-str-ok_button_text-str--ok)
     - [open\_pause\_screen() -\> None](#open_pause_screen---none)
     - [open\_inventory\_screen() -\> None](#open_inventory_screen---none)
     - [show\_toast(title: str, desc: str, display\_time: float = 5000.0)](#show_toasttitle-str-desc-str-display_time-float--50000)
-    - [set\_anvil\_screen\_text(text: str) -\> bool](#set_anvil_screen_texttext-str---bool)
-    - [get\_anvil\_screen\_text() -\> str | None](#get_anvil_screen_text---str--none)
     - [is\_any\_toast\_showing() -\> bool](#is_any_toast_showing---bool)
   - [WidgetScreenHelper](#widgetscreenhelper)
     - [get\_widgets() -\> List\[GuiWidget\] | None](#get_widgets---listguiwidget--none)
@@ -657,6 +664,22 @@ Returns SEQUENCE or AUTO or REDSTONE
 (Sequence being the CHAIN Command Block)
 ### get_spawner_block_entity_display_entity_id(jukebox_block_entity: spawner_block_entity) -> str | None
 
+---
+
+## EntityHelper
+
+### get_targeted_entity(distance: int = 20) -> JavaObject | None: ...
+
+### get_entity_by_uuid(uuid: str) -> JavaObject | None: ...
+Example to get all "zombie villager" JavaObject's
+
+```py
+zombie_villagers = entities(type="entity.minecraft.zombie_villager") # :List[EntityData]
+zombie_villager = [EntityHelper.get_entity_by_uuid(zombie_villager.uuid) for zombie_villager in zombie_villagers] # :List[JavaObject | None]
+```
+
+--- 
+
 ## ItemsHelper
 
 > [!NOTE] 
@@ -766,6 +789,8 @@ print("Container Layout:", type(layout), layout.__dict__)
 # Container Layout: <class 'main.AnvilLayout'> {'container_name': 'net.minecraft.world.inventory.AnvilMenu', 'layouts': {'combine_grid': [0, 1], 'result': [2], 'inventory': [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38]}}
 
 ```
+
+Use this to get container items excluding the inventory slots for supported layouts.
 
 **See the supported containers below**
 
@@ -1127,14 +1152,30 @@ Returns `False` if the player is not holding a fishing rod.
 
 ## ScreenHelper
 
-### get_anvil_experience_required() -> int | None
-Returns the current anvil rename cost from the open anvil menu, or `None` if no anvil menu is open.
-
 ### get_current_screen() -> JavaObject | None
 
 ### get_current_screen_class_name() -> str
+
 ### get_container_bounds() -> ContainerBounds | None
 Returns the bounds (`left`, `top`, `width`, `height`) of the container background if the current screen is a container screen.
+
+### is_death_screen() -> bool
+Returns `True` when the current screen is: `net.minecraft.client.gui.screens.DeathScreen`.
+
+### get_death_reason() -> str | None
+Returns the cause of death text shown on the death screen, or `None` when no death screen is open.
+
+### click_respawn() -> bool
+Clicks the Respawn button on the death screen.
+
+### is_anvil_screen() -> bool
+Returns `True` when the current screen is: `net.minecraft.client.gui.screens.inventory.AnvilScreen`.
+
+### set_anvil_screen_text(text: str) -> bool
+### get_anvil_screen_text() -> str | None
+
+### get_anvil_experience_required() -> int | None
+Returns the current anvil rename cost from the open anvil menu, or `None` if no anvil menu is open.
 
 ### set_current_screen(screen) -> None
 Open a screen.
@@ -1161,8 +1202,6 @@ Shows an alert screen
 ### open_pause_screen() -> None
 ### open_inventory_screen() -> None
 ### show_toast(title: str, desc: str, display_time: float = 5000.0)
-### set_anvil_screen_text(text: str) -> bool
-### get_anvil_screen_text() -> str | None
 ### is_any_toast_showing() -> bool
 
 ---

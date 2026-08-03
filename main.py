@@ -5,8 +5,9 @@ from minescript import container_get_items
 PyJinnProxy.bind_script("library.pyj")
 
 if TYPE_CHECKING:
-  from code.type_checking import StatisticsHelper, ScoreboardHelper, XaeroHelper, WidgetScreenHelper, ScreenHelper, BookScreenHelper, ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper, PlayerHelper, RegistryHelper
+  from code.type_checking import EntityHelper, StatisticsHelper, ScoreboardHelper, XaeroHelper, WidgetScreenHelper, ScreenHelper, BookScreenHelper, ContainerHelper, GLFWHelper, WindowHelper, MappingsHelper, FishingHelper, UtilHelper, ClientHelper, ItemsHelper, BlocksHelper, MerchantHelper, PlayerHelper, RegistryHelper
 else:
+  EntityHelper = PyJinnProxy("EntityHelper")
   XaeroHelper = PyJinnProxy("XaeroHelper")
   RegistryHelper = PyJinnProxy("RegistryHelper")
   BookScreenHelper = PyJinnProxy("BookScreenHelper")

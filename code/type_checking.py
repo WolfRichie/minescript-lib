@@ -4,6 +4,12 @@ from main import ContainerLayout
 
 from minescript import ItemStack, Vector3f
 
+class EntityHelper:
+  @staticmethod
+  def get_targeted_entity(distance: int = 20) -> JavaObject | None: ...
+  @staticmethod
+  def get_entity_by_uuid(uuid: str) -> JavaObject | None: ...
+
 @dataclass(slots=True)
 class ScoreboardScore:
     objective_name: str
@@ -760,6 +766,18 @@ class ScreenHelper(PyJinnProxy):
 
   @staticmethod
   def open_inventory_screen() -> None: ...
+
+  @staticmethod
+  def is_death_screen() -> bool: ...
+
+  @staticmethod
+  def is_anvil_screen() -> bool: ...
+
+  @staticmethod
+  def get_death_reason() -> str | None: ...
+
+  @staticmethod
+  def click_respawn() -> bool: ...
 
   @staticmethod
   def open_alert_screen(title_text: str, message_text: str, ok_button_text: str = "OK"):

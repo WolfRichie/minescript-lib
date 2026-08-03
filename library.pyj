@@ -182,7 +182,7 @@ class ScoreboardHelper:
             return None
         
     @staticmethod
-    def get_display_objective(display_slot: JavaObject) -> JavaObject | None:
+    def get_display_slot_objective(display_slot: JavaObject) -> JavaObject | None:
         scoreboard = ScoreboardHelper.get_scoreboard()
         return scoreboard.getDisplayObjective(display_slot)
 
@@ -1974,20 +1974,56 @@ class GLFWHelper:
         
 class BlocksHelper:
     BLOCK_POS_CLASS_NAME = "net.minecraft.core.BlockPos"
+    BLOCK_CLASS_NAME = "net.minecraft.world.level.block.Block"
     
     BlockPos = JavaClass("net.minecraft.core.BlockPos") # cant replace with BLOCK_POS_CLASS_NAME will error
+    Block = JavaClass("net.minecraft.world.level.block.Block")
     BlockState = JavaClass("net.minecraft.world.level.block.state.BlockState")
     BlockEntity = JavaClass("net.minecraft.world.level.block.entity.BlockEntity")
+    InteractionHand = JavaClass("net.minecraft.world.InteractionHand")
+    InteractionResult = JavaClass("net.minecraft.world.InteractionResult")
+    Direction = JavaClass("net.minecraft.core.Direction")
+    Vec3 = JavaClass("net.minecraft.world.phys.Vec3")
+    BlockHitResult = JavaClass("net.minecraft.world.phys.BlockHitResult")
     
     @staticmethod
     def get_block_pos(x: int|float, y: int|float, z: int|float) -> JavaObject:
         return BlocksHelper.BlockPos(int(x), int(y), int(z))
+
+    @staticmethod
+    def get_block_hit_result(x: int|float|JavaObject, y: int|float|None = None, z: int|float|None = None) -> JavaObject | None:
+        if isinstance(x, (int, float)):
+            if y is None or z is None:
+                return None
+            block_pos = BlocksHelper.get_block_pos(x, y, z)
+            hit_vec = BlocksHelper.Vec3(x, y, z)
+        elif ReflectionHelper.is_instance_of(x, BlocksHelper.BLOCK_POS_CLASS_NAME):
+            block_pos = x
+            hit_vec = BlocksHelper.Vec3(x.getX(), x.getY(), x.getZ())
+        else:
+            return None
+
+        return BlocksHelper.BlockHitResult(hit_vec, BlocksHelper.Direction.UP, block_pos, False)
     
     @staticmethod
     def get_block_state(x: int|float|JavaObject, y: int|float|None = None, z: int|float|None = None) -> JavaObject:
         if not isinstance(x, (int, float)) and ReflectionHelper.is_instance_of(x, BlocksHelper.BLOCK_POS_CLASS_NAME):
             return minecraft.level.getBlockState(x)
         return minecraft.level.getBlockState(BlocksHelper.get_block_pos(x, y, z))
+
+    @staticmethod
+    def get_block(x: int|float|JavaObject, y: int|float|None = None, z: int|float|None = None) -> JavaObject | None:
+        if isinstance(x, (int, float)):
+            block_state = minecraft.level.getBlockState(BlocksHelper.get_block_pos(x, y, z))
+        elif ReflectionHelper.is_instance_of(x, BlocksHelper.BLOCK_POS_CLASS_NAME):
+            block_state = minecraft.level.getBlockState(x)
+        else:
+            return None
+
+        if block_state is None:
+            return None
+
+        return block_state.getBlock()
     
     @staticmethod
     def get_block_state_block(block_state: JavaObject) -> JavaObject:
@@ -2010,6 +2046,61 @@ class BlocksHelper:
         if not isinstance(x, (int, float)) and ReflectionHelper.is_instance_of(x, BlocksHelper.BLOCK_POS_CLASS_NAME):
             return minecraft.level.getBlockEntity(x)
         return minecraft.level.getBlockEntity(BlocksHelper.get_block_pos(x, y, z))
+
+    @staticmethod
+    def _can_use_block_hit(block_hit: JavaObject | None) -> bool:
+        if block_hit is None:
+            return False
+
+        block_pos = block_hit.getBlockPos()
+
+        if minecraft.gameMode is None or minecraft.player is None or minecraft.level is None:
+            return False
+
+        if not minecraft.player.isWithinBlockInteractionRange(block_pos, 1.0):
+            return False
+
+        if not minecraft.level.getWorldBorder().isWithinBounds(block_pos):
+            return False
+
+        if minecraft.player.blockActionRestricted(minecraft.level, block_pos, minecraft.gameMode.getPlayerMode()):
+            return False
+
+        block_state = minecraft.level.getBlockState(block_pos)
+        if block_state is None:
+            return False
+
+        if block_state.isAir():
+            return False
+
+        connection = minecraft.getConnection()
+        if connection is None:
+            return False
+
+        features_enabled = connection.isFeatureEnabled(block_state.getBlock().requiredFeatures())
+        if not features_enabled:
+            return False
+
+        return True
+
+    @staticmethod
+    def can_use_block(x: int|float|JavaObject, y: int|float|None = None, z: int|float|None = None) -> bool:
+        block_hit = BlocksHelper.get_block_hit_result(x, y, z)
+        return BlocksHelper._can_use_block_hit(block_hit)
+
+    @staticmethod
+    def use_block(x: int|float|JavaObject, y: int|float|None = None, z: int|float|None = None) -> bool:
+        block_hit = BlocksHelper.get_block_hit_result(x, y, z)
+        if not BlocksHelper._can_use_block_hit(block_hit):
+            return False
+
+        result = minecraft.gameMode.useItemOn(
+            minecraft.player,
+            BlocksHelper.InteractionHand.MAIN_HAND,
+            block_hit,
+        )
+
+        return result == BlocksHelper.InteractionResult.SUCCESS
     
     @staticmethod
     def is_command_block_entity(block_entity: JavaObject) -> bool:

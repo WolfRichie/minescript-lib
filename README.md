@@ -79,7 +79,7 @@ All methods which return `List[type]` e.g `get_stats() -> List[StatGroup]` retur
     - [get\_display\_slot\_enum(key: str) -\> JavaObject](#get_display_slot_enumkey-str---javaobject)
     - [get\_display\_slot\_objective(display\_slot\_enum: JavaObject) -\> JavaObject | None:](#get_display_slot_objectivedisplay_slot_enum-javaobject---javaobject--none)
     - [set\_display\_slot\_objective(display\_slot: JavaObject, objective\_name: str|None) -\> bool | None](#set_display_slot_objectivedisplay_slot-javaobject-objective_name-strnone---bool--none)
-    - [clear\_display\_slot(display\_slot: JavaObject) -\> bool | None](#clear_display_slotdisplay_slot-javaobject---bool--none)
+    - [clear\_display\_slot\_objective(display\_slot: JavaObject) -\> bool | None](#clear_display_slot_objectivedisplay_slot-javaobject---bool--none)
     - [get\_sidebar() -\> Scoreboard | None](#get_sidebar---scoreboard--none)
       - [Scoreboard:](#scoreboard)
   - [MerchantHelper](#merchanthelper)
@@ -121,11 +121,15 @@ All methods which return `List[type]` e.g `get_stats() -> List[StatGroup]` retur
   - [BlocksHelper](#blockshelper)
     - [get\_block\_pos(x, y=None, z=None) -\> JavaObject](#get_block_posx-ynone-znone---javaobject)
     - [get\_block\_state(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_statex-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
+    - [get\_block(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject | None:](#get_blockx-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject--none)
     - [get\_block\_state\_block(block\_state: JavaObject) -\> JavaObject:](#get_block_state_blockblock_state-javaobject---javaobject)
     - [get\_block\_id(block: JavaObject) -\> str | None:](#get_block_idblock-javaobject---str--none)
     - [get\_block\_state\_id(block\_state: JavaObject) -\> str | None:](#get_block_state_idblock_state-javaobject---str--none)
     - [get\_block\_state\_json(block\_state: JavaObject) -\> JavaObject:](#get_block_state_jsonblock_state-javaobject---javaobject)
     - [get\_block\_entity(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject:](#get_block_entityx-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject)
+    - [get\_block\_hit\_result(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> JavaObject | None](#get_block_hit_resultx-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---javaobject--none)
+    - [can\_use\_block(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> bool](#can_use_blockx-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---bool)
+    - [use\_block(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -\> bool](#use_blockx-intfloatjavaobject-y-intfloatnone--none-z-intfloatnone--none---bool)
     - [is\_command\_block\_entity(block\_entity: JavaObject) -\> bool:](#is_command_block_entityblock_entity-javaobject---bool)
     - [set\_command\_block\_entity\_command(command\_block\_entity: JavaObject, command: str) -\> bool](#set_command_block_entity_commandcommand_block_entity-javaobject-command-str---bool)
     - [get\_command\_block\_entity\_info(command\_block\_entity: JavaObject) -\> CommandBlockEntityInfo | None](#get_command_block_entity_infocommand_block_entity-javaobject---commandblockentityinfo--none)
@@ -437,7 +441,7 @@ if sidebar_slot is not None:
 ### set_display_slot_objective(display_slot: JavaObject, objective_name: str|None) -> bool | None
 requires permissions
 
-### clear_display_slot(display_slot: JavaObject) -> bool | None
+### clear_display_slot_objective(display_slot: JavaObject) -> bool | None
 requires permissions
 
 ### get_sidebar() -> Scoreboard | None
@@ -584,6 +588,15 @@ Accepted formats:
 - `x, y, z`: Individual numeric coordinates (float or int)
 - `JavaObject` of `net.minecraft.core.BlockPos` passed into x and y/z are left to None
 
+### get_block(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -> JavaObject | None:
+
+Returns the minecraft `net.minecraft.world.level.block.Block` Java object from a position or coordinates.
+
+Accepted formats:
+- `x, y, z`: Individual numeric coordinates (float or int)
+- `JavaObject` of `net.minecraft.core.BlockPos` passed into x and y/z are left to None
+
+
 ### get_block_state_block(block_state: JavaObject) -> JavaObject:
 
 Returns the minecraft `net.minecraft.world.level.block.Block` from a blockstate
@@ -636,6 +649,48 @@ if targeted_block_pos is not None:
 
     if block_entity is not None:
         print(UtilHelper.get_class_name(block_entity)) -> net.minecraft.world.level.block.entity.CommandBlockEntity      
+```
+
+### get_block_hit_result(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -> JavaObject | None
+Builds a JavaObject `net.minecraft.world.phys.BlockHitResult`
+
+Accepted formats:
+- `x, y, z`: Individual numeric coordinates (float or int)
+- `JavaObject` of `net.minecraft.core.BlockPos` passed into x and y/z are left to None
+
+
+### can_use_block(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -> bool
+
+- Valid block position
+- World border bounds
+- Player action restriction checks
+- Block feature availability on the current connection
+- Block within player range
+
+Accepted formats:
+- `x, y, z`: Individual numeric coordinates (float or int)
+- `JavaObject` of `net.minecraft.core.BlockPos` passed into x and y/z are left to None
+
+### use_block(x: int|float|JavaObject:, y: int|float|None = None, z: int|float|None = None) -> bool
+Directly interacts with a block
+
+Accepted formats:
+- `x, y, z`: Individual numeric coordinates (float or int)
+- `JavaObject` of `net.minecraft.core.BlockPos` passed into x and y/z are left to None
+
+Returns `True` when the interaction was a succcess otherwise `False`.
+
+```py
+def interact_block_at(x: int, y: int, z: int) -> bool:
+    block_pos = BlocksHelper.get_block_pos(x, y, z)
+    block = BlocksHelper.get_block(block_pos)
+    if block is None:
+        print(f"no block to interact with at {x} {y} {z}")
+        return False
+    print(f"canUseBlock: {BlocksHelper.can_use_block(block_pos)}")
+    success = BlocksHelper.use_block(block_pos)
+    print(f"BlocksHelper.use_block at {x} {y} {z}: success={success}")
+    return success
 ```
 
 ### is_command_block_entity(block_entity: JavaObject) -> bool:
